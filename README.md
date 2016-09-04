@@ -54,6 +54,7 @@ export default class Form_name extends Component
 				onSubmit={submit(this.submit)}>
 
 				<Field
+					name="phone"
 					component={Input}
 					validate={this.validate_phone}
 					type="tel"
