@@ -105,14 +105,14 @@ All other `props` are passed through to the underlying input component.
 Additional `props` passed to the `component`:
 
   * `error : String` — either the `error` passed to the `<Field/>` or a validation error, if any
-  * `indicateInvalid : boolean` — tells the `component` whether it should render itself as invalid
+  * `indicateInvalid : boolean` — tells the `component` whether it should render itself as being invalid
 
 The `indicateInvalid` algorythm is as follows:
 
-  * Initially `indicateInvalid` is `false`
-  * As the user types the field value `indicateInvalid` is still `false`
-  * When the user submits the form, `indicateInvalid` becomes `true`
-  * When the user focuses the field and changes its value, `indicateInvalid` becomes `false`
+  * Initially `indicateInvalid` for a field is `false`
+  * Whenever the user submits the form, `indicateInvalid` becomes `true` for the first found invalid form field
+  * Whenever the user changes a field's value, `indicateInvalid` becomes `false` for that field
+  * Whenever the `error` property is set on the `<Field/>` component, `indicateInvalid` becomes `true` for that field
 
 ### reducer
 
