@@ -46,14 +46,13 @@ function submit_action(values)
 }
 
 @Form()
-@connect((state) => ({ phone: state.user.phone }))
+@connect
+(
+	(state)    => ({ phone: state.user.phone }),
+	(dispatch) => bindActionCreators({ submit_action }, dispatch)
+)
 export default class Form_name extends Component
 {
-	submit(values)
-	{
-		console.log('Submitting form with', values)
-	}
-
 	validate_phone(phone)
 	{
 		if (!phone)
@@ -64,11 +63,11 @@ export default class Form_name extends Component
 
 	render()
 	{
-		const { phone, submit } = this.props
+		const { phone, submit, submit_action } = this.props
 
 		return (
 			<form
-				onSubmit={submit(this.submit)}>
+				onSubmit={submit(submit_action)}>
 
 				<Field
 					name="phone"
