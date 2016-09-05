@@ -29,6 +29,7 @@ Create the form
 import React, { Component, PropTypes } from 'react'
 import Form, { Field } from 'simpler-redux-form'
 import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
 // `redux-thunk` example
 function submit_action(values)
