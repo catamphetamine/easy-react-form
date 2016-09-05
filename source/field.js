@@ -325,7 +325,8 @@ class Connectable_field extends Component
 		}
 		= this.props
 
-		if (form_validation_failed)
+		// Don't show external error if form validation failed
+		if (indicate_invalid && form_validation_failed)
 		{
 			error            = validate(value)
 			indicate_invalid = error ? true : false
