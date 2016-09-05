@@ -28,8 +28,10 @@ Create the form
 ```js
 import React, { Component, PropTypes } from 'react'
 import Form, { Field } from 'simpler-redux-form'
+import { connect } from 'react-redux'
 
-@Form('form_name')
+@Form()
+@connect((state) => ({ phone: state.user.phone }))
 export default class Form_name extends Component
 {
 	submit(values)
@@ -47,7 +49,7 @@ export default class Form_name extends Component
 
 	render()
 	{
-		const { submit } = this.props
+		const { phone, submit } = this.props
 
 		return (
 			<form
@@ -56,6 +58,7 @@ export default class Form_name extends Component
 				<Field
 					name="phone"
 					component={Input}
+					value={phone}
 					validate={this.validate_phone}
 					type="tel"
 					placeholder="Enter phone number"/>
@@ -77,6 +80,15 @@ function Input(props)
 }
 ```
 
+```js
+import Form_name from './form'
+
+function Page(props)
+{
+	return <Form_name formId='form_example'/>
+}
+```
+
 ## API
 
 ### @Form()
@@ -85,7 +97,7 @@ It injects some extra `props` into the resulting React component:
 
   * `submit(handler : Function)` — creates a form submission handler
 
-The resulting React component also takes a required `form : String` property which must be an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${form}`).
+The resulting React component also takes a required `formId : String` property which must be an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${formId}`).
 
 ### Field
 

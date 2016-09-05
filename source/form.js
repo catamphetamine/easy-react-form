@@ -48,7 +48,8 @@ export default function Form()
 
 			static propTypes =
 			{
-				form : PropTypes.string.isRequired,
+				form_id : PropTypes.string,
+				formId  : PropTypes.string,
 
 				values           : PropTypes.object.isRequired,
 				errors           : PropTypes.object.isRequired,
@@ -93,12 +94,12 @@ export default function Form()
 
 			componentWillMount()
 			{
-				this.props.initialize_form(this.props.form)
+				this.props.initialize_form(this.form_id())
 			}
 
 			componentWillUnmount()
 			{
-				this.props.destroy_form(this.props.form)
+				this.props.destroy_form(this.form_id())
 			}
 
 			getChildContext()
@@ -124,34 +125,39 @@ export default function Form()
             return context
 			}
 
+			form_id()
+			{
+				return form_id(this.props)
+			}
+
 			// Field mounts
 			initialize_field(field, value, error)
 			{
-				this.props.initialize_field(this.props.form, field, value, error)
+				this.props.initialize_field(this.form_id(), field, value, error)
 			}
 
 			// Field unmounts
 			destroy_field(field)
 			{
-				this.props.destroy_field(this.props.form, field)
+				this.props.destroy_field(this.form_id(), field)
 			}
 
 			// Field `onChange` handler fires
 			update_field_value(field, value, error)
 			{
-				this.props.update_field_value(this.props.form, field, value, error)
+				this.props.update_field_value(this.form_id(), field, value, error)
 			}
 
 			// Enables invalid field indication
 			indicate_invalid_field(field)
 			{
-				this.props.indicate_invalid_field(this.props.form, field)
+				this.props.indicate_invalid_field(this.form_id(), field)
 			}
 
 			// Reset invalid indication for a field
 			reset_invalid_indication(field)
 			{
-				this.props.reset_invalid_indication(this.props.form, field)
+				this.props.reset_invalid_indication(this.form_id(), field)
 			}
 
 			// Returns form values
@@ -182,10 +188,10 @@ export default function Form()
 			// Otherwise marks invalid fields.
 			submit_if_valid(action)
 			{
-				const { values, errors, form, set_form_validation_passed } = this.props
+				const { values, errors, set_form_validation_passed } = this.props
 
 				// Ignores previous form submission errors until validation passes
-				set_form_validation_passed(form, false)
+				set_form_validation_passed(this.form_id(), false)
 
 				// Check if there are any invalid fields
 				const invalid_fields = Object.keys(values).filter(field => errors[field] !== undefined)
@@ -194,7 +200,7 @@ export default function Form()
 				if (invalid_fields.length === 0)
 				{
 					// Stop ignoring form submission errors
-					set_form_validation_passed(form, true)
+					set_form_validation_passed(this.form_id(), true)
 
 					return action(values)
 				}
@@ -226,13 +232,13 @@ export default function Form()
 			// Focuses on a given form field
 			focus_field(field)
 			{
-				this.props.focus_field(this.props.form, field)
+				this.props.focus_field(this.form_id(), field)
 			}
 
 			// Focus on a field was requested and was performed
 			focused_field(field)
 			{
-				this.props.focused_field(this.props.form, field)
+				this.props.focused_field(this.form_id(), field)
 			}
 
 			render()
@@ -252,12 +258,14 @@ export default function Form()
 		(
 			(state, props) =>
 			{
-				if (!props.form)
+				const _form_id = form_id(props)
+
+				if (!_form_id)
 				{
-					throw new Error("`form` property not specified on `simpler-redux-form` component")
+					throw new Error("`formId` property not specified on `simpler-redux-form` component")
 				}
 
-				state = state.form[props.form]
+				state = state.form[_form_id]
 
 				if (!state)
 				{
@@ -299,4 +307,9 @@ export default function Form()
 function get_display_name(Wrapped)
 {
 	return Wrapped.displayName || Wrapped.name || 'Component'
+}
+
+function form_id(props)
+{
+	return props.form_id || props.formId
 }
