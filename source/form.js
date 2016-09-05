@@ -262,7 +262,9 @@ export default function Form(options)
 				set_form_validation_passed(this.form_id(), false)
 
 				// Check if there are any invalid fields
-				const invalid_fields = Object.keys(fields).filter(field => errors[field] !== undefined)
+				const invalid_fields = Object.keys(fields)
+					.filter(field => fields[field])
+					.filter(field => errors[field] !== undefined)
 
 				// If all fields are valid, then submit the form
 				if (invalid_fields.length === 0)
@@ -359,7 +361,6 @@ export default function Form(options)
 					submit : this.submit,
 					focus  : this.focus_field,
 					clear  : this.clear_field,
-
 					reset_invalid_indication : this.reset_invalid_indication
 				})
 			}
@@ -396,6 +397,12 @@ export default function Form(options)
 
 				if (options.busy)
 				{
+					// This is needed for Redux store listener
+					// shallow compare to actually go into the object.
+					// Otherwise it will just see that `before === after`
+					// and won't rerender React component.
+					form_state = { ...form_state }
+
 					form_state.busy = options.busy(state, props)
 				}
 
