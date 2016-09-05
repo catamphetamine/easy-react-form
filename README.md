@@ -110,15 +110,13 @@ function Page(props)
 
 `@Form()` decorator takes these options:
 
-  * `preSubmit(props, dispatch)` — (optional) a function that will be called before the form tries to submit itself (can be used to reset custom error messages, for example)
-
   * `busy(redux_state, props) => boolean` — (optional) a function that determines by analysing current Redux state (having access to the `props`) if the form is "busy" (i.e. submit is in progress); if this option is specified then `busy : boolean` property will be injected into the `<Form/>` component, and also all `<Field/>`s will be `disabled` while the form is `busy` (makes sense)
 
 The resulting React component takes a required `formId : String` property which must be an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${formId}`).
 
 The following properties are injected into the resulting `<Form/>` element:
 
-  * `submit(submit_form(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submit_form)}/>`; the `submit_form(values)` argument is your form submission function; if two arguments are passed to the `submit()` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors before the form tries to submit itself a subsequent time
+  * `submit(submit_form(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submit_form)}/>`; the `submit_form(values)` argument is your form submission function; if two arguments are passed to the `submit(pre_submit, submit_form)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors before the form tries to submit itself a subsequent time
 
   * `busy : boolean` — only if `busy(redux_state, props) => boolean` was specified (see above)
 
