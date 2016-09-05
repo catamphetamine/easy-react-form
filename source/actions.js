@@ -10,6 +10,23 @@ export const destroy_form = (form) =>
 	form
 })
 
+export const register_field = (form, field, value, error, non_validation_error) =>
+({
+	type : '@@simpler-redux-form/register-field',
+	form,
+	field,
+	value,
+	error,
+	non_validation_error
+})
+
+export const unregister_field = (form, field) =>
+({
+	type : '@@simpler-redux-form/unregister-field',
+	form,
+	field
+})
+
 export const update_field_value = (form, field, value, error) =>
 ({
 	type : '@@simpler-redux-form/changed',
@@ -17,22 +34,6 @@ export const update_field_value = (form, field, value, error) =>
 	field,
 	value,
 	error
-})
-
-export const initialize_field = (form, field, value, error) =>
-({
-	type : '@@simpler-redux-form/initialize-field',
-	form,
-	field,
-	value,
-	error
-})
-
-export const destroy_field = (form, field) =>
-({
-	type : '@@simpler-redux-form/destroy-field',
-	form,
-	field
 })
 
 export const indicate_invalid_field = (form, field) =>
@@ -45,6 +46,13 @@ export const indicate_invalid_field = (form, field) =>
 export const reset_invalid_indication = (form, field) =>
 ({
 	type : '@@simpler-redux-form/dont-indicate-invalid',
+	form,
+	field
+})
+
+export const clear_field = (form, field) =>
+({
+	type : '@@simpler-redux-form/clear',
 	form,
 	field
 })
@@ -68,4 +76,10 @@ export const set_form_validation_passed = (form, passed) =>
 	type : '@@simpler-redux-form/validation-passed',
 	form,
 	passed
+})
+
+export const reset_form_invalid_indication = (form) =>
+({
+	type : '@@simpler-redux-form/reset-invalid-indication',
+	form
 })

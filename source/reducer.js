@@ -37,90 +37,49 @@ export default function reducer(state = {}, action)
 
 			return state
 
-		case '@@simpler-redux-form/initialize-field':
-
-			// if (state[action.form].values[action.field] !== undefined)
-			// {
-			// 	throw new Error(`Form "${action.form}" field "${action.field}" has already been initialized.`)
-			// }
-
-			// This changes [action.form] object's properties,
-			// and therefore Redux'es shallow compare
-			// rerenders the form every time.
-			//
-			// state =
-			// {
-			// 	...state,
-			// 	[action.form]:
-			// 	{
-			// 		...form_state,
-			// 		values:
-			// 		{
-			// 			...form_state.values,
-			// 			[action.field] : action.value
-			// 		},
-			// 		errors:
-			// 		{
-			// 			...form_state.errors,
-			// 			[action.field] : action.error
-			// 		}
-			// 	}
-			// }
+		case '@@simpler-redux-form/register-field':
 
 			state = { ...state }
 
-			form_state.values[action.field] = action.value
-			form_state.errors[action.field] = action.error
+			// Uses a numerical counter instead of a boolean.
+			// https://github.com/erikras/redux-form/issues/1705
+			if (form_state.fields[action.field] === undefined)
+			{
+				form_state.fields[action.field] = 1
+
+				// Only initializes the field with it's default value
+				// if it hasn't been seen before.
+				form_state.values[action.field] = action.value
+				form_state.errors[action.field] = action.error
+
+				// If an external error was specified, then show it
+				if (action.non_validation_error)
+				{
+					form_state.indicate_invalid[action.field] = true
+				}
+			}
+			else
+			{
+				form_state.fields[action.field]++
+			}
 
 			return state
 
-		case '@@simpler-redux-form/destroy-field':
+		case '@@simpler-redux-form/unregister-field':
 
-			// It will have been already initialized on the server-side
-			// if (state[action.form].values[action.field] === undefined)
-			// {
-			// 	throw new Error(`Form "${action.form}" field "${action.field}" has already been destroyed.`)
-			// }
-
-			if (!state[action.form])
+			// Seems that a form gets destroyed before its fields
+			if (form_state)
 			{
-				return state
-			}
+				state = { ...state }
 
-			// This changes [action.form] object's properties,
-			// and therefore Redux'es shallow compare
-			// rerenders the form every time.
-			//
-			// state =
-			// {
-			// 	...state,
-			// 	[action.form]:
-			// 	{
-			// 		...form_state,
-			// 		values:
-			// 		{
-			// 			...form_state.values
-			// 		},
-			// 		errors:
-			// 		{
-			// 			...form_state.errors
-			// 		},
-			// 		indicate_invalid:
-			// 		{
-			// 			...form_state.indicate_invalid
-			// 		}
-			// 	}
-			// }
+				if (!form_state.fields[action.field])
+				{
+					console.error(`Warning: An "unregister field" request was sent for field "${action.field}" which is not currently registered. This is a bug and it needs to be reported: https://github.com/halt-hammerzeit/simpler-redux-form/issues`)
+				}
 
-			state = { ...state }
-
-			delete state[action.form].values[action.field]
-			delete state[action.form].errors[action.field]
-			delete state[action.form].indicate_invalid[action.field]
-
-			if (form_state.focus[action.field])
-			{
-				delete state[action.form].focus[action.field]
+				// Uses a numerical counter instead of a boolean.
+				// https://github.com/erikras/redux-form/issues/1705
+				form_state.fields[action.field]--
 			}
 
 			return state
@@ -191,21 +150,17 @@ export default function reducer(state = {}, action)
 
 		case '@@simpler-redux-form/dont-indicate-invalid':
 
-			// This changes [action.form] object's properties,
-			// and therefore Redux'es shallow compare
-			// rerenders the form every time.
-			//
-			// state =
-			// {
-			// 	...state,
-			// 	...
-			// }
-
 			state = { ...state }
 
 			form_state.indicate_invalid[action.field] = false
 
 			return state
+
+		case '@@simpler-redux-form/clear':
+
+			state = { ...state }
+
+			form_state.values[action.field] = undefined
 
 		case '@@simpler-redux-form/focus':
 
@@ -239,16 +194,6 @@ export default function reducer(state = {}, action)
 
 		case '@@simpler-redux-form/focused':
 
-			// This changes [action.form] object's properties,
-			// and therefore Redux'es shallow compare
-			// rerenders the form every time.
-			//
-			// state =
-			// {
-			// 	...state,
-			// 	...
-			// }
-
 			state = { ...state }
 
 			for (let field of Object.keys(form_state.focus))
@@ -260,19 +205,23 @@ export default function reducer(state = {}, action)
 
 		case '@@simpler-redux-form/validation-passed':
 
-			// This changes [action.form] object's properties,
-			// and therefore Redux'es shallow compare
-			// rerenders the form every time.
-			//
-			// state =
-			// {
-			// 	...state,
-			// 	...
-			// }
-
 			state = { ...state }
 
 			form_state.misc.validation_failed = !action.passed
+
+			return state
+
+		case '@@simpler-redux-form/reset-invalid-indication':
+
+			state = { ...state }
+
+			for (let field of Object.keys(form_state.indicate_invalid))
+			{
+				form_state.indicate_invalid[field] = false
+				// delete form_state.indicate_invalid[field]
+			}
+
+			form_state.misc.validation_failed = false
 
 			return state
 
@@ -285,6 +234,7 @@ export function initial_form_state()
 {
 	const state =
 	{
+		fields           : {},
 		values           : {},
 		errors           : {},
 		indicate_invalid : {},

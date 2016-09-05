@@ -9,6 +9,12 @@ import { connect } from 'react-redux'
 // 	validate={...}
 // 	error={...}/>
 //
+// React will optimize form rerendering,
+// and in case of adding or removing form fields
+// it will reuse <Field/> components for different fields.
+// Therefore the need to register and unregister fields
+// while preserving all the values (to retain them between rerenders).
+//
 export default class Field extends Component
 {
 	static propTypes =
@@ -16,29 +22,28 @@ export default class Field extends Component
 		name      : PropTypes.string.isRequired,
 		component : PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]).isRequired,
 
-		value                  : PropTypes.any,
-		indicate_invalid       : PropTypes.bool,
-		focus                  : PropTypes.bool,
-		form_validation_failed : PropTypes.bool,
-
+		value    : PropTypes.any,
 		error    : PropTypes.string,
 		validate : PropTypes.func,
 
 		children : PropTypes.node
 	}
 
+	static defaultProps =
+	{
+		validate : () => {}
+	}
+
 	static contextTypes =
 	{
 		simpler_redux_form : PropTypes.shape
 		({
-			// name : PropTypes.string.isRequired,
-
 			get_value            : PropTypes.func.isRequired,
 			get_indicate_invalid : PropTypes.func.isRequired,
 			get_focus            : PropTypes.func.isRequired,
 
-			initialize_field         : PropTypes.func.isRequired,
-			destroy_field            : PropTypes.func.isRequired,
+			register_field           : PropTypes.func.isRequired,
+			unregister_field         : PropTypes.func.isRequired,
 			indicate_invalid_field   : PropTypes.func.isRequired,
 			reset_invalid_indication : PropTypes.func.isRequired,
 			update_field_value       : PropTypes.func.isRequired,
@@ -51,24 +56,30 @@ export default class Field extends Component
 	{
 		super(props, context)
 
-		// If an externally set `error` property is updated,
-		// then set `state.form[form].indicate_invalid[field]` to `true`.
-		this.show_or_hide_externally_set_error({}, props, context)
-
 		// This field will update itself when its value changes
 		// (or when it's invalid indication flag changes)
-		this.Connected_field = connect
+		this.Connected_field = this.connect_field(props.name, context)
+
+		// Miscellaneous
+		this.on_change = this.on_change.bind(this)
+		this.focused   = this.focused.bind(this)
+	}
+
+	connect_field(name, context)
+	{
+		return connect
 		(
 			// The following connected props aren't derived from `state`,
 			// but it isn't made without @connect() in this case,
 			// because <Form/> doesn't rerender itself, for example,
 			// on value change, so a simple React component wrapper
 			// would not do.
+			//
 			(state) =>
 			({
-				value                  : context.simpler_redux_form.get_value(props.name),
-				indicate_invalid       : context.simpler_redux_form.get_indicate_invalid(props.name),
-				focus                  : context.simpler_redux_form.get_focus(props.name),
+				value                  : context.simpler_redux_form.get_value(name),
+				indicate_invalid       : context.simpler_redux_form.get_indicate_invalid(name),
+				_focus                 : context.simpler_redux_form.get_focus(name),
 				form_validation_failed : context.simpler_redux_form.get_form_validation_failed()
 			}),
 			undefined,
@@ -78,31 +89,63 @@ export default class Field extends Component
 			}
 		)
 		(Connectable_field)
+	}
 
-		// Miscellaneous
-		this.on_change = this.on_change.bind(this)
-		this.focused   = this.focused.bind(this)
+	// This is a new form field
+	initialize_new_field(props)
+	{
+		const { name, value, validate } = props
 	}
 
 	componentWillMount()
 	{
-		const { name, value, validate } = this.props
+		const { name, value, validate, error } = this.props
 
-		this.context.simpler_redux_form.initialize_field(name, value, validate ? validate(value) : undefined)
+		// Register field.
+		//
+		// Initialize this field with the default value,
+		// if it hasn't been edited before (i.e. if it's really new).
+		//
+		this.context.simpler_redux_form.register_field(name, value, validate(value), error)
 	}
 
 	componentWillUnmount()
 	{
 		const { name } = this.props
 
-		this.context.simpler_redux_form.destroy_field(name)
+		// Unregister field
+		this.context.simpler_redux_form.unregister_field(name)
 	}
 
 	componentWillReceiveProps(new_props)
 	{
-		// If an externally set `error` property is updated,
-		// then set `indicate_invalid` to `true` for this field.
-		this.show_or_hide_externally_set_error(this.props, new_props, this.context)
+		// In case React reused one `<Field/>`` element for another form field
+		// (an alternative solution to specifying `key`s on each `<Field/>`)
+		if (this.props.name !== new_props.name)
+		{
+			const { name, value, validate, error } = new_props
+
+			// This field will update itself when its value changes
+			// (or when it's invalid indication flag changes)
+			this.Connected_field = this.connect_field(name, this.context)
+
+			// Unregister old field
+			this.context.simpler_redux_form.unregister_field(this.props.name)
+
+			// Register new field
+			//
+			// Initialize this field with the default value,
+			// if it hasn't been edited before (i.e. if it's really new).
+			//
+			this.context.simpler_redux_form.register_field(name, value, validate(value), error)
+		}
+		// Else, if it's the same field
+		else
+		{
+			// If an externally set `error` property is updated,
+			// then set `indicate_invalid` to `true` for this field.
+			this.show_or_hide_externally_set_error(this.props, new_props, this.context)
+		}
 	}
 
 	// If an externally set `error` property is updated to another error,
@@ -176,7 +219,8 @@ export default class Field extends Component
 			...this.props,
 			ref       : 'field',
 			on_change : this.on_change,
-			focused   : this.focused
+			focused   : this.focused,
+			disabled  : this.context.simpler_redux_form.is_busy()
 		})
 	}
 }
@@ -185,7 +229,22 @@ export default class Field extends Component
 // and therefore will update itself when its value changes.
 class Connectable_field extends Component
 {
-	static propTypes = Field.propTypes
+	static propTypes =
+	{
+		name     : PropTypes.string,
+		disabled : PropTypes.bool,
+
+		value                  : PropTypes.any,
+		indicate_invalid       : PropTypes.bool,
+		_focus                 : PropTypes.bool,
+		form_validation_failed : PropTypes.bool,
+
+		validate : PropTypes.func,
+		error    : PropTypes.string,
+
+		on_change : PropTypes.func.isRequired,
+		focused   : PropTypes.func.isRequired
+	}
 
 	constructor(props, context)
 	{
@@ -206,7 +265,7 @@ class Connectable_field extends Component
 	// If this field is being focused programmatically, then do it.
 	focus_if_requested(props, new_props, context)
 	{
-		if (!props.focus && new_props.focus)
+		if (!props._focus && new_props._focus)
 		{
 			// Focus the field.
 			// Do it in a timeout, otherwise it didn't work.
@@ -221,29 +280,50 @@ class Connectable_field extends Component
 	// Focuses the field (e.g. in case of validation errors)
 	focus()
 	{
+		// If the form hasn't been unmounted yet
 		if (this.refs.field)
 		{
-			return this.refs.field.focus()
-		}
+			// If the custom React component has a `.focus()` instance method
+			if (this.refs.field.focus)
+			{
+				return this.refs.field.focus()
+			}
 
-		ReactDOM.findDOMNode(this.refs.field).focus()
+			// Generic focusing
+			ReactDOM.findDOMNode(this.refs.field).focus()
+		}
 	}
 
 	render()
 	{
+		// These props will be passed down to the field
+		const rest_props = {}
+
+		// Filter out inner props
+		for (let prop of Object.keys(this.props))
+		{
+			if (connectable_field_inner_props.indexOf(prop) < 0)
+			{
+				rest_props[prop] = this.props[prop]
+			}
+		}
+
+		// Retain some of them
+		rest_props.name     = this.props.name
+		rest_props.value    = this.props.value
+		rest_props.disabled = this.props.disabled
+
 		let
 		{
 			component,
-			validate,
+			value,
 			error,
+			validate,
 			indicate_invalid,
 			form_validation_failed,
-			on_change,
-			...rest_props
+			on_change
 		}
 		= this.props
-
-		const { value } = this.props
 
 		if (form_validation_failed)
 		{
@@ -280,3 +360,5 @@ class Connectable_field extends Component
 		})
 	}
 }
+
+const connectable_field_inner_props = Object.keys(Connectable_field.propTypes)

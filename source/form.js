@@ -7,11 +7,12 @@ import
 {
 	initialize_form,
 	destroy_form,
-	initialize_field,
-	destroy_field,
+	register_field,
+	unregister_field,
 	update_field_value,
 	indicate_invalid_field,
-	reset_invalid_indication,
+	reset_form_invalid_indication,
+	clear_field,
 	focus_field,
 	focused_field,
 	set_form_validation_passed
@@ -21,6 +22,23 @@ from './actions'
 import { initial_form_state } from './reducer'
 
 const _initial_form_state_ = initial_form_state()
+
+const reserved_props =
+[
+	// @connect()-ed Redux state props
+	'fields',
+	'values',
+	'errors',
+	'indicate_invalid',
+	'focus',
+	'misc',
+
+	// Props passed to the underlying form
+	'submit',
+	'focus',
+	'clear',
+	'reset_invalid_indication'
+]
 
 // <Form
 // 	action={this.submit}>
@@ -38,34 +56,39 @@ const _initial_form_state_ = initial_form_state()
 //
 // submit(values) { ... }
 //
-export default function Form()
+export default function Form(options)
 {
 	return function(Wrapped)
 	{
 		class Form extends Component
 		{
-			static WrappedComponent = Wrapped
-
 			static propTypes =
 			{
+				// External prop
 				form_id : PropTypes.string,
 				formId  : PropTypes.string,
 
+				busy : PropTypes.bool,
+
+				fields           : PropTypes.object.isRequired,
 				values           : PropTypes.object.isRequired,
 				errors           : PropTypes.object.isRequired,
 				indicate_invalid : PropTypes.object.isRequired,
 				focus            : PropTypes.object.isRequired,
+				misc             : PropTypes.object.isRequired,
 
 				initialize_form : PropTypes.func.isRequired,
 				destroy_form    : PropTypes.func.isRequired,
 
-				initialize_field           : PropTypes.func.isRequired,
-				destroy_field              : PropTypes.func.isRequired,
-				update_field_value         : PropTypes.func.isRequired,
-				indicate_invalid_field     : PropTypes.func.isRequired,
-				focus_field                : PropTypes.func.isRequired,
-				focused_field              : PropTypes.func.isRequired,
-				set_form_validation_passed : PropTypes.func.isRequired
+				register_field                : PropTypes.func.isRequired,
+				unregister_field              : PropTypes.func.isRequired,
+				update_field_value            : PropTypes.func.isRequired,
+				indicate_invalid_field        : PropTypes.func.isRequired,
+				clear_field                   : PropTypes.func.isRequired,
+				focus_field                   : PropTypes.func.isRequired,
+				focused_field                 : PropTypes.func.isRequired,
+				set_form_validation_passed    : PropTypes.func.isRequired,
+				reset_form_invalid_indication : PropTypes.func.isRequired
 			}
 
 			static childContextTypes =
@@ -82,14 +105,18 @@ export default function Form()
 				this.get_focus                  = this.get_focus.bind(this)
 				this.get_form_validation_failed = this.get_form_validation_failed.bind(this)
 
-				this.initialize_field         = this.initialize_field.bind(this)
-				this.destroy_field            = this.destroy_field.bind(this)
+				this.is_busy = this.is_busy.bind(this)
+
+				this.register_field           = this.register_field.bind(this)
+				this.unregister_field         = this.unregister_field.bind(this)
 				this.update_field_value       = this.update_field_value.bind(this)
 				this.indicate_invalid_field   = this.indicate_invalid_field.bind(this)
 				this.reset_invalid_indication = this.reset_invalid_indication.bind(this)
 				this.focused_field            = this.focused_field.bind(this)
 
 				this.submit = this.submit.bind(this)
+				this.focus_field = this.focus_field.bind(this)
+				this.clear_field = this.clear_field.bind(this)
 			}
 
 			componentWillMount()
@@ -113,8 +140,10 @@ export default function Form()
 						get_focus                  : this.get_focus,
 						get_form_validation_failed : this.get_form_validation_failed,
 
-						initialize_field         : this.initialize_field,
-						destroy_field            : this.destroy_field,
+						is_busy : this.is_busy,
+
+						register_field           : this.register_field,
+						unregister_field         : this.unregister_field,
 						update_field_value       : this.update_field_value,
 						indicate_invalid_field   : this.indicate_invalid_field,
 						reset_invalid_indication : this.reset_invalid_indication,
@@ -125,21 +154,60 @@ export default function Form()
             return context
 			}
 
+			// Not all of `this.props` are passed
+			passed_props()
+			{
+				const passed_props = {}
+
+				// Drop all inner props,
+				// retaining 'form_id' and 'busy',
+				// and also all other possible user-specified props.
+				for (let prop_name of Object.keys(this.props))
+				{
+					if (Form.propTypes[prop_name])
+					{
+						if (prop_name !== 'form_id'
+							&& prop_name !== 'formId'
+							&& prop_name !== 'busy')
+						{
+							continue
+						}
+					}
+
+					passed_props[prop_name] = this.props[prop_name]
+				}
+
+				return passed_props
+			}
+
+			// Extracts form id from `props`
 			form_id()
 			{
 				return form_id(this.props)
 			}
 
-			// Field mounts
-			initialize_field(field, value, error)
+			// Is submit in progress
+			is_busy()
 			{
-				this.props.initialize_field(this.form_id(), field, value, error)
+				return this.props.busy
 			}
 
-			// Field unmounts
-			destroy_field(field)
+			// Is called from outside
+			reset_invalid_indication()
 			{
-				this.props.destroy_field(this.form_id(), field)
+				this.props.reset_invalid_indication(this.form_id())
+			}
+
+			// Registers field (used because React optimizes rerendering process)
+			register_field(field, value, error, non_validation_error)
+			{
+				this.props.register_field(this.form_id(), field, value, error, non_validation_error)
+			}
+
+			// Unregisters field (used because React optimizes rerendering process)
+			unregister_field(field)
+			{
+				this.props.unregister_field(this.form_id(), field)
 			}
 
 			// Field `onChange` handler fires
@@ -157,7 +225,7 @@ export default function Form()
 			// Reset invalid indication for a field
 			reset_invalid_indication(field)
 			{
-				this.props.reset_invalid_indication(this.form_id(), field)
+				this.props.reset_form_invalid_indication(this.form_id(), field)
 			}
 
 			// Returns form values
@@ -186,15 +254,15 @@ export default function Form()
 
 			// Submits the form if it's valid.
 			// Otherwise marks invalid fields.
-			submit_if_valid(action)
+			validate_and_submit(action)
 			{
-				const { values, errors, set_form_validation_passed } = this.props
+				const { fields, values, errors, set_form_validation_passed } = this.props
 
 				// Ignores previous form submission errors until validation passes
 				set_form_validation_passed(this.form_id(), false)
 
 				// Check if there are any invalid fields
-				const invalid_fields = Object.keys(values).filter(field => errors[field] !== undefined)
+				const invalid_fields = Object.keys(fields).filter(field => errors[field] !== undefined)
 
 				// If all fields are valid, then submit the form
 				if (invalid_fields.length === 0)
@@ -202,7 +270,18 @@ export default function Form()
 					// Stop ignoring form submission errors
 					set_form_validation_passed(this.form_id(), true)
 
-					return action(values)
+					const form_data = {}
+
+					// Pass only registered fields to form submit action
+					// (because if a field is unregistered that means that
+					//  its React element was removed in the process,
+					//  and therefore it's not needed anymore)
+					for (let key of Object.keys(fields))
+					{
+						form_data[key] = values[key]
+					}
+
+					return action(form_data)
 				}
 
 				// Indicate the first invalid field error
@@ -214,8 +293,19 @@ export default function Form()
 
 			// Creates form submit handler
 			// (this function is passed as a property)
-			submit(action)
+			submit(before_submit, action)
 			{
+				if (!action)
+				{
+					action = before_submit
+					before_submit = undefined
+				}
+
+				if (!action)
+				{
+					throw new Error(`No action specified for form "submit"`)
+				}
+
 				return (event) =>
 				{
 					// If it's an event handler then `.preventDefault()` it
@@ -224,8 +314,22 @@ export default function Form()
 						event.preventDefault()
 					}
 
+					// Do nothing if the form is busy
+					// (i.e. submit is in progress)
+					if (this.props.busy)
+					{
+						return
+					}
+
+					// Can be used, for example, to reset
+					// custom error messages.
+					if (before_submit)
+					{
+						before_submit()
+					}
+
 					// Check field validity and submit the form
-					this.submit_if_valid(action)
+					this.validate_and_submit(action)
 				}
 			}
 
@@ -233,6 +337,12 @@ export default function Form()
 			focus_field(field)
 			{
 				this.props.focus_field(this.form_id(), field)
+			}
+
+			// Clears field value
+			clear_field(field)
+			{
+				this.props.clear_field(this.form_id(), field)
 			}
 
 			// Focus on a field was requested and was performed
@@ -245,8 +355,12 @@ export default function Form()
 			{
 				return createElement(Wrapped,
 				{
-					...this.props,
-					submit : this.submit
+					...this.passed_props(),
+					submit : this.submit,
+					focus  : this.focus_field,
+					clear  : this.clear_field,
+
+					reset_invalid_indication : this.reset_invalid_indication
 				})
 			}
 		}
@@ -265,38 +379,45 @@ export default function Form()
 					throw new Error("`formId` property not specified on `simpler-redux-form` component")
 				}
 
-				state = state.form[_form_id]
-
-				if (!state)
+				for (let prop of Object.keys(props))
 				{
-					return _initial_form_state_
+					if (reserved_props.indexOf(prop) >= 0)
+					{
+						throw new Error(`"${prop}" prop is reserved by simpler-redux-form`)
+					}
 				}
 
-				const result =
+				let form_state = state.form[_form_id]
+
+				if (!form_state)
 				{
-					values           : state.values,
-					errors           : state.errors,
-					indicate_invalid : state.indicate_invalid,
-					focus            : state.focus,
-					misc             : state.misc
+					form_state = { ..._initial_form_state_ }
 				}
 
-				return result
+				if (options.busy)
+				{
+					form_state.busy = options.busy(state, props)
+				}
+
+				return form_state
 			},
 			(dispatch) => bindActionCreators
 			({
 				initialize_form,
 				destroy_form,
-				initialize_field,
-				destroy_field,
+				register_field,
+				unregister_field,
 				update_field_value,
 				indicate_invalid_field,
-				reset_invalid_indication,
+				reset_form_invalid_indication,
+				clear_field,
 				focus_field,
 				focused_field,
 				set_form_validation_passed
 			},
-			dispatch)
+			dispatch),
+			undefined,
+			{ withRef: true }
 		)
 		(Form)
 
