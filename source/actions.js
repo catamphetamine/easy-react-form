@@ -50,11 +50,12 @@ export const reset_invalid_indication = (form, field) =>
 	field
 })
 
-export const clear_field = (form, field) =>
+export const clear_field = (form, field, error) =>
 ({
 	type : '@@simpler-redux-form/clear',
 	form,
-	field
+	field,
+	error
 })
 
 export const focus_field = (form, field) =>

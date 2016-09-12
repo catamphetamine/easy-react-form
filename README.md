@@ -122,9 +122,15 @@ The following properties are injected into the resulting `<Form/>` element:
 
   * `focus(field_name : String)` — focuses on a field
 
-  * `clear(field_name : String)` — clears field value
+  * `clear(field_name : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
 
   * `reset_invalid_indication()` — resets `invalidIndication` for all fields
+
+A form instance exposes these instance methods (in case anyone needs them):
+
+  * `focus(field_name : String)` — focuses on a field
+
+  * `clear(field_name : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
 
 ### Field
 

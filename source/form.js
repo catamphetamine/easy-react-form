@@ -56,7 +56,7 @@ const reserved_props =
 //
 // submit(values) { ... }
 //
-export default function Form(options)
+export default function Form(options = {})
 {
 	return function(Wrapped)
 	{
@@ -152,6 +152,22 @@ export default function Form(options)
             }
 
             return context
+			}
+
+			// Public API
+			focus(field)
+			{
+				if (!field)
+				{
+					const { fields } = this.props
+
+					field = Object.keys(fields)[0]
+				}
+
+				if (field)
+				{
+					this.focus_field(field)
+				}
 			}
 
 			// Not all of `this.props` are passed
@@ -342,9 +358,9 @@ export default function Form(options)
 			}
 
 			// Clears field value
-			clear_field(field)
+			clear_field(field, error)
 			{
-				this.props.clear_field(this.form_id(), field)
+				this.props.clear_field(this.form_id(), field, error)
 			}
 
 			// Focus on a field was requested and was performed
@@ -408,8 +424,7 @@ export default function Form(options)
 
 				return form_state
 			},
-			(dispatch) => bindActionCreators
-			({
+			{
 				initialize_form,
 				destroy_form,
 				register_field,
@@ -422,13 +437,48 @@ export default function Form(options)
 				focused_field,
 				set_form_validation_passed
 			},
-			dispatch),
 			undefined,
 			{ withRef: true }
 		)
 		(Form)
 
-		return hoist_statics(Connected_form, Wrapped)
+		hoist_statics(Connected_form, Wrapped)
+
+		// Build outer component to expose instance api
+		return class ReduxForm extends Component
+		{
+			constructor(props, context)
+			{
+				super(props, context)
+
+				this.focus = this.focus.bind(this)
+			}
+
+			focus()
+			{
+				return this.refs.wrapped.getWrappedInstance().focus()
+			}
+
+			clear(field, error)
+			{
+				return this.refs.wrapped.getWrappedInstance().clear_field(field, error)
+			}
+
+			// // For tests
+			// get wrappedInstance()
+			// {
+			// 	return this.refs.wrapped.getWrappedInstance().refs.wrapped
+			// }
+
+			render()
+			{
+				return createElement(Connected_form,
+				{
+					...this.props,
+					ref : 'wrapped'
+				})
+			}
+		}
 	}
 }
 

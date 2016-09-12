@@ -160,7 +160,11 @@ export default function reducer(state = {}, action)
 
 			state = { ...state }
 
-			form_state.values[action.field] = undefined
+			form_state.values[action.field]           = undefined
+			form_state.errors[action.field]           = action.error
+			form_state.indicate_invalid[action.field] = action.error ? true : false
+
+			return state
 
 		case '@@simpler-redux-form/focus':
 
