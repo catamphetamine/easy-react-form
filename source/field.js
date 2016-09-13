@@ -65,6 +65,8 @@ export default class Field extends Component
 
 		// Miscellaneous
 		this.on_change = this.on_change.bind(this)
+		this.focus     = this.focus.bind(this)
+		this.scroll    = this.scroll.bind(this)
 		this.focused   = this.focused.bind(this)
 		this.scrolled  = this.scrolled.bind(this)
 	}
@@ -170,8 +172,9 @@ export default class Field extends Component
 			if (!props.error && error && !indicate_invalid)
 			{
 				context.simpler_redux_form.indicate_invalid_field(name)
-				this.scroll()
-				setTimeout(() => this.focus(), 0)
+				// Scroll to field and focus after React rerenders the component
+				setTimeout(this.scroll, 0)
+				setTimeout(this.focus, 0)
 			}
 			else if (props.error && !error && indicate_invalid && !validate(value))
 			{
