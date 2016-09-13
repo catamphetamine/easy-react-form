@@ -122,13 +122,19 @@ The following properties are injected into the resulting `<Form/>` element:
 
   * `focus(field_name : String)` — focuses on a field
 
+  * `scroll(field_name : String)` — scrolls to a field (if it's not visible on the screen)
+
   * `clear(field_name : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
 
   * `reset_invalid_indication()` — resets `invalidIndication` for all fields
 
+If an invalid field is found upon form submission, or if an error is set for a field, then that field will be automatically scrolled to and focused.
+
 A form instance exposes these instance methods (in case anyone needs them):
 
   * `focus(field_name : String)` — focuses on a field
+
+  * `scroll(field_name : String)` — scrolls to a field (if it's not visible on the screen)
 
   * `clear(field_name : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
 

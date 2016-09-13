@@ -2,6 +2,8 @@ import { Component, createElement, PropTypes } from 'react'
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux'
 
+import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
+
 // <Field
 // 	name="password"
 // 	component={Text_input}
@@ -47,7 +49,8 @@ export default class Field extends Component
 			indicate_invalid_field   : PropTypes.func.isRequired,
 			reset_invalid_indication : PropTypes.func.isRequired,
 			update_field_value       : PropTypes.func.isRequired,
-			focused_field            : PropTypes.func.isRequired
+			focused_field            : PropTypes.func.isRequired,
+			scrolled_to_field        : PropTypes.func.isRequired
 		})
 		.isRequired
 	}
@@ -63,6 +66,7 @@ export default class Field extends Component
 		// Miscellaneous
 		this.on_change = this.on_change.bind(this)
 		this.focused   = this.focused.bind(this)
+		this.scrolled  = this.scrolled.bind(this)
 	}
 
 	connect_field(name, context)
@@ -80,6 +84,7 @@ export default class Field extends Component
 				value                  : context.simpler_redux_form.get_value(name),
 				indicate_invalid       : context.simpler_redux_form.get_indicate_invalid(name),
 				_focus                 : context.simpler_redux_form.get_focus(name),
+				_scroll_to             : context.simpler_redux_form.get_scroll_to(name),
 				form_validation_failed : context.simpler_redux_form.get_form_validation_failed()
 			}),
 			undefined,
@@ -164,14 +169,16 @@ export default class Field extends Component
 
 			if (!props.error && error && !indicate_invalid)
 			{
-				context.simpler_redux_form.indicate_invalid_field(props.name)
+				context.simpler_redux_form.indicate_invalid_field(name)
+				this.scroll()
+				setTimeout(() => this.focus(), 0)
 			}
 			else if (props.error && !error && indicate_invalid && !validate(value))
 			{
 				// So that `indicate_invalid === true` always means that
 				// there is a non-empty `error`.
 				// And if there's no error then `indicate_invalid` is always `false`.
-				context.simpler_redux_form.reset_invalid_indication(props.name)
+				context.simpler_redux_form.reset_invalid_indication(name)
 			}
 
 			// The rest (imaginary) case is when the `error` is cleared
@@ -211,15 +218,28 @@ export default class Field extends Component
 		this.context.simpler_redux_form.focused_field(name)
 	}
 
+	scroll()
+	{
+		this.refs.field.getWrappedInstance().scroll()
+		this.scrolled()
+	}
+
+	scrolled()
+	{
+		const { name } = this.props
+
+		this.context.simpler_redux_form.scrolled_to_field(name)
+	}
+
 	render()
 	{
-		// For custom React components
 		return createElement(this.Connected_field,
 		{
 			...this.props,
 			ref       : 'field',
 			on_change : this.on_change,
 			focused   : this.focused,
+			scrolled  : this.scrolled,
 			disabled  : this.context.simpler_redux_form.is_busy()
 		})
 	}
@@ -237,13 +257,15 @@ class Connectable_field extends Component
 		value                  : PropTypes.any,
 		indicate_invalid       : PropTypes.bool,
 		_focus                 : PropTypes.bool,
+		_scroll_to             : PropTypes.bool,
 		form_validation_failed : PropTypes.bool,
 
 		validate : PropTypes.func,
 		error    : PropTypes.string,
 
 		on_change : PropTypes.func.isRequired,
-		focused   : PropTypes.func.isRequired
+		focused   : PropTypes.func.isRequired,
+		scrolled  : PropTypes.func.isRequired
 	}
 
 	constructor(props, context)
@@ -254,12 +276,18 @@ class Connectable_field extends Component
 
 		// If this field is being focused programmatically, then do it.
 		this.focus_if_requested({}, props, context)
+
+		// // If this field is being scrolled to programmatically, then do it.
+		// this.scroll_if_requested({}, props, context)
 	}
 
 	componentWillReceiveProps(new_props)
 	{
 		// If this field is being focused programmatically, then do it.
 		this.focus_if_requested(this.props, new_props, this.context)
+
+		// If this field is being scrolled to programmatically, then do it.
+		this.scroll_if_requested(this.props, new_props, this.context)
 	}
 
 	// If this field is being focused programmatically, then do it.
@@ -291,6 +319,41 @@ class Connectable_field extends Component
 
 			// Generic focusing
 			ReactDOM.findDOMNode(this.refs.field).focus()
+		}
+	}
+
+	// If this field is being scrolled to programmatically, then do it.
+	scroll_if_requested(props, new_props, context)
+	{
+		if (!props._scroll_to && new_props._scroll_to)
+		{
+			// Focus the field.
+			// Do it in a timeout, otherwise it didn't work.
+			// Probably because React rerenders this field
+			// because the `props` have changed
+			// and that discards the focus.
+			new_props.scrolled()
+			this.scroll()
+		}
+	}
+
+	// Scrolls to the field (e.g. in case of validation errors)
+	scroll()
+	{
+		// If the form hasn't been unmounted yet
+		if (this.refs.field)
+		{
+			const element = ReactDOM.findDOMNode(this.refs.field)
+
+			// https://developer.mozilla.org/ru/docs/Web/API/Element/scrollIntoViewIfNeeded
+			if (element.scrollIntoViewIfNeeded)
+			{
+				element.scrollIntoViewIfNeeded(false)
+			}
+			else
+			{
+				scrollIntoViewIfNeeded(element, false, { duration: 800 })
+			}
 		}
 	}
 

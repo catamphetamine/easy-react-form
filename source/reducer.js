@@ -168,23 +168,6 @@ export default function reducer(state = {}, action)
 
 		case '@@simpler-redux-form/focus':
 
-			// This changes [action.form] object's properties,
-			// and therefore Redux'es shallow compare
-			// rerenders the form every time.
-			//
-			// state =
-			// {
-			// 	...state,
-			// 	[action.form]:
-			// 	{
-			// 		...form_state,
-			// 		focus:
-			// 		{
-			// 			[action.field] : true
-			// 		}
-			// 	}
-			// }
-
 			state = { ...state }
 
 			for (let field of Object.keys(form_state.focus))
@@ -203,6 +186,30 @@ export default function reducer(state = {}, action)
 			for (let field of Object.keys(form_state.focus))
 			{
 				delete form_state.focus[field]
+			}
+
+			return state
+
+		case '@@simpler-redux-form/scroll':
+
+			state = { ...state }
+
+			for (let field of Object.keys(form_state.scroll_to))
+			{
+				delete form_state.scroll_to[field]
+			}
+
+			form_state.scroll_to[action.field] = true
+
+			return state
+
+		case '@@simpler-redux-form/scrolled':
+
+			state = { ...state }
+
+			for (let field of Object.keys(form_state.scroll_to))
+			{
+				delete form_state.scroll_to[field]
 			}
 
 			return state
@@ -243,6 +250,7 @@ export function initial_form_state()
 		errors           : {},
 		indicate_invalid : {},
 		focus            : {},
+		scroll_to        : {},
 		misc             : {}
 	}
 

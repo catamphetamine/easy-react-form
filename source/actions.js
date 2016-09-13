@@ -72,6 +72,20 @@ export const focused_field = (form, field) =>
 	field
 })
 
+export const scroll_to_field = (form, field) =>
+({
+	type : '@@simpler-redux-form/scroll',
+	form,
+	field
+})
+
+export const scrolled_to_field = (form, field) =>
+({
+	type : '@@simpler-redux-form/scrolled',
+	form,
+	field
+})
+
 export const set_form_validation_passed = (form, passed) =>
 ({
 	type : '@@simpler-redux-form/validation-passed',

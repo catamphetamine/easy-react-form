@@ -15,6 +15,8 @@ import
 	clear_field,
 	focus_field,
 	focused_field,
+	scroll_to_field,
+	scrolled_to_field,
 	set_form_validation_passed
 }
 from './actions'
@@ -87,6 +89,8 @@ export default function Form(options = {})
 				clear_field                   : PropTypes.func.isRequired,
 				focus_field                   : PropTypes.func.isRequired,
 				focused_field                 : PropTypes.func.isRequired,
+				scroll_to_field               : PropTypes.func.isRequired,
+				scrolled_to_field             : PropTypes.func.isRequired,
 				set_form_validation_passed    : PropTypes.func.isRequired,
 				reset_form_invalid_indication : PropTypes.func.isRequired
 			}
@@ -103,6 +107,7 @@ export default function Form(options = {})
 				this.get_value                  = this.get_value.bind(this)
 				this.get_indicate_invalid       = this.get_indicate_invalid.bind(this)
 				this.get_focus                  = this.get_focus.bind(this)
+				this.get_scroll_to              = this.get_scroll_to.bind(this)
 				this.get_form_validation_failed = this.get_form_validation_failed.bind(this)
 
 				this.is_busy = this.is_busy.bind(this)
@@ -113,9 +118,11 @@ export default function Form(options = {})
 				this.indicate_invalid_field   = this.indicate_invalid_field.bind(this)
 				this.reset_invalid_indication = this.reset_invalid_indication.bind(this)
 				this.focused_field            = this.focused_field.bind(this)
+				this.scrolled_to_field        = this.scrolled_to_field.bind(this)
 
 				this.submit = this.submit.bind(this)
 				this.focus_field = this.focus_field.bind(this)
+				this.scroll_to_field = this.scroll_to_field.bind(this)
 				this.clear_field = this.clear_field.bind(this)
 			}
 
@@ -138,6 +145,7 @@ export default function Form(options = {})
 						get_value                  : this.get_value,
 						get_indicate_invalid       : this.get_indicate_invalid,
 						get_focus                  : this.get_focus,
+						get_scroll_to              : this.get_scroll_to,
 						get_form_validation_failed : this.get_form_validation_failed,
 
 						is_busy : this.is_busy,
@@ -147,7 +155,8 @@ export default function Form(options = {})
 						update_field_value       : this.update_field_value,
 						indicate_invalid_field   : this.indicate_invalid_field,
 						reset_invalid_indication : this.reset_invalid_indication,
-						focused_field            : this.focused_field
+						focused_field            : this.focused_field,
+						scrolled_to_field        : this.scrolled_to_field
 					}
             }
 
@@ -262,6 +271,12 @@ export default function Form(options = {})
 				return this.props.focus[field]
 			}
 
+			// Scrolling to form fields
+			get_scroll_to(field)
+			{
+				return this.props.scroll_to[field]
+			}
+
 			// Did form validation pass
 			get_form_validation_failed()
 			{
@@ -304,6 +319,9 @@ export default function Form(options = {})
 
 				// Indicate the first invalid field error
 				this.indicate_invalid_field(invalid_fields[0])
+
+				// Scroll to the invalid field
+				this.scroll_to_field(invalid_fields[0])
 
 				// Focus the invalid field
 				this.focus_field(invalid_fields[0])
@@ -357,16 +375,28 @@ export default function Form(options = {})
 				this.props.focus_field(this.form_id(), field)
 			}
 
-			// Clears field value
-			clear_field(field, error)
-			{
-				this.props.clear_field(this.form_id(), field, error)
-			}
-
 			// Focus on a field was requested and was performed
 			focused_field(field)
 			{
 				this.props.focused_field(this.form_id(), field)
+			}
+
+			// Scrolls to a form field
+			scroll_to_field(field)
+			{
+				this.props.scroll_to_field(this.form_id(), field)
+			}
+
+			// Scroll to a form field was requested and was performed
+			scrolled_to_field(field)
+			{
+				this.props.scrolled_to_field(this.form_id(), field)
+			}
+
+			// Clears field value
+			clear_field(field, error)
+			{
+				this.props.clear_field(this.form_id(), field, error)
 			}
 
 			render()
@@ -376,6 +406,7 @@ export default function Form(options = {})
 					...this.passed_props(),
 					submit : this.submit,
 					focus  : this.focus_field,
+					scroll : this.scroll_to_field,
 					clear  : this.clear_field,
 					reset_invalid_indication : this.reset_invalid_indication
 				})
@@ -435,6 +466,8 @@ export default function Form(options = {})
 				clear_field,
 				focus_field,
 				focused_field,
+				scroll_to_field,
+				scrolled_to_field,
 				set_form_validation_passed
 			},
 			undefined,
@@ -457,6 +490,11 @@ export default function Form(options = {})
 			focus()
 			{
 				return this.refs.wrapped.getWrappedInstance().focus()
+			}
+
+			scroll(field)
+			{
+				return this.refs.wrapped.getWrappedInstance().scroll_to_field(field)
 			}
 
 			clear(field, error)

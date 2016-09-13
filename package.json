@@ -1,6 +1,6 @@
 {
   "name": "simpler-redux-form",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Just like `redux-form` but much simpler",
   "main": "index.common.js",
   "jsnext:main": "index.es6.js",
@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "babel-runtime": "^6.6.1",
-    "hoist-non-react-statics": "^1.2.0"
+    "hoist-non-react-statics": "^1.2.0",
+    "scroll-into-view-if-needed": "^1.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
