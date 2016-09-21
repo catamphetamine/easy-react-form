@@ -404,6 +404,7 @@ export default function Form(options = {})
 				return createElement(Wrapped,
 				{
 					...this.passed_props(),
+					ref    : 'user_form',
 					submit : this.submit,
 					focus  : this.focus_field,
 					scroll : this.scroll_to_field,
@@ -487,25 +488,30 @@ export default function Form(options = {})
 				this.focus = this.focus.bind(this)
 			}
 
+			ref()
+			{
+				return this.refs.connected_form.getWrappedInstance().refs.user_form
+			}
+
 			focus()
 			{
-				return this.refs.wrapped.getWrappedInstance().focus()
+				return this.refs.connected_form.getWrappedInstance().focus()
 			}
 
 			scroll(field)
 			{
-				return this.refs.wrapped.getWrappedInstance().scroll_to_field(field)
+				return this.refs.connected_form.getWrappedInstance().scroll_to_field(field)
 			}
 
 			clear(field, error)
 			{
-				return this.refs.wrapped.getWrappedInstance().clear_field(field, error)
+				return this.refs.connected_form.getWrappedInstance().clear_field(field, error)
 			}
 
 			// // For tests
 			// get wrappedInstance()
 			// {
-			// 	return this.refs.wrapped.getWrappedInstance().refs.wrapped
+			// 	return this.refs.connected_form.getWrappedInstance().refs.wrapped
 			// }
 
 			render()
@@ -513,7 +519,7 @@ export default function Form(options = {})
 				return createElement(Connected_form,
 				{
 					...this.props,
-					ref : 'wrapped'
+					ref : 'connected_form'
 				})
 			}
 		}
