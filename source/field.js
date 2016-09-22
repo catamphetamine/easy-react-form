@@ -165,7 +165,7 @@ export default class Field extends Component
 	//
 	show_or_hide_externally_set_error(props, new_props, context)
 	{
-		// The error didn't change so don't show it.
+		// If the error didn't change then don't show it.
 		// If the same error happened once again,
 		// then it should have been reset
 		// before sending form data to the server,
