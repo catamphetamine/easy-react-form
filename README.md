@@ -116,7 +116,7 @@ The resulting React component takes a required `formId : String` property which 
 
 The following properties are injected into the resulting `<Form/>` element:
 
-  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submitForm)}/>`; the `submitForm(values)` argument is your form submission function; if two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors before the form tries to submit itself a subsequent time
+  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submitForm)}/>`; the `submitForm(values)` argument is your form submission function; if two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) before the form tries to submit itself a subsequent time
 
   * `busy : boolean` — only if `busy(reduxState, props) => boolean` was specified (see above)
 
