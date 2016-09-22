@@ -165,30 +165,39 @@ export default class Field extends Component
 	//
 	show_or_hide_externally_set_error(props, new_props, context)
 	{
-		if (props.error !== new_props.error)
+		// The error didn't change so don't show it.
+		// If the same error happened once again,
+		// then it should have been reset
+		// before sending form data to the server,
+		// and in that case it will be shown once again
+		// (see the readme for more info on this case:
+		//  https://github.com/halt-hammerzeit/simpler-redux-form#field-errors)
+		if (props.error === new_props.error)
 		{
-			const { name, error, value, validate, indicate_invalid } = new_props
-
-			if (!props.error && error && !indicate_invalid)
-			{
-				context.simpler_redux_form.indicate_invalid_field(name)
-				// Scroll to field and focus after React rerenders the component
-				setTimeout(this.scroll, 0)
-				setTimeout(this.focus, 0)
-			}
-			else if (props.error && !error && indicate_invalid && !validate(value))
-			{
-				// So that `indicate_invalid === true` always means that
-				// there is a non-empty `error`.
-				// And if there's no error then `indicate_invalid` is always `false`.
-				context.simpler_redux_form.reset_invalid_indication(name)
-			}
-
-			// The rest (imaginary) case is when the `error` is cleared
-			// but the validation doesn't pass,
-			// and it's uncertain whether to
-			// indicate this field as invalid or not.
+			return
 		}
+
+		const { name, error, value, validate, indicate_invalid } = new_props
+
+		if (!props.error && error && !indicate_invalid)
+		{
+			context.simpler_redux_form.indicate_invalid_field(name)
+			// Scroll to field and focus after React rerenders the component
+			setTimeout(this.scroll, 0)
+			setTimeout(this.focus, 0)
+		}
+		else if (props.error && !error && indicate_invalid && !validate(value))
+		{
+			// So that `indicate_invalid === true` always means that
+			// there is a non-empty `error`.
+			// And if there's no error then `indicate_invalid` is always `false`.
+			context.simpler_redux_form.reset_invalid_indication(name)
+		}
+
+		// The rest (imaginary) case is when the `error` is cleared
+		// but the validation doesn't pass,
+		// and it's uncertain whether to
+		// indicate this field as invalid or not.
 	}
 
 	// `onChange` field value handler

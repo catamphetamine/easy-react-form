@@ -32,7 +32,7 @@ import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 
 // `redux-thunk` example
-function submit_action(values)
+function submitAction(values)
 {
 	return (dispatch) =>
 	{
@@ -50,11 +50,11 @@ function submit_action(values)
 @connect
 (
 	(state)    => ({ phone: state.user.phone }),
-	(dispatch) => bindActionCreators({ submit_action }, dispatch)
+	(dispatch) => bindActionCreators({ submitAction }, dispatch)
 )
 export default class Form_name extends Component
 {
-	validate_phone(phone)
+	validatePhone(phone)
 	{
 		if (!phone)
 		{
@@ -64,17 +64,17 @@ export default class Form_name extends Component
 
 	render()
 	{
-		const { phone, submit, submit_action } = this.props
+		const { phone, submit, submitAction } = this.props
 
 		return (
 			<form
-				onSubmit={submit(submit_action)}>
+				onSubmit={submit(submitAction)}>
 
 				<Field
 					name="phone"
 					component={Input}
 					value={phone}
-					validate={this.validate_phone}
+					validate={this.validatePhone}
 					type="tel"
 					placeholder="Enter phone number"/>
 			</form>
@@ -96,11 +96,11 @@ function Input(props)
 ```
 
 ```js
-import Form_name from './form'
+import FormComponent from './form'
 
 function Page(props)
 {
-	return <Form_name formId='form_example'/>
+	return <FormComponent formId='exampleForm'/>
 }
 ```
 
@@ -110,21 +110,21 @@ function Page(props)
 
 `@Form()` decorator takes these options:
 
-  * `busy(redux_state, props) => boolean` — (optional) a function that determines by analysing current Redux state (having access to the `props`) if the form is "busy" (i.e. submit is in progress); if this option is specified then `busy : boolean` property will be injected into the `<Form/>` component, and also all `<Field/>`s will be `disabled` while the form is `busy` (makes sense)
+  * `busy(reduxState, props) => boolean` — (optional) a function that determines by analysing current Redux state (having access to the `props`) if the form is "busy" (i.e. submit is in progress); if this option is specified then `busy : boolean` property will be injected into the `<Form/>` component, and also all `<Field/>`s will be `disabled` while the form is `busy` (makes sense)
 
 The resulting React component takes a required `formId : String` property which must be an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${formId}`).
 
 The following properties are injected into the resulting `<Form/>` element:
 
-  * `submit(submit_form(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submit_form)}/>`; the `submit_form(values)` argument is your form submission function; if two arguments are passed to the `submit(pre_submit, submit_form)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors before the form tries to submit itself a subsequent time
+  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submitForm)}/>`; the `submitForm(values)` argument is your form submission function; if two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors before the form tries to submit itself a subsequent time
 
-  * `busy : boolean` — only if `busy(redux_state, props) => boolean` was specified (see above)
+  * `busy : boolean` — only if `busy(reduxState, props) => boolean` was specified (see above)
 
-  * `focus(field_name : String)` — focuses on a field
+  * `focus(fieldName : String)` — focuses on a field
 
-  * `scroll(field_name : String)` — scrolls to a field (if it's not visible on the screen)
+  * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
 
-  * `clear(field_name : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
+  * `clear(fieldName : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
 
   * `reset_invalid_indication()` — resets `invalidIndication` for all fields
 
@@ -134,11 +134,11 @@ A form instance exposes these instance methods (in case anyone needs them):
 
   * `ref()` — returns the decorated form component
 
-  * `focus(field_name : String)` — focuses on a field
+  * `focus(fieldName : String)` — focuses on a field
 
-  * `scroll(field_name : String)` — scrolls to a field (if it's not visible on the screen)
+  * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
 
-  * `clear(field_name : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
+  * `clear(fieldName : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
 
 ### Field
 
@@ -177,6 +177,78 @@ The `indicateInvalid` algorythm is as follows:
 ### reducer
 
 This Redux reducer is plugged into the main Redux reducer under the name of `form`.
+
+## Field errors
+
+An `error` property can be set on a `<Field/>` if this field was the reasons form submission failed on the server side.
+
+This must not be a simple client-side validation error because for validation errors there already is `validate` property. Everything that can be validated up-front (i.e. before sending form data to the server) should be validated inside `validate` function. All other validity checks which can not be performed without submitting form data to the server are performed on the server side and if an error occurs then this error goes to the `error` property of the relevant `<Field/>`.
+
+For example, consider a login form. Username and password `<Field/>`s both have `validate` properties set to the corresponding basic validation functions (e.g. checking that the values aren't empty). That's as much as can be validated before sending form data to the server. When the form data is sent to the server, server-side validation takes place: the server checks if the username exists and that the password matches. If the username doesn't exist then an error is returned from the HTTP POST request and the `error` property of the username `<Field/>` should be set to `"User not found"` error message. Otherwise, if the username does exist, but, say, the password doesn't match, then the `error` property of the password `<Field/>` should be set to `"Wrong password"` error message.
+
+One thing to note about `<Field/>` `error`s is that they must be reset before form data is sent to the server: otherwise it would always say `"Wrong password"` even if the password is correct this time. Another case is when the `error` is set to the same value again (e.g. the entered password is wrong once again) which will not trigger showing that error because the `error` is shown only when its value changes: `nextProps.error !== this.props.error`. This is easily solved too by simply resetting `error`s before form data is sent to the server.
+
+```js
+import { connect } from 'react-redux'
+import Form, { Field } from 'simpler-redux-form'
+
+@Form()
+@connect(state => ({ loginError: state.loginForm.error }))
+class LoginForm extends Component
+{
+	validateNotEmpty(value)
+	{
+		if (!value)
+		{
+			return 'Required'
+		}
+	}
+
+	submit(values)
+	{
+		// Clears `state.loginForm.error`
+		dispatch({ type: 'LOGIN_FORM_CLEAR_ERROR' })
+
+		// Sends form data to the server
+		dispatch(sendHTTPLoginRequest(values))
+	}
+
+	render()
+	{
+		const { loginError } = this.props
+
+		return (
+			<form onSubmit={submit(this.submit)}>
+				<Field
+					component={Input}
+					name="username"
+					validate={this.validateNotEmpty}
+					error={loginError === 'User not found' ? loginError : undefined}/>
+
+				<Field
+					component={Input}
+					name="password"
+					validate={this.validateNotEmpty}
+					error={loginError === 'Wrong password' ? loginError : undefined}/>
+
+				<button type="submit">Log in</button>
+			</form>
+		)
+	}
+}
+
+function Input(props)
+{
+	const { error, indicateInvalid, ...rest } = props
+
+	return (
+		<div>
+			<input {...rest}/>
+			{ indicateInvalid && <div className="error">{error}</div> }
+		</div>
+	)
+}
+```
 
 ## Contributing and Feature requests
 
