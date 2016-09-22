@@ -13,6 +13,7 @@ import
 	indicate_invalid_field,
 	reset_form_invalid_indication,
 	clear_field,
+	set_field,
 	focus_field,
 	focused_field,
 	scroll_to_field,
@@ -87,6 +88,7 @@ export default function Form(options = {})
 				update_field_value            : PropTypes.func.isRequired,
 				indicate_invalid_field        : PropTypes.func.isRequired,
 				clear_field                   : PropTypes.func.isRequired,
+				set_field                     : PropTypes.func.isRequired,
 				focus_field                   : PropTypes.func.isRequired,
 				focused_field                 : PropTypes.func.isRequired,
 				scroll_to_field               : PropTypes.func.isRequired,
@@ -124,6 +126,7 @@ export default function Form(options = {})
 				this.focus_field = this.focus_field.bind(this)
 				this.scroll_to_field = this.scroll_to_field.bind(this)
 				this.clear_field = this.clear_field.bind(this)
+				this.set_field = this.set_field.bind(this)
 			}
 
 			componentWillMount()
@@ -399,6 +402,12 @@ export default function Form(options = {})
 				this.props.clear_field(this.form_id(), field, error)
 			}
 
+			// Sets field value
+			set_field(field, value, error)
+			{
+				this.props.set_field(this.form_id(), field, value, error)
+			}
+
 			render()
 			{
 				return createElement(Wrapped,
@@ -409,6 +418,7 @@ export default function Form(options = {})
 					focus  : this.focus_field,
 					scroll : this.scroll_to_field,
 					clear  : this.clear_field,
+					set    : this.set_field,
 					reset_invalid_indication : this.reset_invalid_indication
 				})
 			}
@@ -465,6 +475,7 @@ export default function Form(options = {})
 				indicate_invalid_field,
 				reset_form_invalid_indication,
 				clear_field,
+				set_field,
 				focus_field,
 				focused_field,
 				scroll_to_field,
@@ -506,6 +517,11 @@ export default function Form(options = {})
 			clear(field, error)
 			{
 				return this.refs.connected_form.getWrappedInstance().clear_field(field, error)
+			}
+
+			set(field, value, error)
+			{
+				return this.refs.connected_form.getWrappedInstance().set_field(field, value, error)
 			}
 
 			// // For tests

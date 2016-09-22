@@ -52,9 +52,18 @@ export const reset_invalid_indication = (form, field) =>
 
 export const clear_field = (form, field, error) =>
 ({
-	type : '@@simpler-redux-form/clear',
+	type : '@@simpler-redux-form/set',
 	form,
 	field,
+	error
+})
+
+export const set_field = (form, field, value, error) =>
+({
+	type : '@@simpler-redux-form/set',
+	form,
+	field,
+	value,
 	error
 })
 

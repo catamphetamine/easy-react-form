@@ -52,6 +52,9 @@ export default function reducer(state = {}, action)
 				form_state.values[action.field] = action.value
 				form_state.errors[action.field] = action.error
 
+				form_state.initial_values[action.field]       = action.value
+				form_state.initial_value_errors[action.field] = action.error
+
 				// If an external error was specified, then show it
 				if (action.non_validation_error)
 				{
@@ -156,11 +159,11 @@ export default function reducer(state = {}, action)
 
 			return state
 
-		case '@@simpler-redux-form/clear':
+		case '@@simpler-redux-form/set':
 
 			state = { ...state }
 
-			form_state.values[action.field]           = undefined
+			form_state.values[action.field]           = action.value
 			form_state.errors[action.field]           = action.error
 			form_state.indicate_invalid[action.field] = action.error ? true : false
 
@@ -245,13 +248,15 @@ export function initial_form_state()
 {
 	const state =
 	{
-		fields           : {},
-		values           : {},
-		errors           : {},
-		indicate_invalid : {},
-		focus            : {},
-		scroll_to        : {},
-		misc             : {}
+		fields               : {},
+		values               : {},
+		initial_values       : {},
+		initial_value_errors : {},
+		errors               : {},
+		indicate_invalid     : {},
+		focus                : {},
+		scroll_to            : {},
+		misc                 : {}
 	}
 
 	return state

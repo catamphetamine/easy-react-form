@@ -124,7 +124,9 @@ The following properties are injected into the resulting `<Form/>` element:
 
   * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
 
-  * `clear(fieldName : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
+  * `clear(fieldName : String, error : String)` — clears field value (`error` argument should be `validate(undefined)`)
+
+  * `set(fieldName : String, value : String, error : String)` — sets form field value (`error` should be `validate(value)`)
 
   * `reset_invalid_indication()` — resets `invalidIndication` for all fields
 
@@ -139,6 +141,8 @@ A form instance exposes these instance methods (in case anyone needs them):
   * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
 
   * `clear(fieldName : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
+
+  * `set(fieldName : String, value : String, error : String)` — sets form field value (`error` should be `validate(value)`)
 
 ### Field
 

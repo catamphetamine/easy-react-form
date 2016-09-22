@@ -98,12 +98,6 @@ export default class Field extends Component
 		(Connectable_field)
 	}
 
-	// This is a new form field
-	initialize_new_field(props)
-	{
-		const { name, value, validate } = props
-	}
-
 	componentWillMount()
 	{
 		const { name, value, validate, error } = this.props
