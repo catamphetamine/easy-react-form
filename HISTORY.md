@@ -1,3 +1,8 @@
+0.1.10 / 23.09.2016
+==================
+
+  * Moved `busy` from decorator options to a regular property
+
 0.1.9 / 22.09.2016
 ==================
 

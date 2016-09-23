@@ -453,17 +453,6 @@ export default function Form(options = {})
 					form_state = { ..._initial_form_state_ }
 				}
 
-				if (options.busy)
-				{
-					// This is needed for Redux store listener
-					// shallow compare to actually go into the object.
-					// Otherwise it will just see that `before === after`
-					// and won't rerender React component.
-					form_state = { ...form_state }
-
-					form_state.busy = options.busy(state, props)
-				}
-
 				return form_state
 			},
 			{

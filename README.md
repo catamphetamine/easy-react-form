@@ -108,11 +108,10 @@ function Page(props)
 
 ### @Form()
 
-`@Form()` decorator takes these options:
+The resulting React component takes the following props:
 
-  * `busy(reduxState, props) => boolean` — (optional) a function that determines by analysing current Redux state (having access to the `props`) if the form is "busy" (i.e. submit is in progress); if this option is specified then `busy : boolean` property will be injected into the `<Form/>` component, and also all `<Field/>`s will be `disabled` while the form is `busy` (makes sense)
-
-The resulting React component takes a required `formId : String` property which must be an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${formId}`).
+  * (required) `formId : String` — an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${formId}`)
+  * (optional) `busy : boolean` — tells the form if it's currently "busy" (i.e. submit is in progress); if this property is specified then this `busy : boolean` property is also injected into the `<Form/>` component, and also all `<Field/>`s will be `disabled` while the form is `busy` (makes sense).
 
 The following properties are injected into the resulting `<Form/>` element:
 
