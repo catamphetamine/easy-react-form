@@ -1,3 +1,11 @@
+0.2.0 / 24.09.2016
+==================
+
+  * (breaking change) Form `id` is now set as a parameter of `@Form()` decorator options
+  * (breaking change) Renamed `busy` to `submitting`, and setting it (again) via decorator options
+  * Introducing `<Submit/>` button
+  * Small fix: now accounting for an explicitly set `disabled` property on `<Field/>`s
+
 0.1.10 / 23.09.2016
 ==================
 

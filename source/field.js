@@ -4,6 +4,8 @@ import { connect } from 'react-redux'
 
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
 
+import { context_prop_type } from './form'
+
 // <Field
 // 	name="password"
 // 	component={Text_input}
@@ -38,21 +40,7 @@ export default class Field extends Component
 
 	static contextTypes =
 	{
-		simpler_redux_form : PropTypes.shape
-		({
-			get_value            : PropTypes.func.isRequired,
-			get_indicate_invalid : PropTypes.func.isRequired,
-			get_focus            : PropTypes.func.isRequired,
-
-			register_field           : PropTypes.func.isRequired,
-			unregister_field         : PropTypes.func.isRequired,
-			indicate_invalid_field   : PropTypes.func.isRequired,
-			reset_invalid_indication : PropTypes.func.isRequired,
-			update_field_value       : PropTypes.func.isRequired,
-			focused_field            : PropTypes.func.isRequired,
-			scrolled_to_field        : PropTypes.func.isRequired
-		})
-		.isRequired
+		simpler_redux_form : context_prop_type
 	}
 
 	constructor(props, context)
@@ -246,7 +234,7 @@ export default class Field extends Component
 			on_change : this.on_change,
 			focused   : this.focused,
 			scrolled  : this.scrolled,
-			disabled  : this.context.simpler_redux_form.is_busy()
+			disabled  : this.props.disabled || this.context.simpler_redux_form.is_submitting()
 		})
 	}
 }

@@ -46,7 +46,7 @@ function submitAction(values)
 	}
 }
 
-@Form()
+@Form({ id: 'example' })
 @connect
 (
 	(state)    => ({ phone: state.user.phone }),
@@ -100,7 +100,7 @@ import FormComponent from './form'
 
 function Page(props)
 {
-	return <FormComponent formId='exampleForm'/>
+	return <FormComponent/>
 }
 ```
 
@@ -108,16 +108,19 @@ function Page(props)
 
 ### @Form()
 
-The resulting React component takes the following props:
+`@Form()` decorator takes these options:
 
-  * (required) `formId : String` — an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${formId}`)
-  * (optional) `busy : boolean` — tells the form if it's currently "busy" (i.e. submit is in progress); if this property is specified then this `busy : boolean` property is also injected into the `<Form/>` component, and also all `<Field/>`s will be `disabled` while the form is `busy` (makes sense).
+  * `id : String` — (required) an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${id}`). Alternatively form id can be set via `formId` property passed to the decorated form component.
+
+  * `submitting(reduxState, props) => boolean` — (optional) a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted; if this option is specified then `submitting : boolean` property will be injected into the `<Form/>` component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` property can be passed to the decorated form component and it would have the same effect.
+
+The resulting React component takes the following props:
 
 The following properties are injected into the resulting `<Form/>` element:
 
-  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submitForm)}/>`; the `submitForm(values)` argument is your form submission function; if two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) before the form tries to submit itself a subsequent time
+  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submitForm)}/>`; the `submitForm(values)` argument is your form submission function; if two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time (e.g. it could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if form validation fails and nothing is submitted, therefore they should be always reset in `preSubmit`).
 
-  * `busy : boolean` — only if `busy(reduxState, props) => boolean` was specified (see above)
+  * `submitting : boolean` — only if `submitting : boolean` was specified (see above)
 
   * `focus(fieldName : String)` — focuses on a field
 
@@ -177,6 +180,20 @@ The `indicateInvalid` algorythm is as follows:
 
   * Whenever the `error` property is set on the `<Field/>` component, `indicateInvalid` becomes `true` for that field
 
+### Submit
+
+Using this component is purely optional. The only thing it does is it takes `busy={true}` property when the form is being submitted, and that's it.
+
+Takes the following required `props`:
+
+  * `component` — the actual React submit button component
+
+All other `props` are passed through to the underlying button component.
+
+Additional `props` passed to the `component`:
+
+  * `busy : boolean` — if `submitting: boolean` option is set in `@Form()` decorator then `busy={true}` will be passed to the button `component` when the form is being submitted.
+
 ### reducer
 
 This Redux reducer is plugged into the main Redux reducer under the name of `form`.
@@ -195,7 +212,7 @@ One thing to note about `<Field/>` `error`s is that they must be reset before fo
 import { connect } from 'react-redux'
 import Form, { Field } from 'simpler-redux-form'
 
-@Form()
+@Form({ id: 'example' })
 @connect(state => ({ loginError: state.loginForm.error }))
 class LoginForm extends Component
 {
@@ -255,7 +272,7 @@ function Input(props)
 
 ## Contributing and Feature requests
 
-I made this little library because I liked (and almost reinvented myself) the idea of [`redux-form`](https://github.com/erikras/redux-form) but still found `redux-form` to be somewhat bloated with numerous features. I aimed for simplicity and designed this library to have the minimal sane set of features. The result is just four javascript files. If you're looking for all the features of `redux-form` then go with `redux-form`.
+I made this little library because I liked (and almost reinvented myself) the idea of [`redux-form`](https://github.com/erikras/redux-form) but still found `redux-form` to be somewhat bloated with numerous features. I aimed for simplicity and designed this library to have the minimal sane set of features. The result is just five javascript files. If you're looking for all the features of `redux-form` then go with `redux-form`.
 
 <!-- ## Contributing
 

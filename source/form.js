@@ -67,11 +67,11 @@ export default function Form(options = {})
 		{
 			static propTypes =
 			{
-				// External prop
+				id : PropTypes.string,
 				form_id : PropTypes.string,
 				formId  : PropTypes.string,
 
-				busy : PropTypes.bool,
+				submitting : PropTypes.bool,
 
 				fields           : PropTypes.object.isRequired,
 				values           : PropTypes.object.isRequired,
@@ -112,7 +112,7 @@ export default function Form(options = {})
 				this.get_scroll_to              = this.get_scroll_to.bind(this)
 				this.get_form_validation_failed = this.get_form_validation_failed.bind(this)
 
-				this.is_busy = this.is_busy.bind(this)
+				this.is_submitting = this.is_submitting.bind(this)
 
 				this.register_field           = this.register_field.bind(this)
 				this.unregister_field         = this.unregister_field.bind(this)
@@ -151,7 +151,7 @@ export default function Form(options = {})
 						get_scroll_to              : this.get_scroll_to,
 						get_form_validation_failed : this.get_form_validation_failed,
 
-						is_busy : this.is_busy,
+						is_submitting : this.is_submitting,
 
 						register_field           : this.register_field,
 						unregister_field         : this.unregister_field,
@@ -176,10 +176,7 @@ export default function Form(options = {})
 					field = Object.keys(fields)[0]
 				}
 
-				if (field)
-				{
-					this.focus_field(field)
-				}
+				this.focus_field(field)
 			}
 
 			// Not all of `this.props` are passed
@@ -188,15 +185,15 @@ export default function Form(options = {})
 				const passed_props = {}
 
 				// Drop all inner props,
-				// retaining 'form_id' and 'busy',
-				// and also all other possible user-specified props.
+				// retaining only 'submitting' prop.
+				// All other user-specified props are passed on.
 				for (let prop_name of Object.keys(this.props))
 				{
 					if (Form.propTypes[prop_name])
 					{
 						if (prop_name !== 'form_id'
 							&& prop_name !== 'formId'
-							&& prop_name !== 'busy')
+							&& prop_name !== 'submitting')
 						{
 							continue
 						}
@@ -215,9 +212,9 @@ export default function Form(options = {})
 			}
 
 			// Is submit in progress
-			is_busy()
+			is_submitting()
 			{
-				return this.props.busy
+				return this.props.submitting
 			}
 
 			// Is called from outside
@@ -353,15 +350,18 @@ export default function Form(options = {})
 						event.preventDefault()
 					}
 
-					// Do nothing if the form is busy
+					// Do nothing if the form is submitting
 					// (i.e. submit is in progress)
-					if (this.props.busy)
+					if (this.props.submitting)
 					{
 						return
 					}
 
 					// Can be used, for example, to reset
 					// custom error messages.
+					// (not <Field/> `error`s)
+					// E.g. it could be used to reset
+					// overall form errors like "Form submission failed".
 					if (before_submit)
 					{
 						before_submit()
@@ -431,11 +431,22 @@ export default function Form(options = {})
 		(
 			(state, props) =>
 			{
-				const _form_id = form_id(props)
+				let form_id
 
-				if (!_form_id)
+				// Get form id
+				if (options.id)
 				{
-					throw new Error("`formId` property not specified on `simpler-redux-form` component")
+					// `id` can be either a String or a Function of `props`
+					form_id = typeof options.id === 'string' ? options.id : options.id(props)
+				}
+				else
+				{
+					form_id = props.form_id || props.formId
+				}
+
+				if (!form_id)
+				{
+					throw new Error("@Form() `id` property not specified for `simpler-redux-form` decorator for " + get_display_name(Wrapped))
 				}
 
 				for (let prop of Object.keys(props))
@@ -446,11 +457,24 @@ export default function Form(options = {})
 					}
 				}
 
-				let form_state = state.form[_form_id]
+				let form_state = state.form[form_id]
 
 				if (!form_state)
 				{
 					form_state = { ..._initial_form_state_ }
+				}
+
+				form_state.id = form_id
+
+				if (options.submitting)
+				{
+					// This is needed for Redux store listener
+					// shallow compare to actually go into the object.
+					// Otherwise it will just see that `before === after`
+					// and won't rerender React component.
+					form_state = { ...form_state }
+
+					form_state.submitting = options.submitting(state, props)
 				}
 
 				return form_state
@@ -493,9 +517,9 @@ export default function Form(options = {})
 				return this.refs.connected_form.getWrappedInstance().refs.user_form
 			}
 
-			focus()
+			focus(field)
 			{
-				return this.refs.connected_form.getWrappedInstance().focus()
+				return this.refs.connected_form.getWrappedInstance().focus(field)
 			}
 
 			scroll(field)
@@ -538,5 +562,25 @@ function get_display_name(Wrapped)
 
 function form_id(props)
 {
-	return props.form_id || props.formId
+	return props.id
 }
+
+export const context_prop_type = PropTypes.shape
+({
+	get_value                  : PropTypes.func.isRequired,
+	get_indicate_invalid       : PropTypes.func.isRequired,
+	get_focus                  : PropTypes.func.isRequired,
+	get_scroll_to              : PropTypes.func.isRequired,
+	get_form_validation_failed : PropTypes.func.isRequired,
+
+	is_submitting : PropTypes.func.isRequired,
+
+	register_field           : PropTypes.func.isRequired,
+	unregister_field         : PropTypes.func.isRequired,
+	update_field_value       : PropTypes.func.isRequired,
+	indicate_invalid_field   : PropTypes.func.isRequired,
+	reset_invalid_indication : PropTypes.func.isRequired,
+	focused_field            : PropTypes.func.isRequired,
+	scrolled_to_field        : PropTypes.func.isRequired
+})
+.isRequired
