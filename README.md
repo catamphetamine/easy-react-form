@@ -116,6 +116,8 @@ function Page(props)
 
 The resulting React component takes the following props:
 
+  * `values : object` — initial form field values (`{ field: value, ... }`)
+
 The following properties are injected into the resulting `<Form/>` element:
 
   * `submit(submitForm(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submitForm)}/>`; the `submitForm(values)` argument is your form submission function; if two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time (e.g. it could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if form validation fails and nothing is submitted, therefore they should be always reset in `preSubmit`).

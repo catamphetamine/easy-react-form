@@ -71,6 +71,8 @@ export default function Form(options = {})
 				form_id : PropTypes.string,
 				formId  : PropTypes.string,
 
+				initial_values : PropTypes.object,
+
 				submitting : PropTypes.bool,
 
 				fields           : PropTypes.object.isRequired,
@@ -107,6 +109,7 @@ export default function Form(options = {})
 				super(props, context)
 
 				this.get_value                  = this.get_value.bind(this)
+				this.get_initial_value          = this.get_initial_value.bind(this)
 				this.get_indicate_invalid       = this.get_indicate_invalid.bind(this)
 				this.get_focus                  = this.get_focus.bind(this)
 				this.get_scroll_to              = this.get_scroll_to.bind(this)
@@ -131,7 +134,7 @@ export default function Form(options = {})
 
 			componentWillMount()
 			{
-				this.props.initialize_form(this.form_id())
+				this.props.initialize_form(this.form_id(), this.props.initial_values)
 			}
 
 			componentWillUnmount()
@@ -146,6 +149,7 @@ export default function Form(options = {})
 					simpler_redux_form:
 					{
 						get_value                  : this.get_value,
+						get_initial_value          : this.get_initial_value,
 						get_indicate_invalid       : this.get_indicate_invalid,
 						get_focus                  : this.get_focus,
 						get_scroll_to              : this.get_scroll_to,
@@ -185,7 +189,7 @@ export default function Form(options = {})
 				const passed_props = {}
 
 				// Drop all inner props,
-				// retaining only 'submitting' prop.
+				// retaining only 'submitting' and 'formId' prop.
 				// All other user-specified props are passed on.
 				for (let prop_name of Object.keys(this.props))
 				{
@@ -257,6 +261,12 @@ export default function Form(options = {})
 			get_value(field)
 			{
 				return this.props.values[field]
+			}
+
+			// Returns form initial values
+			get_initial_value(field)
+			{
+				return this.props.initial_values[field]
 			}
 
 			// Invalid field indication
@@ -449,14 +459,6 @@ export default function Form(options = {})
 					throw new Error("@Form() `id` property not specified for `simpler-redux-form` decorator for " + get_display_name(Wrapped))
 				}
 
-				for (let prop of Object.keys(props))
-				{
-					if (reserved_props.indexOf(prop) >= 0)
-					{
-						throw new Error(`"${prop}" prop is reserved by simpler-redux-form`)
-					}
-				}
-
 				let form_state = state.form[form_id]
 
 				if (!form_state)
@@ -475,6 +477,18 @@ export default function Form(options = {})
 					form_state = { ...form_state }
 
 					form_state.submitting = options.submitting(state, props)
+				}
+
+				for (let prop of Object.keys(props))
+				{
+					if (prop === 'values')
+					{
+						form_state.initial_values = props.values
+					}
+					else if (reserved_props.indexOf(prop) >= 0)
+					{
+						throw new Error(`"${prop}" prop is reserved by simpler-redux-form`)
+					}
 				}
 
 				return form_state
@@ -568,6 +582,7 @@ function form_id(props)
 export const context_prop_type = PropTypes.shape
 ({
 	get_value                  : PropTypes.func.isRequired,
+	get_initial_value          : PropTypes.func.isRequired,
 	get_indicate_invalid       : PropTypes.func.isRequired,
 	get_focus                  : PropTypes.func.isRequired,
 	get_scroll_to              : PropTypes.func.isRequired,

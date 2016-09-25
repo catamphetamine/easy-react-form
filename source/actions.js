@@ -1,7 +1,8 @@
-export const initialize_form = (form) =>
+export const initialize_form = (form, values) =>
 ({
 	type : '@@simpler-redux-form/initialize',
-	form
+	form,
+	values
 })
 
 export const destroy_form = (form) =>
@@ -10,13 +11,13 @@ export const destroy_form = (form) =>
 	form
 })
 
-export const register_field = (form, field, value, error, non_validation_error) =>
+export const register_field = (form, field, value, validate, non_validation_error) =>
 ({
 	type : '@@simpler-redux-form/register-field',
 	form,
 	field,
 	value,
-	error,
+	validate,
 	non_validation_error
 })
 

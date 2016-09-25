@@ -22,6 +22,11 @@ export default function reducer(state = {}, action)
 				[action.form] : initial_form_state()
 			}
 
+			if (action.values)
+			{
+				state[action.form].initial_values = action.values
+			}
+
 			return state
 
 		case '@@simpler-redux-form/destroy':
@@ -47,13 +52,16 @@ export default function reducer(state = {}, action)
 			{
 				form_state.fields[action.field] = 1
 
+				const field_value = action.value !== undefined ? action.value : form_state.initial_values[action.field]
+				const field_error = action.validate(field_value)
+
 				// Only initializes the field with it's default value
 				// if it hasn't been seen before.
-				form_state.values[action.field] = action.value
-				form_state.errors[action.field] = action.error
+				form_state.values[action.field] = field_value
+				form_state.errors[action.field] = field_error
 
-				form_state.initial_values[action.field]       = action.value
-				form_state.initial_value_errors[action.field] = action.error
+				form_state.initial_values[action.field]       = field_value
+				form_state.initial_value_errors[action.field] = field_error
 
 				// If an external error was specified, then show it
 				if (action.non_validation_error)

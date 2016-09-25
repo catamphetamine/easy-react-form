@@ -21,6 +21,8 @@ import { context_prop_type } from './form'
 //
 export default class Field extends Component
 {
+	state = {}
+
 	static propTypes =
 	{
 		name      : PropTypes.string.isRequired,
@@ -72,6 +74,7 @@ export default class Field extends Component
 			(state) =>
 			({
 				value                  : context.simpler_redux_form.get_value(name),
+				// initial_value          : context.simpler_redux_form.get_initial_value(name),
 				indicate_invalid       : context.simpler_redux_form.get_indicate_invalid(name),
 				_focus                 : context.simpler_redux_form.get_focus(name),
 				_scroll_to             : context.simpler_redux_form.get_scroll_to(name),
@@ -86,6 +89,10 @@ export default class Field extends Component
 		(Connectable_field)
 	}
 
+	// `componentWillMount` is called on the server side
+	// (as opposed to `componentDidMount`)
+	// but Redux'es @connect() hasn't been called yet,
+	// so Redux store properties aren't yet available
 	componentWillMount()
 	{
 		const { name, value, validate, error } = this.props
@@ -95,7 +102,19 @@ export default class Field extends Component
 		// Initialize this field with the default value,
 		// if it hasn't been edited before (i.e. if it's really new).
 		//
-		this.context.simpler_redux_form.register_field(name, value, validate(value), error)
+		this.context.simpler_redux_form.register_field(name, value, validate, error)
+
+		// Since Redux'es @connect() hasn't been called yet,
+		// use `this.state.initial_value` hack is used (for the server side).
+		this.setState({ initial_value: this.context.simpler_redux_form.get_initial_value(this.props.name) })
+	}
+
+	// In `componentDidMount`
+	// but Redux'es @connect() has been called,
+	// so `this.state.initial_value` hack is not needed anymore.
+	componentDidMount()
+	{
+		this.setState({ initial_value: undefined })
 	}
 
 	componentWillUnmount()
@@ -126,7 +145,7 @@ export default class Field extends Component
 			// Initialize this field with the default value,
 			// if it hasn't been edited before (i.e. if it's really new).
 			//
-			this.context.simpler_redux_form.register_field(name, value, validate(value), error)
+			this.context.simpler_redux_form.register_field(name, value, validate, error)
 		}
 		// Else, if it's the same field
 		else
@@ -230,11 +249,12 @@ export default class Field extends Component
 		return createElement(this.Connected_field,
 		{
 			...this.props,
-			ref       : 'field',
-			on_change : this.on_change,
-			focused   : this.focused,
-			scrolled  : this.scrolled,
-			disabled  : this.props.disabled || this.context.simpler_redux_form.is_submitting()
+			ref           : 'field',
+			initial_value : this.state.initial_value,
+			on_change     : this.on_change,
+			focused       : this.focused,
+			scrolled      : this.scrolled,
+			disabled      : this.props.disabled || this.context.simpler_redux_form.is_submitting()
 		})
 	}
 }
@@ -248,6 +268,7 @@ class Connectable_field extends Component
 		name     : PropTypes.string,
 		disabled : PropTypes.bool,
 
+		initial_value          : PropTypes.any,
 		value                  : PropTypes.any,
 		indicate_invalid       : PropTypes.bool,
 		_focus                 : PropTypes.bool,
@@ -365,15 +386,11 @@ class Connectable_field extends Component
 			}
 		}
 
-		// Retain some of them
-		rest_props.name     = this.props.name
-		rest_props.value    = this.props.value
-		rest_props.disabled = this.props.disabled
-
 		let
 		{
 			component,
 			value,
+			initial_value,
 			error,
 			validate,
 			indicate_invalid,
@@ -381,6 +398,13 @@ class Connectable_field extends Component
 			on_change
 		}
 		= this.props
+
+		value = initial_value !== undefined ? initial_value : value
+
+		// Retain some of them
+		rest_props.name     = this.props.name
+		rest_props.value    = value
+		rest_props.disabled = this.props.disabled
 
 		// Don't show external error if form validation failed
 		if (indicate_invalid && form_validation_failed)
