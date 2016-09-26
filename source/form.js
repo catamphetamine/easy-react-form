@@ -514,10 +514,8 @@ export default function Form(options = {})
 		)
 		(Form)
 
-		hoist_statics(Connected_form, Wrapped)
-
 		// Build outer component to expose instance api
-		return class ReduxForm extends Component
+		class ReduxForm extends Component
 		{
 			constructor(props, context)
 			{
@@ -566,6 +564,10 @@ export default function Form(options = {})
 				})
 			}
 		}
+
+		hoist_statics(ReduxForm, Wrapped)
+
+		return ReduxForm
 	}
 }
 
