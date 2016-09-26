@@ -196,6 +196,27 @@ Additional `props` passed to the `component`:
 
   * `busy : boolean` — if `submitting: boolean` option is set in `@Form()` decorator then `busy={true}` will be passed to the button `component` when the form is being submitted.
 
+```js
+@Form()
+class Form extends Component
+{
+	render()
+	{
+		return (
+			<form>
+				<Field component={Input} name="text"/>
+				<Submit component={Button}>Submit</Submit>
+			</form>
+		)
+	}
+}
+
+function Button({ busy, children })
+{
+	return <button disabled={busy}>{children}</button>
+}
+```
+
 ### reducer
 
 This Redux reducer is plugged into the main Redux reducer under the name of `form`.
