@@ -111,7 +111,7 @@ function Page(props)
 
   * `id : String` — (required) an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${id}`). Alternatively form id can be set via `formId` property passed to the decorated form component.
 
-  * `submitting(reduxState, props) => boolean` — (optional) a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted; if this option is specified then `submitting : boolean` property will be injected into the `<Form/>` component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` property can be passed to the decorated form component and it would have the same effect.
+  * `submitting(reduxState, props) => boolean` — (optional) a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted; if this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect.
 
 The resulting React component takes the following props:
 
@@ -183,7 +183,7 @@ The `indicateInvalid` algorythm is as follows:
 
 ### Submit
 
-Using this component is purely optional. The only thing it does is it takes `busy={true}` property when the form is being submitted, and that's it.
+Using this component is purely optional. The only thing it does is it takes `busy={true}` property when the form is being submitted (in case `submitting` has been set up), and that's it.
 
 Takes the following required `props`:
 
