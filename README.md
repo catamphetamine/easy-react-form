@@ -29,7 +29,6 @@ Create the form
 import React, { Component, PropTypes } from 'react'
 import Form, { Field } from 'simpler-redux-form'
 import { connect } from 'react-redux'
-import { bindActionCreators } from 'redux'
 
 // `redux-thunk` example
 function submitAction(values)
@@ -49,8 +48,8 @@ function submitAction(values)
 @Form({ id: 'example' })
 @connect
 (
-	(state)    => ({ phone: state.user.phone }),
-	(dispatch) => bindActionCreators({ submitAction }, dispatch)
+	state => ({ phone: state.user.phone }),
+	{ submitAction }
 )
 export default class Form_name extends Component
 {
