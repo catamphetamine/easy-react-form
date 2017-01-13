@@ -31,14 +31,11 @@ import Form, { Field } from 'simpler-redux-form'
 import { connect } from 'react-redux'
 
 // `redux-thunk` example
-function submitAction(values)
-{
-	return (dispatch) =>
-	{
+function submitAction(values) {
+	return (dispatch) => {
 		dispatch({ type: 'SUBMIT_REQUEST' })
 
-		return ajax.post('/form', values).then
-		(
+		return ajax.post('/form', values).then(
 			(result) => dispatch({ type: 'SUBMIT_SUCCESS', result }),
 			(error)  => dispatch({ type: 'SUBMIT_FAILURE', error  })
 		)
@@ -46,23 +43,18 @@ function submitAction(values)
 }
 
 @Form({ id: 'example' })
-@connect
-(
+@connect(
 	state => ({ phone: state.user.phone }),
 	{ submitAction }
 )
-export default class Form_name extends Component
-{
-	validatePhone(phone)
-	{
-		if (!phone)
-		{
+export default class Form_name extends Component {
+	validatePhone(phone) {
+		if (!phone) {
 			return 'Phone number is required'
 		}
 	}
 
-	render()
-	{
+	render() {
 		const { phone, submit, submitAction } = this.props
 
 		return (
@@ -97,8 +89,7 @@ function Input(props)
 ```js
 import FormComponent from './form'
 
-function Page(props)
-{
+function Page(props) {
 	return <FormComponent/>
 }
 ```
@@ -183,7 +174,7 @@ The `indicateInvalid` algorythm is as follows:
 
 ### Submit
 
-Using this component is purely optional. The only thing it does is it takes `busy={true}` property when the form is being submitted (in case `submitting` has been set up), and that's it.
+Use this component to render a form submit button.
 
 Takes the following required `props`:
 
@@ -191,28 +182,34 @@ Takes the following required `props`:
 
 All other `props` are passed through to the underlying button component.
 
-Additional `props` passed to the `component`:
+Additional `props` passed by this component to the submit button `component`:
 
-  * `busy : boolean` — if `submitting: boolean` option is set in `@Form()` decorator then `busy={true}` will be passed to the button `component` when the form is being submitted.
+  * `busy : boolean` — if `submitting` is set up in `@Form()` decorator then `busy={true}` will be passed to the submit button `component` when the form is being submitted.
 
 ```js
-@Form()
-class Form extends Component
-{
-	render()
-	{
+@Form (
+	id: 'form',
+	submitting: state => state.items.addItemAjaxRequestInProgress
+)
+class Form extends Component {
+	render() {
 		return (
-			<form>
-				<Field component={Input} name="text"/>
-				<Submit component={Button}>Submit</Submit>
+			<form onSubmit={ submit(...) }>
+				<Field component={ Input } name="text"/>
+				<Submit component={ Button }>Submit</Submit>
 			</form>
 		)
 	}
 }
 
-function Button({ busy, children })
-{
-	return <button disabled={busy}>{children}</button>
+// `children` is button text ("Submit")
+function Button({ busy, children }) {
+	return (
+		<button disabled={ busy }>
+			{ busy && <Spinner/> }
+			{ children }
+		</button>
+	)
 }
 ```
 
