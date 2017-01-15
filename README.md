@@ -27,27 +27,33 @@ Create the form
 
 ```js
 import React, { Component, PropTypes } from 'react'
-import Form, { Field } from 'simpler-redux-form'
+import Form, { Field, Submit } from 'simpler-redux-form'
 import { connect } from 'react-redux'
 
-// `redux-thunk` example
+// `redux-thunk` example.
+// Returns a `Promise`
 function submitAction(values) {
 	return (dispatch) => {
 		dispatch({ type: 'SUBMIT_REQUEST' })
 
-		return ajax.post('/form', values).then(
+		return ajax.post('/save', values).then(
 			(result) => dispatch({ type: 'SUBMIT_SUCCESS', result }),
 			(error)  => dispatch({ type: 'SUBMIT_FAILURE', error  })
 		)
 	}
 }
 
-@Form({ id: 'example' })
+@Form({
+	// Unique ID for this form in Redux state
+	id: 'phoneNumberForm'
+})
 @connect(
+	// Get user's current phone number from Redux state
 	state => ({ phone: state.user.phone }),
+	// Redux `bindActionCreators`
 	{ submitAction }
 )
-export default class Form_name extends Component {
+export default class PhoneNumberForm extends Component {
 	validatePhone(phone) {
 		if (!phone) {
 			return 'Phone number is required'
@@ -63,33 +69,45 @@ export default class Form_name extends Component {
 
 				<Field
 					name="phone"
-					component={Input}
-					value={phone}
-					validate={this.validatePhone}
+					component={ TexInput }
 					type="tel"
+					// Initial value for this field
+					value={ phone }
+					validate={ this.validatePhone }
 					placeholder="Enter phone number"/>
+
+				<Submit component={ SubmitButton }>Save</Submit>
 			</form>
 		)
 	}
 }
 
-function Input(props)
-{
-	const { error, indicateInvalid, ...rest } = props
-
+function TextInput({ error, indicateInvalid, ...rest }) {
 	return (
 		<div>
-			<input {...rest}/>
-			{ indicateInvalid && <div className="error">{error}</div> }
+			<input type="text" { ...rest }/>
+			{/* Shows this form field validation error */}
+			{ indicateInvalid && <div className="error">{ error }</div> }
 		</div>
+	)
+}
+
+// `children` is button text ("Save")
+function SubmitButton({ children }) {
+	return (
+		<button type="submit">
+			{ children }
+		</button>
 	)
 }
 ```
 
+And use it anywhere on a page
+
 ```js
 import FormComponent from './form'
 
-function Page(props) {
+function Page() {
 	return <FormComponent/>
 }
 ```
@@ -102,7 +120,7 @@ function Page(props) {
 
   * `id : String` — (required) an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${id}`). Alternatively form id can be set via `formId` property passed to the decorated form component.
 
-  * `submitting(reduxState, props) => boolean` — (optional) a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted; if this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect.
+  * `submitting(reduxState, props) => boolean` — (optional) (advanced) a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted; if this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. Alternatively, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. 
 
 The resulting React component takes the following props:
 
@@ -110,9 +128,9 @@ The resulting React component takes the following props:
 
 The following properties are injected into the resulting `<Form/>` element:
 
-  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your form's `onSubmit` handler: `<form onSubmit={submit(this.submitForm)}/>`; the `submitForm(values)` argument is your form submission function; if two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time (e.g. it could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if form validation fails and nothing is submitted, therefore they should be always reset in `preSubmit`).
+  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your `<form/>` as an `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. If two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time (e.g. it could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if form validation fails and nothing is submitted, therefore they should be always reset in `preSubmit`).
 
-  * `submitting : boolean` — only if `submitting : boolean` was specified (see above)
+  * `submitting : boolean` — "Is the form currently being submitted?" flag
 
   * `focus(fieldName : String)` — focuses on a field
 
@@ -122,7 +140,7 @@ The following properties are injected into the resulting `<Form/>` element:
 
   * `set(fieldName : String, value : String, error : String)` — sets form field value (`error` should be `validate(value)`)
 
-  * `reset_invalid_indication()` — resets `invalidIndication` for all fields
+  * `resetInvalidIndication()` — resets `invalidIndication` for all fields
 
 If an invalid field is found upon form submission, or if an error is set for a field, then that field will be automatically scrolled to and focused.
 
@@ -205,7 +223,9 @@ class Form extends Component {
 // `children` is button text ("Submit")
 function Button({ busy, children }) {
 	return (
-		<button disabled={ busy }>
+		<button
+			type="submit"
+			disabled={ busy }>
 			{ busy && <Spinner/> }
 			{ children }
 		</button>

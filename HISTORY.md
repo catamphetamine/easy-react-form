@@ -1,3 +1,13 @@
+0.2.6 / 16.01.2017
+==================
+
+  * The form's `submitting` flag now is also automatically inferred if the form submission action returned a `Promise`
+
+0.2.5 / 15.01.2017
+==================
+
+  * Refactoring, initial value bug fix
+
 0.2.2 / 26.09.2016
 ==================
 

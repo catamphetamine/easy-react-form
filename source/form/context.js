@@ -5,7 +5,7 @@ const create_context = (form) =>
 	// Is submit in progress
 	is_submitting()
 	{
-		return form.props.submitting
+		return form.state.submitting || form.props.submitting
 	},
 
 	// Registers field (used because React optimizes rerendering process)

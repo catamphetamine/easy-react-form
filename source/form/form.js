@@ -54,6 +54,11 @@ export default function createFormComponentDecorator(options = {})
 				simpler_redux_form : context_prop_type
 			}
 
+			state =
+			{
+				submitting : undefined
+			}
+
 			constructor()
 			{
 				super()
@@ -104,32 +109,6 @@ export default function createFormComponentDecorator(options = {})
 				this.focus_field(field)
 			}
 
-			// Not all of `this.props` are passed
-			passed_props()
-			{
-				const passed_props = {}
-
-				// Drop all inner props,
-				// retaining only 'submitting' and 'formId' prop.
-				// All other user-specified props are passed on.
-				for (let prop_name of Object.keys(this.props))
-				{
-					if (Form.propTypes[prop_name])
-					{
-						if (prop_name !== 'form_id'
-							&& prop_name !== 'formId'
-							&& prop_name !== 'submitting')
-						{
-							continue
-						}
-					}
-
-					passed_props[prop_name] = this.props[prop_name]
-				}
-
-				return passed_props
-			}
-
 			// Resets invalid indication for the whole form
 			reset_form_invalid_indication()
 			{
@@ -177,7 +156,20 @@ export default function createFormComponentDecorator(options = {})
 						form_data[key] = values[key]
 					}
 
-					return action(form_data)
+					const result = action(form_data)
+
+					// If the form submit action result is a `Promise`
+					// then use it to set `submitting` flag
+					if (result && typeof result.then === 'function')
+					{
+						this.setState({ submitting: true })
+
+						result.then
+						(
+							succeeded => this.setState({ submitting: false }),
+							error     => this.setState({ submitting: false })
+						)
+					}
 				}
 
 				// Indicate the first invalid field error
@@ -208,6 +200,8 @@ export default function createFormComponentDecorator(options = {})
 				return (event) =>
 				{
 					// If it's an event handler then `.preventDefault()` it
+					// (which is the case for the intended
+					//  `<form onSubmit={ submit(...) }/>` use case)
 					if (event && typeof event.preventDefault === 'function')
 					{
 						event.preventDefault()
@@ -215,7 +209,7 @@ export default function createFormComponentDecorator(options = {})
 
 					// Do nothing if the form is submitting
 					// (i.e. submit is in progress)
-					if (this.props.submitting)
+					if (this.state.submitting || this.props.submitting)
 					{
 						return
 					}
@@ -259,18 +253,42 @@ export default function createFormComponentDecorator(options = {})
 				this.props.set_field(this.props.id, field, value, error)
 			}
 
+			// Pass through all non-internal React `props`
+			passthrough_props()
+			{
+				const passed_props = {}
+
+				// Drop all inner props.
+				// All other user-specified props are passed on.
+				for (let prop_name of Object.keys(this.props))
+				{
+					// Drop all inner props
+					if (Form.propTypes[prop_name])
+					{
+						continue
+					}
+
+					passed_props[prop_name] = this.props[prop_name]
+				}
+
+				return passed_props
+			}
+
 			render()
 			{
 				return createElement(Wrapped_component,
 				{
-					...this.passed_props(),
+					...this.passthrough_props(),
 					ref    : 'user_form',
 					submit : this.submit,
 					focus  : this.focus_field,
 					scroll : this.scroll_to_field,
 					clear  : this.clear_field,
 					set    : this.set_field,
-					reset_invalid_indication : this.reset_form_invalid_indication
+					submitting : this.state.submitting || this.props.submitting,
+					reset_invalid_indication : this.reset_form_invalid_indication,
+					// camelCase alias
+					resetInvalidIndication   : this.reset_form_invalid_indication
 				})
 			}
 		}
