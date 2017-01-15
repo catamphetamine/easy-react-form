@@ -19,12 +19,7 @@ export default function reducer(state = {}, action)
 			state =
 			{
 				...state,
-				[action.form] : initial_form_state()
-			}
-
-			if (action.values)
-			{
-				state[action.form].initial_values = action.values
+				[action.form] : initial_form_state(action.values)
 			}
 
 			return state
@@ -55,8 +50,9 @@ export default function reducer(state = {}, action)
 				const field_value = action.value !== undefined ? action.value : form_state.initial_values[action.field]
 				const field_error = action.validate(field_value)
 
-				// Only initializes the field with it's default value
+				// Only initializes the field with its default value
 				// if it hasn't been seen before.
+				// Otherwise will initialize the field with its current value.
 				form_state.values[action.field] = field_value
 				form_state.errors[action.field] = field_error
 
@@ -78,7 +74,8 @@ export default function reducer(state = {}, action)
 
 		case '@@simpler-redux-form/unregister-field':
 
-			// Seems that a form gets destroyed before its fields
+			// Seems that a form gets destroyed before its fields,
+			// so `form_state` could be undefined (probably).
 			if (form_state)
 			{
 				state = { ...state }
@@ -91,6 +88,13 @@ export default function reducer(state = {}, action)
 				// Uses a numerical counter instead of a boolean.
 				// https://github.com/erikras/redux-form/issues/1705
 				form_state.fields[action.field]--
+
+				// Even if the registration counter for a field
+				// becomes equal to `0` it's still not destroyed,
+				// because theoretically it could correspond to a new field
+				// being added in the beginning of the field list
+				// therefore causing all field to unregister and then register again.
+				// If those fields were destroyed then their values would be lost.
 			}
 
 			return state
@@ -252,13 +256,13 @@ export default function reducer(state = {}, action)
 	}
 }
 
-export function initial_form_state()
+export function initial_form_state(initial_values)
 {
 	const state =
 	{
 		fields               : {},
 		values               : {},
-		initial_values       : {},
+		initial_values       : initial_values || {},
 		initial_value_errors : {},
 		errors               : {},
 		indicate_invalid     : {},

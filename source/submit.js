@@ -1,7 +1,7 @@
 import { Component, createElement, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
-import { context_prop_type } from './form'
+import { context_prop_type } from './form/context'
 
 // <Submit
 // 	component={Button}/>
