@@ -120,15 +120,13 @@ function Page() {
 
   * `id : String` — (required) an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${id}`). Alternatively form id can be set via `formId` property passed to the decorated form component.
 
-  * `submitting(reduxState, props) => boolean` — (optional) (advanced) a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted; if this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. Alternatively, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. 
-
 The resulting React component takes the following props:
 
   * `values : object` — initial form field values (`{ field: value, ... }`)
 
 The following properties are injected into the resulting `<Form/>` element:
 
-  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your `<form/>` as an `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. If two arguments are passed to the `submit(preSubmit, submitForm)` function then the first argument will be called before form submission attempt while the second argument (form submission itself) will be called only if form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time (e.g. it could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if form validation fails and nothing is submitted, therefore they should be always reset in `preSubmit`).
+  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your `<form/>` as an `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected.
 
   * `submitting : boolean` — "Is the form currently being submitted?" flag
 
@@ -253,27 +251,22 @@ import Form, { Field } from 'simpler-redux-form'
 
 @Form({ id: 'example' })
 @connect(state => ({ loginError: state.loginForm.error }))
-class LoginForm extends Component
-{
-	validateNotEmpty(value)
-	{
-		if (!value)
-		{
+class LoginForm extends Component {
+	validateNotEmpty(value) {
+		if (!value) {
 			return 'Required'
 		}
 	}
 
-	submit(values)
-	{
+	submit(values) {
 		// Clears `state.loginForm.error`
 		dispatch({ type: 'LOGIN_FORM_CLEAR_ERROR' })
 
 		// Sends form data to the server
-		dispatch(sendHTTPLoginRequest(values))
+		return dispatch(sendHTTPLoginRequest(values))
 	}
 
-	render()
-	{
+	render() {
 		const { loginError } = this.props
 
 		return (
@@ -296,10 +289,7 @@ class LoginForm extends Component
 	}
 }
 
-function Input(props)
-{
-	const { error, indicateInvalid, ...rest } = props
-
+function Input({ error, indicateInvalid, ...rest }) {
 	return (
 		<div>
 			<input {...rest}/>
@@ -308,6 +298,14 @@ function Input(props)
 	)
 }
 ```
+
+### Advanced options
+
+  * `@Form()` decorator takes an optional `submitting(reduxState, props) => boolean` parameter which is a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted. If this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. By default, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. 
+
+The following properties are injected into the resulting `<Form/>` element:
+
+  * If two arguments are passed to the `submit(preSubmit, submitForm)` form `onSubmit` handler then the first argument will be called before form submission attempt (before any validation) while the second argument (form submission itself) will be called only if the form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time. For example, this could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if a user edits a field, clicks the "Submit" button once again, and a form field validation fails and nothing is actually submitted, but the aforementioned non-field errors stays confusing the user. Therefore such non-field errors should be always reset in `preSubmit`.
 
 ## Contributing and Feature requests
 
