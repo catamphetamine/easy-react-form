@@ -21,7 +21,7 @@ import redux_state_connector from './connect'
 //
 // submit(values) { ... }
 //
-export default function createFormComponentDecorator(options = {})
+export function decorator_with_options(options = {})
 {
 	return function createFormComponent(Wrapped_component)
 	{
@@ -315,3 +315,6 @@ export function get_display_name(Wrapped)
 {
 	return Wrapped.displayName || Wrapped.name || 'Component'
 }
+
+const decorator = decorator_with_options()
+export default decorator

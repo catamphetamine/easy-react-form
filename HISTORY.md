@@ -1,3 +1,9 @@
+0.3.0 / 16.01.2017
+==================
+
+  * Added `@Form` id autogeneration
+  * (breaking change) The default export `Form` now doesn't take any options, use the named exported `Form` instead for passing options
+
 0.2.6 / 16.01.2017
 ==================
 

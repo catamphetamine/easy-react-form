@@ -25,6 +25,8 @@ from '../actions'
 // Connects the form component to Redux state
 export default function redux_state_connector(options, wrapped_component_display_name)
 {
+	let form_id
+
 	return connect
 	(
 		(state, props) =>
@@ -33,7 +35,10 @@ export default function redux_state_connector(options, wrapped_component_display
 			// (due to being used by `simpler-redux-form`)
 			check_for_reserved_props(props)
 
-			const form_id = get_form_id(options, props, wrapped_component_display_name)
+			if (!form_id)
+			{
+				form_id = get_form_id(options, state, props, wrapped_component_display_name)
+			}
 
 			// These React `props` will be passed
 			// to the underlying form component
@@ -109,7 +114,7 @@ export default function redux_state_connector(options, wrapped_component_display
 }
 
 // Get form id
-function get_form_id(options, props, wrapped_component_display_name)
+function get_form_id(options, state, props, wrapped_component_display_name)
 {
 	// If `id` was set in the decorator options
 	if (options.id)
@@ -124,8 +129,35 @@ function get_form_id(options, props, wrapped_component_display_name)
 		return props.form_id || props.formId
 	}
 
-	// @Form() `id` is required
-	throw new Error("@Form() `id` property not specified for `simpler-redux-form` decorator for " + wrapped_component_display_name)
+	// Autogenerate @Form() `id`.
+	return autogenerate_form_id(state.form)
+}
+
+// Autogenerate @Form() `id`
+//
+// `@connect()` will be called in `Form` constructor,
+// and form is registered in `componentWillMount` of a `Form`,
+// which means that theoretically if two forms
+// were created side-by-side in a parent component
+// and then mounted inside it, then there potentially
+// could be an ID collision, but that's very unlikely.
+//
+function autogenerate_form_id(forms)
+{
+	// Generate a random form ID.
+	// Since there's no multiply-and-floor involved here
+	// it is considered really random (much safe, such PRNG)
+	// https://medium.com/@betable/tifu-by-using-math-random-f1c308c4fd9d
+	const id = String(Math.random()).slice(2)
+
+	// If this form ID is already taken,
+	// then try another one.
+	if (forms[id])
+	{
+		return autogenerate_form_id(forms)
+	}
+
+	return id
 }
 
 function check_for_reserved_props(props)

@@ -31,7 +31,7 @@ import Form, { Field, Submit } from 'simpler-redux-form'
 import { connect } from 'react-redux'
 
 // `redux-thunk` example.
-// Returns a `Promise`
+// When `dispatch()`ed returns a `Promise`
 function submitAction(values) {
 	return (dispatch) => {
 		dispatch({ type: 'SUBMIT_REQUEST' })
@@ -43,10 +43,7 @@ function submitAction(values) {
 	}
 }
 
-@Form({
-	// Unique ID for this form in Redux state
-	id: 'phoneNumberForm'
-})
+@Form
 @connect(
 	// Get user's current phone number from Redux state
 	state => ({ phone: state.user.phone }),
@@ -114,67 +111,47 @@ function Page() {
 
 ## API
 
-### @Form()
+### @Form
 
-`@Form()` decorator takes these options:
+`@Form` decorator ("higher order component") decorates a React component of the original form injecting the following `props` into it:
 
-  * `id : String` — (required) an application-wide unique form name (because form data path inside Redux store is gonna be `state.form.${id}`). Alternatively form id can be set via `formId` property passed to the decorated form component.
+  * `submit : Function` — form submit handler, pass it to your `<form/>` as an `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, where the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected.
 
-The resulting React component takes the following props:
-
-  * `values : object` — initial form field values (`{ field: value, ... }`)
-
-The following properties are injected into the resulting `<Form/>` element:
-
-  * `submit(submitForm(values) : Function)` — form submit handler, pass it to your `<form/>` as an `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected.
-
-  * `submitting : boolean` — "Is the form currently being submitted?" flag
+  * `submitting : boolean` — "Is this form currently being submitted?" flag
 
   * `focus(fieldName : String)` — focuses on a field
 
   * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
 
-  * `clear(fieldName : String, error : String)` — clears field value (`error` argument should be `validate(undefined)`)
+  * `clear(fieldName : String, error : String)` — clears field value (the second `error` argument is optional and is required only if validation feature is used for this field in which case `error` must be equal to `validate(undefined)` for this field)
 
-  * `set(fieldName : String, value : String, error : String)` — sets form field value (`error` should be `validate(value)`)
+  * `set(fieldName : String, value : String, error : String)` — sets form field value (the second `error` argument is optional and is required only if validation feature is used for this field in which case `error` must be equal to `validate(value)` for this field)
 
-  * `resetInvalidIndication()` — resets `invalidIndication` for all fields
+  * `resetInvalidIndication()` — resets `invalidIndication` for all fields in this form
 
-If an invalid field is found upon form submission, or if an error is set for a field, then that field will be automatically scrolled to and focused.
-
-A form instance exposes these instance methods (in case anyone needs them):
-
-  * `ref()` — returns the decorated form component
-
-  * `focus(fieldName : String)` — focuses on a field
-
-  * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
-
-  * `clear(fieldName : String, error : String)` — clears field value (`error` should be `validate(undefined)`)
-
-  * `set(fieldName : String, value : String, error : String)` — sets form field value (`error` should be `validate(value)`)
+Upon form submission, if any of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.
 
 ### Field
 
-Takes the following required `props`:
+`<Field/>` takes the following required `props`:
 
-  * `name` — the field name in Redux store
+  * `name` — the field name (ID)
 
-  * `component` — the actual React input component (or a `String` for a generic HTML component such as `"input"` for an `<input/>`)
+  * `component` — the actual React component for this field
 
-And also the following optional `props`:
+And also `<Field/>` takes the following optional `props`:
 
   * `value` - the initial value of the field
 
   * `validate(value) : String` — form field value validation function returning an error message if the field value is invalid
 
-  * `error : String` - externally set error which can be set outside of the `validate()` function (e.g. "Wrong password"), will be passed directly to the underlying input component
+  * `error : String` - an error message which can be set outside of the `validate()` function. Can be used for advanced validation, e.g. setting a `"Wrong password"` error on a password field after the form is submitted. This `error` will be passed directly to the underlying field component.
 
-All other `props` are passed through to the underlying input component.
+All other `props` are passed through to the underlying field component.
 
-Additional `props` passed to the `component`:
+These additional `props` are passed to the underlying `component`:
 
-  * `error : String` — either the `error` passed to the `<Field/>` or a validation error, if any
+  * `error : String` — either the `error` property passed to the `<Field/>` or a validation error in case `validate` property was set for this `<Field/>`
 
   * `indicateInvalid : boolean` — tells the `component` whether it should render itself as being invalid
 
@@ -184,13 +161,15 @@ The `indicateInvalid` algorythm is as follows:
 
   * Whenever the user submits the form, `indicateInvalid` becomes `true` for the first found invalid form field
 
-  * Whenever the user changes a field's value, `indicateInvalid` becomes `false` for that field
+  * Whenever the user edits a field's value, `indicateInvalid` becomes `false` for that field
 
-  * Whenever the `error` property is set on the `<Field/>` component, `indicateInvalid` becomes `true` for that field
+  * Whenever the new `error` property is manually set on the `<Field/>` component, `indicateInvalid` becomes `true` for that field
+
+Therefore, the purpose of `indicateInvalid` is to only show the `error` message when it makes sense. For example, while the user is inputting a phone number that phone number is invalid until the used inputs it fully, but it wouldn't make sense to show the "Invalid phone number" error to the user while he is in the process of inputting the phone number. Hence the `indicateInvalid` flag.
 
 ### Submit
 
-Use this component to render a form submit button.
+Use `<Submit/>` component to render the form submit button.
 
 Takes the following required `props`:
 
@@ -198,17 +177,15 @@ Takes the following required `props`:
 
 All other `props` are passed through to the underlying button component.
 
-Additional `props` passed by this component to the submit button `component`:
+These additional `props` are passed to the underlying submit button `component`:
 
-  * `busy : boolean` — if `submitting` is set up in `@Form()` decorator then `busy={true}` will be passed to the submit button `component` when the form is being submitted.
+  * `busy : boolean` — indicates if the form is currently being submitted
 
 ```js
-@Form (
-	id: 'form',
-	submitting: state => state.items.addItemAjaxRequestInProgress
-)
+@Form
 class Form extends Component {
 	render() {
+		const { submit } = this.props
 		return (
 			<form onSubmit={ submit(...) }>
 				<Field component={ Input } name="text"/>
@@ -218,7 +195,7 @@ class Form extends Component {
 	}
 }
 
-// `children` is button text ("Submit")
+// `children` is button text (e.g. "Submit")
 function Button({ busy, children }) {
 	return (
 		<button
@@ -233,11 +210,11 @@ function Button({ busy, children }) {
 
 ### reducer
 
-This Redux reducer is plugged into the main Redux reducer under the name of `form`.
+The form Redux reducer is plugged into the main Redux reducer under the name of `form`.
 
 ## Field errors
 
-An `error` property can be set on a `<Field/>` if this field was the reasons form submission failed on the server side.
+An `error` property can be set on a `<Field/>` if this field was the reason form submission failed on the server side.
 
 This must not be a simple client-side validation error because for validation errors there already is `validate` property. Everything that can be validated up-front (i.e. before sending form data to the server) should be validated inside `validate` function. All other validity checks which can not be performed without submitting form data to the server are performed on the server side and if an error occurs then this error goes to the `error` property of the relevant `<Field/>`.
 
@@ -299,13 +276,51 @@ function Input({ error, indicateInvalid, ...rest }) {
 }
 ```
 
-### Advanced options
+## Advanced
 
-  * `@Form()` decorator takes an optional `submitting(reduxState, props) => boolean` parameter which is a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted. If this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. By default, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. 
+This is an advanced section describing all other miscellaneous configuration options and use cases.
 
-The following properties are injected into the resulting `<Form/>` element:
+### Form instance methods
 
-  * If two arguments are passed to the `submit(preSubmit, submitForm)` form `onSubmit` handler then the first argument will be called before form submission attempt (before any validation) while the second argument (form submission itself) will be called only if the form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time. For example, this could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if a user edits a field, clicks the "Submit" button once again, and a form field validation fails and nothing is actually submitted, but the aforementioned non-field errors stays confusing the user. Therefore such non-field errors should be always reset in `preSubmit`.
+The decorated form component instance exposes the following instance methods (in case anyone needs them):
+
+  * `ref()` — returns the original form component instance
+
+  * `focus(fieldName : String)` — focuses on a field
+
+  * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
+
+  * `clear(fieldName : String, error : String)` — clears field value (the second `error` argument is optional and is required only if validation feature is used for this field in which case `error` must be equal to `validate(undefined)` for this field)
+
+  * `set(fieldName : String, value : String, error : String)` — sets form field value (the second `error` argument is optional and is required only if validation feature is used for this field in which case `error` must be equal to `validate(value)` for this field)
+
+### Form decorator options
+
+Besides the default expored `Form` decorator there is a named exported `Form` decorator creator which takes `options`:
+
+```js
+// Use the named export `Form`
+// instead of the default one
+// to pass in options.
+import { Form } from 'simpler-redux-form'
+
+@Form({ ... })
+class Form extends Component {
+	...
+}
+```
+
+This `@Form()` decorator creator takes the following options:
+
+  * `id : String` — an application-wide unique form ID (because form data path inside Redux store is gonna be `state.form.${id}`). Alternatively form id can be set via `formId` property passed to the decorated form component. If no `id` is set up for a form then it's autogenerated.
+  
+  * `values : object` — initial form field values (`{ field: value, ... }`), an alternative way of setting `value` for each `<Field/>`.
+
+  * `submitting(reduxState, props) => boolean` — a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted. If this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. By default, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. 
+
+### preSubmit
+
+If two arguments are passed to the `submit(preSubmit, submitForm)` form `onSubmit` handler then the first argument will be called before form submission attempt (before any validation) while the second argument (form submission itself) will be called only if the form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time. For example, this could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if a user edits a field, clicks the "Submit" button once again, and a form field validation fails and nothing is actually submitted, but the aforementioned non-field errors stays confusing the user. Therefore such non-field errors should be always reset in `preSubmit`.
 
 ## Contributing and Feature requests
 
