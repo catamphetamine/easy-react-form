@@ -221,7 +221,7 @@ export default class Field extends Component
 	on_change(value)
 	{
 		// If it's an event then extract the input value from it
-		if (typeof value.preventDefault === 'function')
+		if (value && typeof value.preventDefault === 'function')
 		{
 			// The `value` is trimmed by now which is handy
 			value = value.target.value

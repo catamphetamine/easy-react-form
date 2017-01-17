@@ -139,47 +139,49 @@ export function decorator_with_options(options = {})
 					.filter(field => fields[field])
 					.filter(field => errors[field] !== undefined)
 
-				// If all fields are valid, then submit the form
-				if (invalid_fields.length === 0)
+				// If some of the form fields are invalid
+				if (invalid_fields.length > 0)
 				{
-					// Stop ignoring form submission errors
-					set_form_validation_passed(id, true)
+					// Indicate the first invalid field error
+					indicate_invalid_field(id, invalid_fields[0])
 
-					const form_data = {}
+					// Scroll to the invalid field
+					this.scroll_to_field(invalid_fields[0])
 
-					// Pass only registered fields to form submit action
-					// (because if a field is unregistered that means that
-					//  its React element was removed in the process,
-					//  and therefore it's not needed anymore)
-					for (let key of Object.keys(fields))
-					{
-						form_data[key] = values[key]
-					}
-
-					const result = action(form_data)
-
-					// If the form submit action result is a `Promise`
-					// then use it to set `submitting` flag
-					if (result && typeof result.then === 'function')
-					{
-						this.setState({ submitting: true })
-
-						result.then
-						(
-							succeeded => this.setState({ submitting: false }),
-							error     => this.setState({ submitting: false })
-						)
-					}
+					// Focus the invalid field
+					return this.focus_field(invalid_fields[0])
 				}
 
-				// Indicate the first invalid field error
-				indicate_invalid_field(id, invalid_fields[0])
+				// All fields are valid, submit the form
 
-				// Scroll to the invalid field
-				this.scroll_to_field(invalid_fields[0])
+				// Stop ignoring form submission errors
+				set_form_validation_passed(id, true)
 
-				// Focus the invalid field
-				this.focus_field(invalid_fields[0])
+				const form_data = {}
+
+				// Pass only registered fields to form submit action
+				// (because if a field is unregistered that means that
+				//  its React element was removed in the process,
+				//  and therefore it's not needed anymore)
+				for (let key of Object.keys(fields))
+				{
+					form_data[key] = values[key]
+				}
+
+				const result = action(form_data)
+
+				// If the form submit action returned a `Promise`
+				// then track this `Promise`'s progress.
+				if (result && typeof result.then === 'function')
+				{
+					this.setState({ submitting: true })
+
+					result.then
+					(
+						() => this.setState({ submitting: false }),
+						() => this.setState({ submitting: false })
+					)
+				}
 			}
 
 			// Creates form submit handler
