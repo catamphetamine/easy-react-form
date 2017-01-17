@@ -23,6 +23,8 @@ import redux_state_connector from './connect'
 //
 export function decorator_with_options(options = {})
 {
+	options = normalize_options(options)
+
 	return function createFormComponent(Wrapped_component)
 	{
 		class Form extends Component
@@ -74,16 +76,18 @@ export function decorator_with_options(options = {})
 
 			componentWillMount()
 			{
-				const { initialize_form, initial_values } = this.props
+				const { id, initialize_form, initial_values } = this.props
 
-				initialize_form(this.props.id, initial_values)
+				initialize_form(id, initial_values)
 			}
 
 			componentWillUnmount()
 			{
-				const { destroy_form } = this.props
+				const { id, destroy_form } = this.props
 
-				destroy_form(this.props.id)
+				destroy_form(id)
+
+				this.will_be_unmounted = true
 			}
 
 			getChildContext()
@@ -176,11 +180,18 @@ export function decorator_with_options(options = {})
 				{
 					this.setState({ submitting: true })
 
-					result.then
-					(
-						() => this.setState({ submitting: false }),
-						() => this.setState({ submitting: false })
-					)
+					// Sets `submitting` flag back to `false`
+					const submit_finished = () =>
+					{
+						if (this.will_be_unmounted)
+						{
+							return
+						}
+
+						this.setState({ submitting: false })
+					}
+
+					result.then(submit_finished, submit_finished)
 				}
 			}
 
@@ -296,11 +307,10 @@ export function decorator_with_options(options = {})
 		}
 
 		// A more meaningful React `displayName`
-		const wrapped_component_display_name = get_display_name(Wrapped_component)
-		Form.displayName = `Form(${wrapped_component_display_name})`
+		Form.displayName = `Form(${get_display_name(Wrapped_component)})`
 
 		// Connect the form component to Redux state
-		const Connected_form = redux_state_connector(options, wrapped_component_display_name)(Form)
+		const Connected_form = redux_state_connector(options)(Form)
 
 		// Build an outer component
 		// with the only purpose
@@ -313,9 +323,19 @@ export function decorator_with_options(options = {})
 	}
 }
 
-export function get_display_name(Wrapped)
+function get_display_name(Wrapped)
 {
 	return Wrapped.displayName || Wrapped.name || 'Component'
+}
+
+function normalize_options(options)
+{
+	if (typeof options === 'string')
+	{
+		return { id: options }
+	}
+
+	return options
 }
 
 const decorator = decorator_with_options()
