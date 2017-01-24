@@ -41,6 +41,12 @@ export default function redux_state_connector(options)
 			// to the underlying form component
 			let underlying_props
 
+			// Check that the developer didn't forget to add `form` reducer
+			if (!state.form)
+			{
+				throw new Error('You forgot to add simpler-redux-form `reducer` to your Redux reducers')
+			}
+
 			const form_already_initialized = state.form[form_id] !== undefined
 
 			// If the form has not yet been initialized
@@ -123,17 +129,23 @@ function check_for_reserved_props(props)
 
 const reserved_props =
 [
-	// @connect()-ed Redux state props
+	// @connect()-ed Redux state properties.
+	// These properties will be taken from Redux form state.
 	'fields',
-	'values',
+	// 'values',
 	'errors',
 	'indicate_invalid',
 	'focus',
+	'scroll_to',
 	'misc',
 
-	// Props passed to the underlying form
+	// These properties are passed to the underlying form
 	'submit',
 	'focus',
 	'clear',
-	'reset_invalid_indication'
+	'scroll',
+	'set',
+	'submitting',
+	'reset_invalid_indication',
+	'resetInvalidIndication'
 ]
