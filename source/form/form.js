@@ -68,7 +68,7 @@ export function decorator_with_options(options = {})
 				this.reset_form_invalid_indication = this.reset_form_invalid_indication.bind(this)
 
 				this.submit = this.submit.bind(this)
-				this.focus_field = this.focus_field.bind(this)
+				this.focus = this.focus.bind(this)
 				this.scroll_to_field = this.scroll_to_field.bind(this)
 				this.clear_field = this.clear_field.bind(this)
 				this.set_field = this.set_field.bind(this)
@@ -103,6 +103,7 @@ export function decorator_with_options(options = {})
 			// Public API
 			focus(field)
 			{
+				// Focus on the first form field by default
 				if (!field)
 				{
 					const { fields } = this.props
@@ -294,7 +295,7 @@ export function decorator_with_options(options = {})
 					...this.passthrough_props(),
 					ref    : 'user_form',
 					submit : this.submit,
-					focus  : this.focus_field,
+					focus  : this.focus,
 					scroll : this.scroll_to_field,
 					clear  : this.clear_field,
 					set    : this.set_field,
