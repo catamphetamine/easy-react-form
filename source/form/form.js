@@ -81,6 +81,17 @@ export function decorator_with_options(options = {})
 				initialize_form(id, initial_values)
 			}
 
+			componentDidMount()
+			{
+				// Autofocus the form when it's mounted.
+				// (doing it in a timeout because Redux'es `@connect()`
+				//  will only be called in `componentDidMount()` of the decorator component)
+				if (options.autofocus !== false)
+				{
+					setTimeout(this.focus, 0)
+				}
+			}
+
 			componentWillUnmount()
 			{
 				const { id, destroy_form } = this.props
