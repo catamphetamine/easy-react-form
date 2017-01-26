@@ -87,14 +87,12 @@ export function decorator_with_options(options = {})
 				initialize_form(id, initial_values)
 			}
 
-			componentDidMount()
+			componentWillReceiveProps(new_props)
 			{
-				// Autofocus the form when it's mounted.
-				// (doing it in a timeout because Redux'es `@connect()`
-				//  will only be called in `componentDidMount()` of the decorator component)
-				if (options.autofocus !== false)
+				// Autofocus the form when it's mounted and initialized.
+				if (new_props.initialized && options.autofocus !== false)
 				{
-					setTimeout(this.focus, 0)
+					this.focus(undefined, new_props)
 				}
 			}
 
@@ -118,12 +116,12 @@ export function decorator_with_options(options = {})
 			}
 
 			// Public API
-			focus(field)
+			focus(field, props = this.props)
 			{
 				// Focus on the first form field by default
 				if (!field)
 				{
-					const { fields } = this.props
+					const { fields } = props
 
 					field = Object.keys(fields)[0]
 				}

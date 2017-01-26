@@ -68,6 +68,18 @@ const create_context = (form) =>
 		return form.props.scroll_to[field]
 	},
 
+	// Focuses on a form field
+	focus_field(field)
+	{
+		return form.props.focus_field(form.props.id, field)
+	},
+
+	// Scrolls to a form field
+	scroll_to_field(field)
+	{
+		return form.props.scroll_to_field(form.props.id, field)
+	},
+
 	// Did form validation pass
 	get_form_validation_failed()
 	{
@@ -84,6 +96,13 @@ const create_context = (form) =>
 	scrolled_to_field(field)
 	{
 		form.props.scrolled_to_field(form.props.id, field)
+	},
+
+	// Returns this form ID.
+	// Is used when connecting a form field to Redux state.
+	get_id()
+	{
+		return form.props.id
 	}
 })
 
@@ -106,6 +125,8 @@ export const context_prop_type = PropTypes.shape
 	indicate_invalid_field   : PropTypes.func.isRequired,
 	reset_invalid_indication : PropTypes.func.isRequired,
 	focused_field            : PropTypes.func.isRequired,
-	scrolled_to_field        : PropTypes.func.isRequired
+	scrolled_to_field        : PropTypes.func.isRequired,
+	focus_field              : PropTypes.func.isRequired,
+	scroll_to_field          : PropTypes.func.isRequired
 })
 .isRequired

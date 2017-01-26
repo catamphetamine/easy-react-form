@@ -1,3 +1,8 @@
+0.3.9 / 26.01.2017
+==================
+
+  * Rewriting logic to fix a couple of small "initial values" bugs
+
 0.3.7 / 24.01.2017
 ==================
 

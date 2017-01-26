@@ -76,7 +76,11 @@ export default function redux_state_connector(options)
 			//
 			else
 			{
-				underlying_props = { ...state.form[form_id] }
+				underlying_props =
+				{
+					...state.form[form_id],
+					initialized : true
+				}
 			}
 
 			// Pass form `id`
@@ -147,5 +151,8 @@ const reserved_props =
 	'set',
 	'submitting',
 	'reset_invalid_indication',
-	'resetInvalidIndication'
+	'resetInvalidIndication',
+
+	// All form fields initalized flag
+	'initialized'
 ]

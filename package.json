@@ -1,6 +1,6 @@
 {
   "name": "simpler-redux-form",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Just like `redux-form` but much simpler",
   "main": "index.common.js",
   "module": "index.es6.js",

@@ -12,22 +12,15 @@ export default class Connectable_field extends Component
 {
 	static propTypes =
 	{
-		name     : PropTypes.string,
-		disabled : PropTypes.bool,
-
-		initial_value          : PropTypes.any,
 		value                  : PropTypes.any,
 		indicate_invalid       : PropTypes.bool,
+		error                  : PropTypes.string,
 		_focus                 : PropTypes.bool,
 		_scroll_to             : PropTypes.bool,
 		form_validation_failed : PropTypes.bool,
-
-		validate : PropTypes.func,
-		error    : PropTypes.string,
-
-		on_change : PropTypes.func.isRequired,
-		focused   : PropTypes.func.isRequired,
-		scrolled  : PropTypes.func.isRequired
+		validate               : PropTypes.func,
+		focused                : PropTypes.func.isRequired,
+		scrolled               : PropTypes.func.isRequired
 	}
 
 	constructor(props, context)
@@ -43,27 +36,28 @@ export default class Connectable_field extends Component
 		// this.scroll_if_requested({}, props, context)
 	}
 
-	componentWillReceiveProps(new_props)
+	// `.focus()` didn't work without a timeout in `componentWillReceiveProps`,
+	// therefore using `componentDidUpdate` here (shouldn't be much of a deal
+	// since `state` is not used in this component, so an update means updated props)
+	componentDidUpdate(old_props)
 	{
+		const new_props = this.props
+
 		// If this field is being focused programmatically, then do it.
-		this.focus_if_requested(this.props, new_props, this.context)
+		this.focus_if_requested(old_props, new_props, this.context)
 
 		// If this field is being scrolled to programmatically, then do it.
-		this.scroll_if_requested(this.props, new_props, this.context)
+		this.scroll_if_requested(old_props, new_props, this.context)
 	}
 
 	// If this field is being focused programmatically, then do it.
-	focus_if_requested(props, new_props, context)
+	focus_if_requested(old_props, new_props, context)
 	{
-		if (!props._focus && new_props._focus)
+		if (!old_props._focus && new_props._focus)
 		{
 			// Focus the field.
-			// Do it in a timeout, otherwise it didn't work.
-			// Probably because React rerenders this field
-			// because the `props` have changed
-			// and that discards the focus.
 			new_props.focused()
-			setTimeout(this.focus, 0)
+			this.focus()
 		}
 	}
 
@@ -74,7 +68,7 @@ export default class Connectable_field extends Component
 		if (this.refs.field)
 		{
 			// If the custom React component has a `.focus()` instance method
-			if (this.refs.field.focus)
+			if (typeof this.refs.field.focus === 'function')
 			{
 				return this.refs.field.focus()
 			}
@@ -85,9 +79,9 @@ export default class Connectable_field extends Component
 	}
 
 	// If this field is being scrolled to programmatically, then do it.
-	scroll_if_requested(props, new_props, context)
+	scroll_if_requested(old_props, new_props, context)
 	{
-		if (!props._scroll_to && new_props._scroll_to)
+		if (!old_props._scroll_to && new_props._scroll_to)
 		{
 			// Focus the field.
 			// Do it in a timeout, otherwise it didn't work.
@@ -124,34 +118,31 @@ export default class Connectable_field extends Component
 		// These props will be passed down to the field
 		const rest_props = {}
 
-		// Filter out inner props
+		// Properties used for inner operation won't be passed down.
+		// All other properties will be passed down.
 		for (let prop of Object.keys(this.props))
 		{
-			if (connectable_field_inner_props.indexOf(prop) < 0)
+			if (discarded_properties.indexOf(prop) === -1)
 			{
 				rest_props[prop] = this.props[prop]
 			}
 		}
 
-		let
+		const
 		{
 			component,
 			value,
-			initial_value,
-			error,
 			validate,
-			indicate_invalid,
-			form_validation_failed,
-			on_change
+			form_validation_failed
 		}
 		= this.props
 
-		value = initial_value !== undefined ? initial_value : value
-
-		// Retain some of them
-		rest_props.name     = this.props.name
-		rest_props.value    = value
-		rest_props.disabled = this.props.disabled
+		let
+		{
+			error,
+			indicate_invalid
+		}
+		= this.props
 
 		// Don't show external error if form validation failed
 		if (indicate_invalid && form_validation_failed)
@@ -170,24 +161,30 @@ export default class Connectable_field extends Component
 		// For generic Html elements (<input/>, etc)
 		if (typeof component === 'string')
 		{
-			return createElement(component,
-			{
-				...rest_props,
-				onChange : on_change
-			})
+			return createElement(component, rest_props)
 		}
 
 		// For custom React components
 		return createElement(component,
 		{
 			...rest_props,
-			on_change,
-			onChange : on_change,
+			error,
 			indicate_invalid,
-			indicateInvalid : indicate_invalid,
-			error
+			// camelCase alias for `indicate_invalid`
+			indicateInvalid : indicate_invalid
 		})
 	}
 }
 
-const connectable_field_inner_props = Object.keys(Connectable_field.propTypes)
+const discarded_properties = Object.keys(Connectable_field.propTypes).filter((prop) =>
+{
+	switch (prop)
+	{
+		case 'name':
+		case 'value':
+		case 'disabled':
+			return false
+		default:
+			return true
+	}
+})

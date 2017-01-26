@@ -61,34 +61,6 @@ export default class Field extends Component
 		// (or when its invalid indication flag changes)
 		this.Connected_field = this.create_connected_field_component(name, context)
 
-		// Since `componentDidMount()` is not called on the server side
-		// in order for server-side code to render the page properly
-		// the initial value for the field must be set somewhere else,
-		// for example in the component constructor as `this.state.initial_value`.
-		//
-		// The form constructor has already been called
-		// therefore the form `@connect()` mapper has already been called too
-		// setting up the initial `values` specified for the form
-		// so those initial `values` may now be safely retrieved via
-		// `context.simpler_redux_form.get_initial_value(name)`.
-		//
-		// First `form.constructor` is called,
-		// then `form.componentWillMount` is called,
-		// then `field.constructor` is called,
-		// then `field.componentWillMount` is called,
-		// then `field.componentDidMount` is called,
-		// then `form.componentDidMount` is called.
-		//
-		// This workaround `state.initial_value` will be discarded in
-		// `componentDidMount()` which is only called on client side.
-		//
-		// Calling `get_initial_value()` here in addition to just using the
-		// `value` property specified for this `<Field/>` because a form could have
-		// initial values defined using the `values` setting of `@Form()` decorator.
-		// (but `<Form/>` `value` takes precedence over `@Form()` `values`)
-		//
-		this.state.initial_value = value !== undefined ? value : context.simpler_redux_form.get_initial_value(name)
-
 		// Binding
 		this.on_change = this.on_change.bind(this)
 		this.focus     = this.focus.bind(this)
@@ -134,15 +106,6 @@ export default class Field extends Component
 		// not `value || initial_value`.
 		//
 		this.context.simpler_redux_form.register_field(name, value, validate, error)
-	}
-
-	// Discarding `state.initial_value` workaround
-	// because `componentDidMount()` is only called on client side.
-	componentDidMount()
-	{
-		// Discard the `initial_value` workaround
-		// used for server-side rendering
-		this.setState({ initial_value: undefined })
 	}
 
 	componentWillUnmount()
@@ -215,9 +178,15 @@ export default class Field extends Component
 		if (!props.error && error && !indicate_invalid)
 		{
 			context.simpler_redux_form.indicate_invalid_field(name)
-			// Scroll to field and focus after React rerenders the component
-			setTimeout(this.scroll, 0)
-			setTimeout(this.focus, 0)
+
+			// // Scroll to field and focus after React rerenders the component
+			// // (waiting for rerender because the scrolling process
+			// //  should also show the will-be-rendered field error, if possible)
+			// // (and focus also didn't work without a timeout for some reason)
+			// setTimeout(this.scroll, 0)
+			// setTimeout(this.focus, 0)
+			context.simpler_redux_form.scroll_to_field(name)
+			context.simpler_redux_form.focus_field(name)
 		}
 		else if (props.error && !error && indicate_invalid && !validate(value))
 		{
@@ -279,7 +248,6 @@ export default class Field extends Component
 	render()
 	{
 		const { disabled } = this.props
-		const { initial_value } = this.state
 
 		// The underlying field component will rerender itself
 		// on value changes (or other things like invalid status, focus, scroll),
@@ -290,12 +258,11 @@ export default class Field extends Component
 		return createElement(this.Connected_field,
 		{
 			...this.props,
-			initial_value,
-			ref       : 'field',
-			on_change : this.on_change,
-			focused   : this.focused,
-			scrolled  : this.scrolled,
-			disabled  : disabled || this.context.simpler_redux_form.is_submitting()
+			ref      : 'field',
+			onChange : this.on_change,
+			focused  : this.focused,
+			scrolled : this.scrolled,
+			disabled : disabled || this.context.simpler_redux_form.is_submitting()
 		})
 	}
 }
