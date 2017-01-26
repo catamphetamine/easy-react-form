@@ -78,6 +78,12 @@ export function decorator_with_options(options = {})
 			{
 				const { id, initialize_form, initial_values } = this.props
 
+				// First `form.constructor` is called,
+				// then `form.componentWillMount` is called,
+				// then `field.constructor` is called,
+				// then `field.componentWillMount` is called,
+				// then `field.componentDidMount` is called,
+				// then `form.componentDidMount` is called.
 				initialize_form(id, initial_values)
 			}
 

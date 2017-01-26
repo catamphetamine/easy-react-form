@@ -62,21 +62,30 @@ export default class Field extends Component
 		this.Connected_field = this.create_connected_field_component(name, context)
 
 		// Since `componentDidMount()` is not called on the server side
-		// in order for server-side rendering to work properly
+		// in order for server-side code to render the page properly
 		// the initial value for the field must be set somewhere else,
-		// for example in the component constructor
-		// (since the form constructor has already been called,
-		//  therefore calling the form `@connect()` mapper
-		//  setting up the initial `values` specified for the form
-		//  so those initial `values` may now be safely retrieved via `context`;
-		//  and even form's `componentWillMount()` has been called).
+		// for example in the component constructor as `this.state.initial_value`.
 		//
-		// This workaround `initial_value` will be discarded in `componentDidMount()`.
+		// The form constructor has already been called
+		// therefore the form `@connect()` mapper has already been called too
+		// setting up the initial `values` specified for the form
+		// so those initial `values` may now be safely retrieved via
+		// `context.simpler_redux_form.get_initial_value(name)`.
+		//
+		// First `form.constructor` is called,
+		// then `form.componentWillMount` is called,
+		// then `field.constructor` is called,
+		// then `field.componentWillMount` is called,
+		// then `field.componentDidMount` is called,
+		// then `form.componentDidMount` is called.
+		//
+		// This workaround `state.initial_value` will be discarded in
+		// `componentDidMount()` which is only called on client side.
 		//
 		// Calling `get_initial_value()` here in addition to just using the
 		// `value` property specified for this `<Field/>` because a form could have
-		// initial values defined also in the form of `values` property of `<Form/>`.
-		// (`<Form/>` `value` takes precedence over `<Form/>` `values`)
+		// initial values defined using the `values` setting of `@Form()` decorator.
+		// (but `<Form/>` `value` takes precedence over `@Form()` `values`)
 		//
 		this.state.initial_value = value !== undefined ? value : context.simpler_redux_form.get_initial_value(name)
 
@@ -98,7 +107,7 @@ export default class Field extends Component
 	}
 
 	// Setting up the form field.
-	componentDidMount()
+	componentWillMount()
 	{
 		const { name, value, validate, error } = this.props
 
@@ -116,14 +125,21 @@ export default class Field extends Component
 		// then its value will be set to this initial value.
 		// Otherwise, this "register" call does nothing.
 		//
-		// If `value` was not set but `values`
-		// on the decorated form component were set,
-		// then the initial value is taken from that `values` setting.
+		// If `value` was not set
+		// but `values` on the decorated form component were set,
+		// then the initial value is taken from that
+		// `values` setting in the reducer
+		// (because it already holds those initial `values` by this time).
 		// Therefore just passing `value` here,
 		// not `value || initial_value`.
 		//
 		this.context.simpler_redux_form.register_field(name, value, validate, error)
+	}
 
+	// Discarding `state.initial_value` workaround
+	// because `componentDidMount()` is only called on client side.
+	componentDidMount()
+	{
 		// Discard the `initial_value` workaround
 		// used for server-side rendering
 		this.setState({ initial_value: undefined })
