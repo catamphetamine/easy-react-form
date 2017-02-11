@@ -89,8 +89,10 @@ export function decorator_with_options(options = {})
 
 			componentWillReceiveProps(new_props)
 			{
+				const { initialized } = this.props
+				
 				// Autofocus the form when it's mounted and initialized.
-				if (new_props.initialized && options.autofocus !== false)
+				if (!initialized && new_props.initialized && options.autofocus !== false)
 				{
 					this.focus(undefined, new_props)
 				}

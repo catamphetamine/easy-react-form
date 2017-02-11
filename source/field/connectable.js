@@ -169,8 +169,6 @@ export default class Connectable_field extends Component
 		{
 			...rest_props,
 			error,
-			indicate_invalid,
-			// camelCase alias for `indicate_invalid`
 			indicateInvalid : indicate_invalid
 		})
 	}

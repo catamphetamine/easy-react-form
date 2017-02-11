@@ -175,18 +175,31 @@ export default class Field extends Component
 
 		const { name, error, value, validate, indicate_invalid } = new_props
 
-		if (!props.error && error && !indicate_invalid)
+		if (error && !indicate_invalid)
 		{
 			context.simpler_redux_form.indicate_invalid_field(name)
 
-			// // Scroll to field and focus after React rerenders the component
-			// // (waiting for rerender because the scrolling process
-			// //  should also show the will-be-rendered field error, if possible)
-			// // (and focus also didn't work without a timeout for some reason)
-			// setTimeout(this.scroll, 0)
-			// setTimeout(this.focus, 0)
-			context.simpler_redux_form.scroll_to_field(name)
-			context.simpler_redux_form.focus_field(name)
+			// Scroll to field and focus after React rerenders the component.
+			//
+			// Because `this.setState({ submitting: false })`
+			// will be called after this code,
+			// `submitting` is still `true` at this time,
+			// which means `busy` is `true`,
+			// which in turn means that all `<Field/>`s are `disabled`,
+			// and `disabled` `<input/>`s can't receive focus.
+			//
+			// Therefore set focus on the `<Field/>` in a timeout
+			// so that this "request set focus" action happens after
+			// `this.setState({ submitting: false })` is called in `form.js`.
+			// This way focus will be set after the `<input/>` is enabled
+			// and therefore will be able to receive focus.
+			//
+			setTimeout(() =>
+			{
+				context.simpler_redux_form.scroll_to_field(name)
+				context.simpler_redux_form.focus_field(name)
+			},
+			0)
 		}
 		else if (props.error && !error && indicate_invalid && !validate(value))
 		{
