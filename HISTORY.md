@@ -1,3 +1,8 @@
+0.3.13 / 20.02.2017
+==================
+
+  * Added `methods` decorator parameter for proxied instance methods
+
 0.3.9 / 26.01.2017
 ==================
 

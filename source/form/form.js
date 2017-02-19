@@ -333,7 +333,7 @@ export function decorator_with_options(options = {})
 		// Build an outer component
 		// with the only purpose
 		// to expose instance API methods
-		const ReduxForm = build_outer_component(Connected_form)
+		const ReduxForm = build_outer_component(Connected_form, options)
 
 		// Preserve all static methods and properties
 		// defined on the original decorated component

@@ -3,9 +3,9 @@ import { Component, createElement } from 'react'
 // Build an outer component
 // with the only purpose
 // to expose instance API methods
-export default function build_outer_component(Connected_form)
+export default function build_outer_component(Connected_form, options)
 {
-	return class ReduxForm extends Component
+	const wrapper = class ReduxForm extends Component
 	{
 		constructor()
 		{
@@ -78,6 +78,25 @@ export default function build_outer_component(Connected_form)
 			})
 		}
 	}
+
+	// Proxy some instance methods (if specified)
+	if (options.methods)
+	{
+		for (const method of options.methods)
+		{
+			if (wrapper.prototype[method])
+			{
+				console.error(`Form method "${method}" is already defined`)
+			}
+
+			wrapper.prototype[method] = function()
+			{
+				this.ref()[method].apply(this, arguments)
+			}
+		}
+	}
+
+	return wrapper
 }
 
 // Get form id
