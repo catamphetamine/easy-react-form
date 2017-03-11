@@ -91,7 +91,14 @@ export default function build_outer_component(Connected_form, options)
 
 			wrapper.prototype[method] = function()
 			{
-				this.ref()[method].apply(this, arguments)
+				const instance_method = this.ref()[method]
+
+				if (!instance_method)
+				{
+					throw new Error(`Instance method not found: "${method}"`)
+				}
+
+				instance_method.apply(this, arguments)
 			}
 		}
 	}

@@ -117,7 +117,7 @@ function Page() {
 
   * `submit : Function` — form submit handler, pass it to your `<form/>` as an `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, where the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected.
 
-  * `submitting : boolean` — "Is this form currently being submitted?" flag
+  * `submitting : boolean` — "Is this form currently being submitted?" flag, complements the `submit()` function `Promise` above
 
   * `focus(fieldName : String)` — focuses on a field
 
@@ -316,7 +316,7 @@ This `@Form()` decorator creator takes the following options:
   
   * `values : object` — initial form field values (`{ field: value, ... }`), an alternative way of setting `value` for each `<Field/>`.
 
-  * `submitting(reduxState, props) => boolean` — a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted. If this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. By default, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. 
+  * `submitting(reduxState, props) => boolean` — a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted. If this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. By default, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. This extra `submitting` setting complements the `Promise` based one.
 
   * `autofocus : boolean` — by default the form focuses itself upon being mounted
 
