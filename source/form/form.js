@@ -171,7 +171,9 @@ export function decorator_with_options(options = {})
 					this.scroll_to_field(invalid_fields[0])
 
 					// Focus the invalid field
-					return this.focus_field(invalid_fields[0])
+					this.focus_field(invalid_fields[0])
+
+					return false
 				}
 
 				// All fields are valid, submit the form
@@ -209,8 +211,10 @@ export function decorator_with_options(options = {})
 						this.setState({ submitting: false })
 					}
 
-					result.then(submit_finished, submit_finished)
+					result = result.then(submit_finished, submit_finished)
 				}
+
+				return result
 			}
 
 			// Creates form submit handler
@@ -242,7 +246,7 @@ export function decorator_with_options(options = {})
 					// (i.e. submit is in progress)
 					if (this.state.submitting || this.props.submitting)
 					{
-						return
+						return false
 					}
 
 					// Can be used, for example, to reset
@@ -256,7 +260,7 @@ export function decorator_with_options(options = {})
 					}
 
 					// Check field validity and submit the form
-					this.validate_and_submit(action)
+					return this.validate_and_submit(action)
 				}
 			}
 
