@@ -1,4 +1,5 @@
 import { Component, createElement } from 'react'
+import ReactDOM from 'react-dom'
 
 // Build an outer component
 // with the only purpose
@@ -22,33 +23,38 @@ export default function build_outer_component(Connected_form, options)
 
 		ref()
 		{
-			return this.refs.connected_form.getWrappedInstance().refs.user_form
+			return this.connected_form.getWrappedInstance().refs.user_form
 		}
 
 		focus(field)
 		{
-			return this.refs.connected_form.getWrappedInstance().focus(field)
+			return this.connected_form.getWrappedInstance().focus(field)
 		}
 
 		scroll(field)
 		{
-			return this.refs.connected_form.getWrappedInstance().scroll_to_field(field)
+			return this.connected_form.getWrappedInstance().scroll_to_field(field)
 		}
 
 		clear(field, error)
 		{
-			return this.refs.connected_form.getWrappedInstance().clear_field(field, error)
+			return this.connected_form.getWrappedInstance().clear_field(field, error)
 		}
 
 		set(field, value, error)
 		{
-			return this.refs.connected_form.getWrappedInstance().set_field(field, value, error)
+			return this.connected_form.getWrappedInstance().set_field(field, value, error)
+		}
+
+		submit()
+		{
+			return submit_child_form(ReactDOM.findDOMNode(this.connected_form))
 		}
 
 		// // For tests
 		// get wrappedInstance()
 		// {
-		// 	return this.refs.connected_form.getWrappedInstance().refs.wrapped
+		// 	return this.connected_form.getWrappedInstance().refs.wrapped
 		// }
 
 		// Autogenerates form id and keeps returning it from then on.
@@ -73,7 +79,7 @@ export default function build_outer_component(Connected_form, options)
 			return createElement(Connected_form,
 			{
 				...this.props,
-				ref         : 'connected_form',
+				ref         : ref => this.connected_form = ref,
 				get_form_id : this.get_form_id
 			})
 		}
@@ -151,4 +157,23 @@ function autogenerate_form_id(forms)
 	}
 
 	return id
+}
+
+export function submit_child_form(node)
+{
+	while (node.firstChild)
+	{
+		node = node.firstChild
+		if (node instanceof HTMLFormElement)
+		{
+			// Won't use `node.submit()` because it bypasses `onSubmit`.
+			// Will click the submit button instead.
+			const submit = node.querySelector('button[type=submit]')
+			if (submit)
+			{
+				submit.click()
+				return true
+			}
+		}
+	}
 }
