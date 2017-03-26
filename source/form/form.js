@@ -192,7 +192,7 @@ export function decorator_with_options(options = {})
 					form_data[key] = values[key]
 				}
 
-				const result = action(form_data)
+				let result = action(form_data)
 
 				// If the form submit action returned a `Promise`
 				// then track this `Promise`'s progress.
