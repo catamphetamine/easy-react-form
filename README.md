@@ -1,8 +1,8 @@
 # simpler-redux-form
 
-[![NPM Version][npm-badge]][npm]
-[![Build Status][travis-badge]][travis]
-[![Test Coverage][coveralls-badge]][coveralls]
+[![npm version](https://img.shields.io/npm/v/simpler-redux-form.svg?style=flat-square)](https://www.npmjs.com/package/simpler-redux-form)
+[![npm downloads](https://img.shields.io/npm/dm/simpler-redux-form.svg?style=flat-square)](https://www.npmjs.com/package/simpler-redux-form)
+[![coverage](https://img.shields.io/coveralls/halt-hammerzeit/simpler-redux-form/master.svg?style=flat-square)](https://coveralls.io/r/halt-hammerzeit/simpler-redux-form?branch=master)
 
 Just like [`redux-form`](https://github.com/erikras/redux-form) but much simpler.
 
@@ -369,9 +369,3 @@ npm install [module name with version].tar.gz
 ## License
 
 [MIT](LICENSE)
-[npm]: https://www.npmjs.org/package/simpler-redux-form
-[npm-badge]: https://img.shields.io/npm/v/simpler-redux-form.svg?style=flat-square
-[travis]: https://travis-ci.org/halt-hammerzeit/simpler-redux-form
-[travis-badge]: https://img.shields.io/travis/halt-hammerzeit/simpler-redux-form/master.svg?style=flat-square
-[coveralls]: https://coveralls.io/r/halt-hammerzeit/simpler-redux-form?branch=master
-[coveralls-badge]: https://img.shields.io/coveralls/halt-hammerzeit/simpler-redux-form/master.svg?style=flat-square
