@@ -1,3 +1,8 @@
+0.3.17 / 31.03.2017
+==================
+
+  * Added the new `reset()` method (both on form instance and in `props`). Also `clear(fieldName)` and `set(fieldName, value)` don't take `error` argument anymore (it's computed automatically).
+
 0.3.13 / 20.02.2017
 ==================
 

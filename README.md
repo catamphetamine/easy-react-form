@@ -123,9 +123,11 @@ function Page() {
 
   * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
 
-  * `clear(fieldName : String, error : String)` — clears field value (the second `error` argument is optional and is required only if validation feature is used for this field in which case `error` must be equal to `validate(undefined)` for this field)
+  * `clear(fieldName : String)` — clears field value
 
-  * `set(fieldName : String, value : String, error : String)` — sets form field value (the second `error` argument is optional and is required only if validation feature is used for this field in which case `error` must be equal to `validate(value)` for this field)
+  * `set(fieldName : String, value : String)` — sets form field value
+
+  * `reset()` — resets the form
 
   * `resetInvalidIndication()` — resets `invalidIndication` for all fields in this form
 
@@ -290,9 +292,11 @@ The decorated form component instance exposes the following instance methods (in
 
   * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
 
-  * `clear(fieldName : String, error : String)` — clears field value (the second `error` argument is optional and is required only if validation feature is used for this field in which case `error` must be equal to `validate(undefined)` for this field)
+  * `clear(fieldName : String)` — clears field value
 
-  * `set(fieldName : String, value : String, error : String)` — sets form field value (the second `error` argument is optional and is required only if validation feature is used for this field in which case `error` must be equal to `validate(value)` for this field)
+  * `set(fieldName : String, value : String)` — sets form field value
+
+  * `reset()` — resets the form
 
 ### Form decorator options
 

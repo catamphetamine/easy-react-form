@@ -36,14 +36,19 @@ export default function build_outer_component(Connected_form, options)
 			return this.connected_form.getWrappedInstance().scroll_to_field(field)
 		}
 
-		clear(field, error)
+		clear(field)
 		{
-			return this.connected_form.getWrappedInstance().clear_field(field, error)
+			return this.connected_form.getWrappedInstance().clear_field(field)
 		}
 
-		set(field, value, error)
+		set(field, value)
 		{
-			return this.connected_form.getWrappedInstance().set_field(field, value, error)
+			return this.connected_form.getWrappedInstance().set_field(field, value)
+		}
+
+		reset()
+		{
+			return this.connected_form.getWrappedInstance().reset()
 		}
 
 		submit()

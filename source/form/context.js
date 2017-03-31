@@ -9,14 +9,16 @@ const create_context = (form) =>
 	},
 
 	// Registers field (used because React optimizes rerendering process)
-	register_field(field, value, error, non_validation_error)
+	register_field(field, value, validate, non_validation_error)
 	{
-		form.props.register_field(form.props.id, field, value, error, non_validation_error)
+		form.register_field(field, value, validate)
+		form.props.register_field(form.props.id, field, value, validate, non_validation_error)
 	},
 
 	// Unregisters field (used because React optimizes rerendering process)
 	unregister_field(field)
 	{
+		form.unregister_field(field)
 		form.props.unregister_field(form.props.id, field)
 	},
 

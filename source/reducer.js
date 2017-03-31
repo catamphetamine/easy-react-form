@@ -43,6 +43,9 @@ export default function reducer(state = {}, action)
 
 			// Uses a numerical counter instead of a boolean.
 			// https://github.com/erikras/redux-form/issues/1705
+			// If the value is `0` then it means that the field
+			// has been previously initialized so not reinitializing it.
+			// This also preserves the initial value of the field.
 			if (form_state.fields[action.field] === undefined)
 			{
 				form_state.fields[action.field] = 1
@@ -95,6 +98,9 @@ export default function reducer(state = {}, action)
 				// being added in the beginning of the field list
 				// therefore causing all field to unregister and then register again.
 				// If those fields were destroyed then their values would be lost.
+				// In almost all cases the decision to not delete the field info is not a memory leak
+				// because all fields finally get destroyed when the form is unmounted
+				// and also almost all forms don't ever unmount fields.
 			}
 
 			return state

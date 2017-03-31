@@ -145,6 +145,7 @@ const reserved_props =
 
 	// These properties are passed to the underlying form
 	'submit',
+	'reset',
 	'focus',
 	'clear',
 	'scroll',

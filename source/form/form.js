@@ -61,6 +61,12 @@ export function decorator_with_options(options = {})
 				submitting : undefined
 			}
 
+			// The stored field info is used to `validate()` field `value`s 
+			// and set the corresponding `error`s
+			// when calling `set(field, value)` and `clear(field)`.
+			// It also holds initial field values for form `reset()`.
+			fields = {}
+
 			constructor()
 			{
 				super()
@@ -117,15 +123,66 @@ export function decorator_with_options(options = {})
             return context
 			}
 
+			// `value` is initial field value
+			// (which is restored on form reset)
+			register_field(field, value, validate)
+			{
+				// The stored field info is used to `validate()` field `value`s 
+				// and set the corresponding `error`s
+				// when calling `set(field, value)` and `clear(field)`.
+				// It also holds initial field values for form `reset()`.
+				//
+				// If a field happens to register the second time
+				// (e.g. due to React "reconciliation" due to order change)
+				// then no need to update its info.
+				// This also prevents loosing the initial value of the field.
+				//
+				if (!this.fields[field])
+				{
+					this.fields[field] = { value, validate }
+				}
+
+				// This is used for `autofocus` feature
+				if (!this.initially_first_field)
+				{
+					this.initially_first_field = field
+				}
+			}
+
+			unregister_field(field, value, validate)
+			{
+				// The field info is not deleted on "unregister"
+				// because this field can then be mounted right away after unmounting
+				// due to internal React trickery ("reconciliation").
+				// Therefore field info is retained.
+				// This also preserves the initial value of the field.
+				// delete this.fields[field]
+			}
+
+			// Public API
+			reset()
+			{
+				const { fields } = props
+
+				for (const field of Object.keys(fields))
+				{
+					this.clear_field(field)
+				}
+
+				// Autofocus the form (if not configured otherwise)
+				if (options.autofocus !== false)
+				{
+					this.focus()
+				}
+			}
+
 			// Public API
 			focus(field, props = this.props)
 			{
 				// Focus on the first form field by default
 				if (!field)
 				{
-					const { fields } = props
-
-					field = Object.keys(fields)[0]
+					field = this.field_order[0]
 				}
 
 				this.focus_field(field)
@@ -277,14 +334,16 @@ export function decorator_with_options(options = {})
 			}
 
 			// Clears field value (public API)
-			clear_field(field, error)
+			clear_field(field)
 			{
-				this.props.clear_field(this.props.id, field, error)
+				const validate = this.fields[field].validate
+				this.props.clear_field(this.props.id, field, validate(undefined))
 			}
 
 			// Sets field value (public API)
-			set_field(field, value, error)
+			set_field(field, value)
 			{
+				const validate = this.fields[field].validate
 				this.props.set_field(this.props.id, field, value, error)
 			}
 
@@ -315,6 +374,7 @@ export function decorator_with_options(options = {})
 				{
 					...this.passthrough_props(),
 					ref    : 'user_form',
+					reset  : this.reset,
 					submit : this.submit,
 					focus  : this.focus,
 					scroll : this.scroll_to_field,
