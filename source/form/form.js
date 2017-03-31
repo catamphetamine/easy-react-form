@@ -156,6 +156,9 @@ export function decorator_with_options(options = {})
 					this.clear_field(field)
 				}
 
+				// Make the form "untouched" again
+				this.reset_form_invalid_indication()
+
 				// Autofocus the form (if not configured otherwise)
 				if (options.autofocus !== false)
 				{
