@@ -162,7 +162,7 @@ export function decorator_with_options(options = {})
 			// Public API
 			reset()
 			{
-				const { fields } = props
+				const { fields } = this.props
 
 				for (const field of Object.keys(fields))
 				{
