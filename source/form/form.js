@@ -344,7 +344,7 @@ export function decorator_with_options(options = {})
 			set_field(field, value)
 			{
 				const validate = this.fields[field].validate
-				this.props.set_field(this.props.id, field, value, error)
+				this.props.set_field(this.props.id, field, value, validate(value))
 			}
 
 			// Pass through all non-internal React `props`
