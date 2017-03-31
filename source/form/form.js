@@ -67,19 +67,6 @@ export function decorator_with_options(options = {})
 			// It also holds initial field values for form `reset()`.
 			fields = {}
 
-			constructor()
-			{
-				super()
-
-				this.reset_form_invalid_indication = this.reset_form_invalid_indication.bind(this)
-
-				this.submit = this.submit.bind(this)
-				this.focus = this.focus.bind(this)
-				this.scroll_to_field = this.scroll_to_field.bind(this)
-				this.clear_field = this.clear_field.bind(this)
-				this.set_field = this.set_field.bind(this)
-			}
-
 			componentWillMount()
 			{
 				const { id, initialize_form, initial_values } = this.props
@@ -160,7 +147,7 @@ export function decorator_with_options(options = {})
 			}
 
 			// Public API
-			reset()
+			reset = () =>
 			{
 				const { fields } = this.props
 
@@ -177,7 +164,7 @@ export function decorator_with_options(options = {})
 			}
 
 			// Public API
-			focus(field, props = this.props)
+			focus = (field, props = this.props) =>
 			{
 				// Focus on the first form field by default
 				if (!field)
@@ -189,7 +176,7 @@ export function decorator_with_options(options = {})
 			}
 
 			// Resets invalid indication for the whole form
-			reset_form_invalid_indication()
+			reset_form_invalid_indication = () =>
 			{
 				this.props.reset_form_invalid_indication(this.props.id)
 			}
@@ -276,7 +263,7 @@ export function decorator_with_options(options = {})
 
 			// Creates form submit handler
 			// (this function is passed as a property)
-			submit(before_submit, action)
+			submit = (before_submit, action) =>
 			{
 				if (!action)
 				{
@@ -322,26 +309,26 @@ export function decorator_with_options(options = {})
 			}
 
 			// Focuses on a given form field (used internally + public API)
-			focus_field(field)
+			focus_field = (field) =>
 			{
 				this.props.focus_field(this.props.id, field)
 			}
 
 			// Scrolls to a form field (used internally + public API)
-			scroll_to_field(field)
+			scroll_to_field = (field) =>
 			{
 				this.props.scroll_to_field(this.props.id, field)
 			}
 
 			// Clears field value (public API)
-			clear_field(field)
+			clear_field = (field) =>
 			{
 				const validate = this.fields[field].validate
 				this.props.clear_field(this.props.id, field, validate(undefined))
 			}
 
 			// Sets field value (public API)
-			set_field(field, value)
+			set_field = (field, value) =>
 			{
 				const validate = this.fields[field].validate
 				this.props.set_field(this.props.id, field, value, validate(value))
