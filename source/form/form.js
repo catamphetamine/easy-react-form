@@ -182,7 +182,7 @@ export function decorator_with_options(options = {})
 				// Focus on the first form field by default
 				if (!field)
 				{
-					field = this.field_order[0]
+					field = this.initially_first_field
 				}
 
 				this.focus_field(field)
