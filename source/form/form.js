@@ -149,7 +149,7 @@ export function decorator_with_options(options = {})
 			// Public API
 			reset = () =>
 			{
-				const { fields } = this.props
+				const { fields, initial_values } = this.props
 
 				for (const field of Object.keys(fields))
 				{
