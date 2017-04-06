@@ -153,7 +153,7 @@ export function decorator_with_options(options = {})
 
 				for (const field of Object.keys(fields))
 				{
-					this.clear_field(field)
+					this.set_field(field, initial_values[field])
 				}
 
 				// Make the form "untouched" again
@@ -314,27 +314,35 @@ export function decorator_with_options(options = {})
 			// Focuses on a given form field (used internally + public API)
 			focus_field = (field) =>
 			{
-				this.props.focus_field(this.props.id, field)
+				const { id, focus_field } = this.props
+
+				focus_field(id, field)
 			}
 
 			// Scrolls to a form field (used internally + public API)
 			scroll_to_field = (field) =>
 			{
-				this.props.scroll_to_field(this.props.id, field)
+				const { id, scroll_to_field } = this.props
+
+				scroll_to_field(id, field)
 			}
 
 			// Clears field value (public API)
 			clear_field = (field) =>
 			{
+				const { id, clear_field } = this.props
+
 				const validate = this.fields[field].validate
-				this.props.clear_field(this.props.id, field, validate(undefined))
+				clear_field(id, field, validate(undefined))
 			}
 
 			// Sets field value (public API)
 			set_field = (field, value) =>
 			{
+				const { id, set_field } = this.props
+
 				const validate = this.fields[field].validate
-				this.props.set_field(this.props.id, field, value, validate(value))
+				set_field(id, field, value, validate(value))
 			}
 
 			// Pass through all non-internal React `props`
