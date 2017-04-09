@@ -133,6 +133,8 @@ function Page() {
 
 Upon form submission, if any of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.
 
+Always extract the `<form/>` into its own component — it's much cleaner that way.
+
 ### Field
 
 `<Field/>` takes the following required `props`:
