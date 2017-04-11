@@ -1,4 +1,5 @@
-import { Component, createElement, PropTypes } from 'react'
+import { Component, createElement } from 'react'
+import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 
 // This component will be `@connect()`ed to Redux state

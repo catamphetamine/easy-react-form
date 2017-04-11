@@ -1,4 +1,5 @@
-import { Component, createElement, PropTypes } from 'react'
+import { Component, createElement } from 'react'
+import PropTypes from 'prop-types'
 
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
 

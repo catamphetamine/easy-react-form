@@ -26,7 +26,7 @@ export { reducer as form } from 'simpler-redux-form'
 Create the form
 
 ```js
-import React, { Component, PropTypes } from 'react'
+import React, { Component } from 'react'
 import Form, { Field, Submit } from 'simpler-redux-form'
 import { connect } from 'react-redux'
 

@@ -1,4 +1,5 @@
-import { Component, createElement, PropTypes } from 'react'
+import { Component, createElement } from 'react'
+import PropTypes from 'prop-types'
 import hoist_statics from 'hoist-non-react-statics'
 
 import create_context, { context_prop_type } from './context'

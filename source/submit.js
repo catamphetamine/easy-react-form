@@ -1,4 +1,5 @@
-import { Component, createElement, PropTypes } from 'react'
+import { Component, createElement } from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 
 import { context_prop_type } from './form/context'
