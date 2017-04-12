@@ -32,6 +32,7 @@ export default class Field extends Component
 	static propTypes =
 	{
 		name      : PropTypes.string.isRequired,
+		required  : PropTypes.oneOfType([ PropTypes.bool, PropTypes.string ]),
 		component : PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]).isRequired,
 
 		value    : PropTypes.any,
@@ -39,11 +40,6 @@ export default class Field extends Component
 		validate : PropTypes.func,
 
 		children : PropTypes.node
-	}
-
-	static defaultProps =
-	{
-		validate : () => {}
 	}
 
 	static contextTypes =
@@ -55,7 +51,9 @@ export default class Field extends Component
 	{
 		super(props, context)
 
-		const { name, value } = props
+		this.validate = this.create_validation_function()
+
+		const { name, value } = this.props
 
 		// This underlying field component
 		// will update itself when its value changes
@@ -82,7 +80,7 @@ export default class Field extends Component
 	// Setting up the form field.
 	componentWillMount()
 	{
-		const { name, value, validate, error } = this.props
+		const { name, value, error } = this.props
 
 		// "Register" field.
 		//
@@ -106,7 +104,7 @@ export default class Field extends Component
 		// Therefore just passing `value` here,
 		// not `value || initial_value`.
 		//
-		this.context.simpler_redux_form.register_field(name, value, validate, error)
+		this.context.simpler_redux_form.register_field(name, value, this.validate, error)
 	}
 
 	componentWillUnmount()
@@ -127,7 +125,7 @@ export default class Field extends Component
 		// (an alternative solution to specifying `key`s on each `<Field/>`)
 		if (this.props.name !== new_props.name)
 		{
-			const { name, value, validate, error } = new_props
+			const { name, value, error } = new_props
 
 			// This field will update itself when its value changes
 			// (or when it's invalid indication flag changes)
@@ -141,7 +139,7 @@ export default class Field extends Component
 			// Initialize this field with the default value,
 			// if it hasn't been edited before (i.e. if it's really new).
 			//
-			this.context.simpler_redux_form.register_field(name, value, validate, error)
+			this.context.simpler_redux_form.register_field(name, value, this.validate, error)
 		}
 		// Else, if it's the same field
 		else
@@ -174,7 +172,7 @@ export default class Field extends Component
 			return
 		}
 
-		const { name, error, value, validate, indicate_invalid } = new_props
+		const { name, error, value, indicate_invalid } = new_props
 
 		if (error && !indicate_invalid)
 		{
@@ -202,7 +200,7 @@ export default class Field extends Component
 			},
 			0)
 		}
-		else if (props.error && !error && indicate_invalid && !validate(value))
+		else if (props.error && !error && indicate_invalid && !this.validate(value))
 		{
 			// So that `indicate_invalid === true` always means that
 			// there is a non-empty `error`.
@@ -226,9 +224,9 @@ export default class Field extends Component
 			value = value.target.value
 		}
 
-		const { name, validate } = this.props
+		const { name } = this.props
 
-		this.context.simpler_redux_form.update_field_value(name, value, validate(value))
+		this.context.simpler_redux_form.update_field_value(name, value, this.validate(value))
 	}
 
 	// Focuses on a field (can be called externally through a ref)
@@ -259,6 +257,24 @@ export default class Field extends Component
 		this.context.simpler_redux_form.scrolled_to_field(name)
 	}
 
+	create_validation_function()
+	{
+		const { validate, required } = this.props
+
+		return (value) =>
+		{
+			if (required && (value === undefined || value === null || value === ''))
+			{
+				return typeof required === 'string' ? required : 'Required'
+			}
+
+			if (validate)
+			{
+				return validate(value)
+			}
+		}
+	}
+
 	render()
 	{
 		const { disabled } = this.props
@@ -274,6 +290,7 @@ export default class Field extends Component
 			...this.props,
 			ref      : 'field',
 			onChange : this.on_change,
+			validate : this.validate,
 			focused  : this.focused,
 			scrolled : this.scrolled,
 			disabled : disabled || this.context.simpler_redux_form.is_submitting()

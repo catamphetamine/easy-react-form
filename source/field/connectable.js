@@ -134,6 +134,7 @@ export default class Connectable_field extends Component
 			component,
 			value,
 			validate,
+			required,
 			form_validation_failed
 		}
 		= this.props
@@ -170,7 +171,8 @@ export default class Connectable_field extends Component
 		{
 			...rest_props,
 			error,
-			indicateInvalid : indicate_invalid
+			indicateInvalid : indicate_invalid,
+			required : required ? true : false
 		})
 	}
 }
