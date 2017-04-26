@@ -1,8 +1,6 @@
 import { Component, createElement } from 'react'
 import PropTypes from 'prop-types'
 
-import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
-
 import { context_prop_type } from '../form/context'
 import redux_state_connector from './connect'
 import Connectable_field from './connectable'
@@ -59,13 +57,6 @@ export default class Field extends Component
 		// will update itself when its value changes
 		// (or when its invalid indication flag changes)
 		this.Connected_field = this.create_connected_field_component(name, context)
-
-		// Binding
-		this.on_change = this.on_change.bind(this)
-		this.focus     = this.focus.bind(this)
-		this.scroll    = this.scroll.bind(this)
-		this.focused   = this.focused.bind(this)
-		this.scrolled  = this.scrolled.bind(this)
 	}
 
 	// Creates an underlying field component
@@ -215,7 +206,7 @@ export default class Field extends Component
 	}
 
 	// `onChange` field value handler
-	on_change(value)
+	on_change = (value) =>
 	{
 		// If it's an event then extract the input value from it
 		if (value && typeof value.preventDefault === 'function')
@@ -229,28 +220,54 @@ export default class Field extends Component
 		this.context.simpler_redux_form.update_field_value(name, value, this.validate(value))
 	}
 
+	// `onFocus` field handler
+	on_focus = (event) =>
+	{
+		const { name, onFocus } = this.props
+
+		this.context.simpler_redux_form.on_field_focused(name)
+
+		if (onFocus)
+		{
+			onFocus(event)
+		}
+	}
+
+	// `onBlur` field handler
+	on_blur = (event) =>
+	{
+		const { name, onBlur } = this.props
+
+		this.context.simpler_redux_form.field_visited(name)
+
+		if (onBlur)
+		{
+			onBlur(event)
+		}
+	}
+
 	// Focuses on a field (can be called externally through a ref)
-	focus()
+	focus = () =>
 	{
 		this.refs.field.getWrappedInstance().focus()
 		this.focused()
 	}
 
 	// Focus on a field was requested and performed
-	focused()
+	focused = () =>
 	{
 		const { name } = this.props
 
 		this.context.simpler_redux_form.focused_field(name)
 	}
 
-	scroll()
+	scroll = () =>
 	{
 		this.refs.field.getWrappedInstance().scroll()
 		this.scrolled()
 	}
 
-	scrolled()
+	scrolled = () =>
 	{
 		const { name } = this.props
 
@@ -290,6 +307,8 @@ export default class Field extends Component
 			...this.props,
 			ref      : 'field',
 			onChange : this.on_change,
+			onFocus  : this.on_focus,
+			onBlur   : this.on_blur,
 			validate : this.validate,
 			focused  : this.focused,
 			scrolled : this.scrolled,

@@ -337,6 +337,14 @@ export function decorator_with_options(options = {})
 				clear_field(id, field, validate(undefined))
 			}
 
+			// Gets field value (public API)
+			get_field_value = (field) =>
+			{
+				const { values } = this.props
+
+				return values[field]
+			}
+
 			// Sets field value (public API)
 			set_field = (field, value) =>
 			{
@@ -344,6 +352,15 @@ export function decorator_with_options(options = {})
 
 				const validate = this.fields[field].validate
 				set_field(id, field, value, validate(value))
+			}
+
+			// Gets the latest focused field (public API).
+			// (e.g. for Google Analytics on abandoned forms)
+			get_latest_focused_field()
+			{
+				const { latest_focused_field } = this.props
+
+				return latest_focused_field
 			}
 
 			// Pass through all non-internal React `props`

@@ -235,6 +235,14 @@ export default function reducer(state = {}, action)
 
 			return state
 
+		case '@@simpler-redux-form/on-field-focused':
+
+			state = { ...state }
+
+			form_state.latest_focused_field = action.field
+
+			return state
+
 		case '@@simpler-redux-form/validation-passed':
 
 			state = { ...state }

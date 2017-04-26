@@ -100,6 +100,24 @@ const create_context = (form) =>
 		form.props.scrolled_to_field(form.props.id, field)
 	},
 
+	// The field has just been focused (`onFocus` event handler fired)
+	on_field_focused(field)
+	{
+		form.props.on_field_focused(form.props.id, field)
+	},
+
+	// The field has been visited and the user has just blurred out of it
+	field_visited(field)
+	{
+		if (form.props.validateVisitedFields)
+		{
+			if (form.props.errors[field])
+			{
+				form.props.indicate_invalid_field(form.props.id, field)
+			}
+		}
+	},
+
 	// Returns this form ID.
 	// Is used when connecting a form field to Redux state.
 	get_id()
@@ -126,6 +144,8 @@ export const context_prop_type = PropTypes.shape
 	update_field_value       : PropTypes.func.isRequired,
 	indicate_invalid_field   : PropTypes.func.isRequired,
 	reset_invalid_indication : PropTypes.func.isRequired,
+	on_field_focused         : PropTypes.func.isRequired,
+	field_visited            : PropTypes.func.isRequired,
 	focused_field            : PropTypes.func.isRequired,
 	scrolled_to_field        : PropTypes.func.isRequired,
 	focus_field              : PropTypes.func.isRequired,

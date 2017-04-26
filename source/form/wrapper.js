@@ -41,9 +41,27 @@ export default function build_outer_component(Connected_form, options)
 			return this.connected_form.getWrappedInstance().clear_field(field)
 		}
 
+		get(field)
+		{
+			return this.connected_form.getWrappedInstance().get_field_value(field)
+		}
+
 		set(field, value)
 		{
 			return this.connected_form.getWrappedInstance().set_field(field, value)
+		}
+
+		// Gets the latest focused field (public API).
+		// (e.g. for Google Analytics on abandoned forms)
+		get_latest_focused_field()
+		{
+			return this.connected_form.getWrappedInstance().get_latest_focused_field()
+		}
+
+		// camelCase aliasing
+		getLatestFocusedField()
+		{
+			return this.get_latest_focused_field()
 		}
 
 		reset()

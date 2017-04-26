@@ -1,6 +1,7 @@
 import { Component, createElement } from 'react'
 import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
+import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
 
 // This component will be `@connect()`ed to Redux state
 // and therefore will update itself when its value changes.

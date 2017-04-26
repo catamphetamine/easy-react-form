@@ -18,6 +18,7 @@ import
 	focused_field,
 	scroll_to_field,
 	scrolled_to_field,
+	on_field_focused,
 	set_form_validation_passed
 }
 from '../actions'
@@ -113,6 +114,7 @@ export default function redux_state_connector(options)
 			focused_field,
 			scroll_to_field,
 			scrolled_to_field,
+			on_field_focused,
 			set_form_validation_passed
 		},
 		undefined,

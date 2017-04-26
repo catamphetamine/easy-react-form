@@ -1,3 +1,9 @@
+0.3.32 / 26.04.2017
+===================
+
+  * Added `getLatestFocusedField()` method for forms (for Google Analytics on abandoned forms).
+  * Added `get(field)` method for forms.
+
 0.3.26 / 11.04.2017
 ===================
 
