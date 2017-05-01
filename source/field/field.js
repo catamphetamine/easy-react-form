@@ -206,18 +206,25 @@ export default class Field extends Component
 	}
 
 	// `onChange` field value handler
-	on_change = (value) =>
+	on_change = (event) =>
 	{
+		let value = event
+
 		// If it's an event then extract the input value from it
-		if (value && typeof value.preventDefault === 'function')
+		if (event && typeof event.preventDefault === 'function')
 		{
-			// The `value` is trimmed by now which is handy
-			value = value.target.value
+			// The `value` seems to be trimmed by now which is handy
+			value = event.target.value
 		}
 
-		const { name } = this.props
+		const { name, onChange } = this.props
 
 		this.context.simpler_redux_form.update_field_value(name, value, this.validate(value))
+
+		if (onChange)
+		{
+			onChange(event)
+		}
 	}
 
 	// `onFocus` field handler
