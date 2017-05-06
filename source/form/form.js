@@ -395,11 +395,13 @@ export function decorator_with_options(options = {})
 					focus  : this.focus,
 					scroll : this.scroll_to_field,
 					clear  : this.clear_field,
+					get    : this.get_field_value,
 					set    : this.set_field,
 					submitting : this.state.submitting || this.props.submitting,
 					reset_invalid_indication : this.reset_form_invalid_indication,
 					// camelCase alias
-					resetInvalidIndication   : this.reset_form_invalid_indication
+					resetInvalidIndication : this.reset_form_invalid_indication,
+					getLatestFocusedField : this.get_latest_focused_field
 				})
 			}
 		}

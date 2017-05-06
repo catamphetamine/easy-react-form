@@ -115,7 +115,7 @@ function Page() {
 
 `@Form` decorator ("higher order component") decorates a React component of the original form injecting the following `props` into it:
 
-  * `submit : Function` — form submit handler, pass it to your `<form/>` as an `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, where the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected.
+  * `submit : Function` — creates form submit handler, call it in your `<form/>`'s `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, where the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected.
 
   * `submitting : boolean` — "Is this form currently being submitted?" flag, complements the `submit()` function `Promise` above
 
@@ -124,6 +124,8 @@ function Page() {
   * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
 
   * `clear(fieldName : String)` — clears field value
+
+  * `get(fieldName : String)` — gets form field value
 
   * `set(fieldName : String, value : String)` — sets form field value
 
@@ -361,7 +363,7 @@ If two arguments are passed to the `submit(preSubmit, submitForm)` form `onSubmi
 
 ### Abandoned forms
 
-One day marketing department asked me if I could make it track abandoned forms via Google Analytics. For this reason form component instance has `.getLatestFocusedField()` method to find out which exact form field the user got confused by.
+One day marketing department asked me if I could make it track abandoned forms via Google Analytics. For this reason form component instance has `.getLatestFocusedField()` method to find out which exact form field the user got confused by. `getLatestFocusedField` property function is also passed to the decorated form component.
 
 ## Contributing and Feature requests
 
