@@ -356,7 +356,7 @@ export function decorator_with_options(options = {})
 
 			// Gets the latest focused field (public API).
 			// (e.g. for Google Analytics on abandoned forms)
-			get_latest_focused_field()
+			get_latest_focused_field = () =>
 			{
 				const { latest_focused_field } = this.props
 
