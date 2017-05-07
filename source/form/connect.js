@@ -95,6 +95,26 @@ export default function redux_state_connector(options)
 				underlying_props.submitting = options.submitting(state, props)
 			}
 
+			if (options.onSubmitted)
+			{
+				underlying_props.onSubmitted = options.onSubmitted
+			}
+
+			if (props.onSubmitted)
+			{
+				underlying_props.onSubmitted = props.onSubmitted
+			}
+
+			if (options.onAbandoned)
+			{
+				underlying_props.onAbandoned = options.onAbandoned
+			}
+
+			if (props.onAbandoned)
+			{
+				underlying_props.onAbandoned = props.onAbandoned
+			}
+
 			// Return underlying form component props
 			return underlying_props
 		},

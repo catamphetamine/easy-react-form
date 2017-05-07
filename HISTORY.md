@@ -1,3 +1,8 @@
+0.3.36 / 05.05.2017
+===================
+
+  * Added `onSubmitted(props)` and `onAbandoned(props, field, value)` `@Form()` decorator settings (and the corresponding `props` for the decorated form component).
+
 0.3.32 / 26.04.2017
 ===================
 

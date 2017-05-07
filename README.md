@@ -365,6 +365,14 @@ If two arguments are passed to the `submit(preSubmit, submitForm)` form `onSubmi
 
 One day marketing department asked me if I could make it track abandoned forms via Google Analytics. For this reason form component instance has `.getLatestFocusedField()` method to find out which exact form field the user got confused by. `getLatestFocusedField` property function is also passed to the decorated form component.
 
+Also the following `@Form()` decorator options are available:
+
+  * `onSubmitted(props)` — is called after the form is submitted (if submit function returns a `Promise` then `onSubmitted()` is called after this `Promise` is resolved)
+
+  * `onAbandoned(props, field, value)` — is called if the form was focued but was then abandoned (if the form was focused and then either the page is closed, or `react-router` route is changed, or the form is unmounted), can be used for Google Analytics.
+
+Alternatively the corresponding `props` may be passed directly to the decorated form component.
+
 ## Contributing and Feature requests
 
 I made this little library because I liked (and almost reinvented myself) the idea of [`redux-form`](https://github.com/erikras/redux-form) but still found `redux-form` to be somewhat bloated with numerous features. I aimed for simplicity and designed this library to have the minimal sane set of features. If you're looking for all the features of `redux-form` then go with `redux-form`.

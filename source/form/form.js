@@ -52,6 +52,11 @@ export function decorator_with_options(options = {})
 				submitting : PropTypes.bool
 			}
 
+			static contextTypes =
+			{
+				router : PropTypes.object
+			}
+
 			static childContextTypes =
 			{
 				simpler_redux_form : context_prop_type
@@ -81,6 +86,19 @@ export function decorator_with_options(options = {})
 				initialize_form(id, initial_values)
 			}
 
+			componentDidMount()
+			{
+				const { onAbandoned } = this.props
+				const { router } = this.context
+
+				if (onAbandoned && router && router.setRouteLeaveHook)
+				{
+					// If the last route is left it means navigation takes place
+					const route = router.routes[router.routes.length - 1]
+					this.deactivate_route_leave_hook = router.setRouteLeaveHook(route, this.report_if_form_is_abandoned);
+				}
+			}
+
 			componentWillReceiveProps(new_props)
 			{
 				const { initialized } = this.props
@@ -99,6 +117,8 @@ export function decorator_with_options(options = {})
 				destroy_form(id)
 
 				this.will_be_unmounted = true
+
+				this.report_if_form_is_abandoned()
 			}
 
 			getChildContext()
@@ -109,6 +129,43 @@ export function decorator_with_options(options = {})
             }
 
             return context
+			}
+
+			stop_form_abandoned_listener()
+			{
+				if (this.deactivate_route_leave_hook)
+				{
+					this.deactivate_route_leave_hook()
+				}
+			}
+
+			report_if_form_is_abandoned = () =>
+			{
+				// If the form is already submitted
+				// then it's not abandoned.
+				if (this.submitted)
+				{
+					return
+				}
+
+				// Get the latest focused form field
+				const field = this.get_latest_focused_field()
+
+				// If no form field was ever focused
+				// then the form is not being abandoned.
+				if (!field)
+				{
+					return
+				}
+
+				const { onAbandoned } = this.props
+
+				this.stop_form_abandoned_listener()
+
+				if (onAbandoned)
+				{
+					onAbandoned(this.props, field, this.get_field_value(field))
+				}
 			}
 
 			// `value` is initial field value
@@ -242,6 +299,19 @@ export function decorator_with_options(options = {})
 
 				let result = action(form_data)
 
+				const form_submitted = () =>
+				{
+					this.submitted = true
+					this.stop_form_abandoned_listener()
+
+					const { onSubmitted } = this.props
+
+					if (onSubmitted)
+					{
+						onSubmitted(this.props)
+					}
+				}
+
 				// If the form submit action returned a `Promise`
 				// then track this `Promise`'s progress.
 				if (result && typeof result.then === 'function')
@@ -249,7 +319,7 @@ export function decorator_with_options(options = {})
 					this.setState({ submitting: true })
 
 					// Sets `submitting` flag back to `false`
-					const submit_finished = () =>
+					const submit_attempt_finished = () =>
 					{
 						if (this.will_be_unmounted)
 						{
@@ -259,7 +329,16 @@ export function decorator_with_options(options = {})
 						this.setState({ submitting: false })
 					}
 
-					result = result.then(submit_finished, submit_finished)
+					result = result.then(() =>
+					{
+						form_submitted()
+						submit_attempt_finished()
+					},
+					submit_attempt_finished)
+				}
+				else
+				{
+					form_submitted()
 				}
 
 				return result
