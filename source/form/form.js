@@ -261,6 +261,16 @@ export function decorator_with_options(options = {})
 				// Ignores previous form submission errors until validation passes
 				set_form_validation_passed(id, false)
 
+				// Revalidate fields.
+				// (because normally they only get validated
+				//  in `onChange` handlers, and advanced `validate()`
+				//  functions can be realtime (stateful) rather than stateless,
+				//  e.g. depending on `this.state` properties)
+				for (const field of Object.keys(fields))
+				{
+					this.set_field(field, values[field])
+				}
+
 				// Check if there are any invalid fields
 				const invalid_fields = Object.keys(fields)
 					.filter(field => fields[field])
