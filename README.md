@@ -306,6 +306,8 @@ The decorated form component instance exposes the following instance methods (in
 
   * `reset()` — resets the form
 
+  * `submit()` — submits the form by clicking the `<button type="submit"/>` inside this form
+
 ### Form decorator options
 
 Besides the default expored `Form` decorator there is a named exported `Form` decorator creator which takes `options`:
