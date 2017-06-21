@@ -125,7 +125,7 @@ export function decorator_with_options(options = {})
 			{
 				const context =
 				{
-					simpler_redux_form: create_context(this)
+					simpler_redux_form: create_context(this, options)
             }
 
             return context
@@ -522,6 +522,11 @@ function normalize_options(options)
 	if (typeof options === 'string')
 	{
 		return { id: options }
+	}
+
+	if (!options.reducer)
+	{
+		options.reducer = 'form'
 	}
 
 	return options

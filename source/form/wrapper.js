@@ -152,7 +152,7 @@ function get_form_id(state, props, options)
 	}
 
 	// Autogenerate @Form() `id`.
-	return autogenerate_form_id(state.form)
+	return autogenerate_form_id(state[options.reducer])
 }
 
 // Autogenerate @Form() `id`

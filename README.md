@@ -373,6 +373,10 @@ Also the following `@Form()` decorator options are available:
 
 Alternatively the corresponding `props` may be passed directly to the decorated form component.
 
+## Reducer name
+
+It's `form` by default but can be configured by passing `reducer` parameter to the `@Form()` decorator.
+
 ## Contributing and Feature requests
 
 I made this little library because I liked (and almost reinvented myself) the idea of [`redux-form`](https://github.com/erikras/redux-form) but still found `redux-form` to be somewhat bloated with numerous features. I aimed for simplicity and designed this library to have the minimal sane set of features. If you're looking for all the features of `redux-form` then go with `redux-form`.

@@ -56,7 +56,7 @@ export default class Field extends Component
 		// This underlying field component
 		// will update itself when its value changes
 		// (or when its invalid indication flag changes)
-		this.Connected_field = this.create_connected_field_component(name, context)
+		this.Connected_field = this.create_connected_field_component(name, this.context)
 	}
 
 	// Creates an underlying field component

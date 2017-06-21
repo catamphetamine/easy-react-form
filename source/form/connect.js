@@ -42,13 +42,15 @@ export default function redux_state_connector(options)
 			// to the underlying form component
 			let underlying_props
 
+			const forms_state = state[options.reducer]
+
 			// Check that the developer didn't forget to add `form` reducer
-			if (!state.form)
+			if (!forms_state)
 			{
 				throw new Error('You forgot to add simpler-redux-form `reducer` to your Redux reducers')
 			}
 
-			const form_already_initialized = state.form[form_id] !== undefined
+			const form_already_initialized = forms_state[form_id] !== undefined
 
 			// If the form has not yet been initialized
 			// then emulate its pristine state
@@ -79,7 +81,7 @@ export default function redux_state_connector(options)
 			{
 				underlying_props =
 				{
-					...state.form[form_id],
+					...forms_state[form_id],
 					initialized : true
 				}
 			}

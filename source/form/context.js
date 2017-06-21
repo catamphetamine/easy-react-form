@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 
-const create_context = (form) =>
+const create_context = (form, options) =>
 ({
 	// Is submit in progress
 	is_submitting()
@@ -123,6 +123,12 @@ const create_context = (form) =>
 	get_id()
 	{
 		return form.props.id
+	},
+
+	// Is `form` by default
+	get_reducer_name()
+	{
+		return options.reducer
 	}
 })
 
@@ -136,6 +142,7 @@ export const context_prop_type = PropTypes.shape
 	get_focus                  : PropTypes.func.isRequired,
 	get_scroll_to              : PropTypes.func.isRequired,
 	get_form_validation_failed : PropTypes.func.isRequired,
+	get_reducer_name           : PropTypes.func.isRequired,
 
 	is_submitting : PropTypes.func.isRequired,
 
