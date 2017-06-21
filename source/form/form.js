@@ -529,6 +529,11 @@ function normalize_options(options)
 		options.reducer = 'form'
 	}
 
+	if (!options.defaultRequiredMessage)
+	{
+		options.defaultRequiredMessage = 'Required'
+	}
+
 	return options
 }
 

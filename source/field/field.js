@@ -287,9 +287,9 @@ export default class Field extends Component
 
 		return (value) =>
 		{
-			if (required && (value === undefined || value === null || value === ''))
+			if (required && (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')))
 			{
-				return typeof required === 'string' ? required : 'Required'
+				return typeof required === 'string' ? required : this.context.simpler_redux_form.get_default_required_message()
 			}
 
 			if (validate)

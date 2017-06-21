@@ -292,7 +292,7 @@ This is an advanced section describing all other miscellaneous configuration opt
 
 The decorated form component instance exposes the following instance methods (in case anyone needs them):
 
-  * `ref()` — returns the original form component instance
+  * `getWrappedInstance()` — returns the original form component instance
 
   * `focus(fieldName : String)` — focuses on a field
 
@@ -333,6 +333,8 @@ This `@Form()` decorator creator takes the following options:
   * `submitting(reduxState, props) => boolean` — a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted. If this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. By default, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. This extra `submitting` setting complements the `Promise` based one.
 
   * `autofocus : boolean` — by default the form focuses itself upon being mounted
+
+  * `validateVisitedFields : boolean` – set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated)
 
   * `methods : [String]` — takes an optional array of method names which will be proxied to the decorated component instance
 

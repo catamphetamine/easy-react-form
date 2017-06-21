@@ -147,12 +147,24 @@ export default class Connectable_field extends Component
 		}
 		= this.props
 
-		// Don't show external error if form validation failed
+		// If the form validation doesn't pass
+		// then don't show externally set `error` property for this field
+		// (reset the `error` to the form validation one),
+		// i.e. the user must first correct the form field values
+		// so that the form validation passes
+		// and after that can he resubmit the form
+		// and deal with those externally set `error`s.
+		//
+		// (`indicate_invalid` is set to `true`
+		//  the moment `error` property is set externally;
+		//  this is achieved using `componentWillReceiveProps()` hook)
+		//
 		if (indicate_invalid && form_validation_failed)
 		{
 			error            = validate(value)
 			indicate_invalid = error ? true : false
 		}
+		// Else, don't override the externally set `error` (if it has been set).
 		else
 		{
 			error = error || validate(value)

@@ -21,7 +21,13 @@ export default function build_outer_component(Connected_form, options)
 			this.set    = this.set.bind(this)
 		}
 
+		// Legacy method, may be removed in some future major version.
 		ref()
+		{
+			return this.getWrappedInstance()
+		}
+
+		getWrappedInstance()
 		{
 			return this.connected_form.getWrappedInstance().refs.user_form
 		}
@@ -120,7 +126,7 @@ export default function build_outer_component(Connected_form, options)
 
 			wrapper.prototype[method] = function()
 			{
-				const instance_method = this.ref()[method]
+				const instance_method = this.getWrappedInstance()[method]
 
 				if (!instance_method)
 				{

@@ -109,7 +109,7 @@ const create_context = (form, options) =>
 	// The field has been visited and the user has just blurred out of it
 	field_visited(field)
 	{
-		if (form.props.validateVisitedFields)
+		if (options.validateVisitedFields || form.props.validateVisitedFields)
 		{
 			if (form.props.errors[field])
 			{
@@ -129,6 +129,12 @@ const create_context = (form, options) =>
 	get_reducer_name()
 	{
 		return options.reducer
+	},
+
+	// Is `Required` by default
+	get_default_required_message()
+	{
+		return options.defaultRequiredMessage
 	}
 })
 
@@ -136,13 +142,14 @@ export default create_context
 
 export const context_prop_type = PropTypes.shape
 ({
-	get_value                  : PropTypes.func.isRequired,
-	get_initial_value          : PropTypes.func.isRequired,
-	get_indicate_invalid       : PropTypes.func.isRequired,
-	get_focus                  : PropTypes.func.isRequired,
-	get_scroll_to              : PropTypes.func.isRequired,
-	get_form_validation_failed : PropTypes.func.isRequired,
-	get_reducer_name           : PropTypes.func.isRequired,
+	get_value                    : PropTypes.func.isRequired,
+	get_initial_value            : PropTypes.func.isRequired,
+	get_indicate_invalid         : PropTypes.func.isRequired,
+	get_focus                    : PropTypes.func.isRequired,
+	get_scroll_to                : PropTypes.func.isRequired,
+	get_form_validation_failed   : PropTypes.func.isRequired,
+	get_reducer_name             : PropTypes.func.isRequired,
+	get_default_required_message : PropTypes.func.isRequired,
 
 	is_submitting : PropTypes.func.isRequired,
 
