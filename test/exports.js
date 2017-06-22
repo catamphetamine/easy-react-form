@@ -5,7 +5,8 @@ import Form,
 	Form as Form_with_options,
 	Field,
 	Submit,
-	reducer
+	reducer,
+	configure
 }
 from '../index.es6'
 
@@ -16,11 +17,12 @@ describe(`exports`, function()
 		const Decorated_form = Form(props => <div>Test</div>)
 		const Decorated_form_with_options = Form_with_options('test')(props => <div>Test</div>)
 		const render = <Decorated_form/>
-		
+
 		const field_render = <Field name="test" component={props => <div>Test</div>}/>
 		const submit_render = <Submit component={props => <button>Test</button>}/>
 
 		reducer({}, {})
+		configure()
 	})
 
 	it(`should export CommonJS`, function()
@@ -39,5 +41,6 @@ describe(`exports`, function()
 		const submit_render = <Submit component={props => <button>Test</button>}/>
 
 		Form.reducer({}, {})
+		Form.configure()
 	})
 })

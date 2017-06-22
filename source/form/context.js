@@ -109,7 +109,7 @@ const create_context = (form, options) =>
 	// The field has been visited and the user has just blurred out of it
 	field_visited(field)
 	{
-		if (options.validateVisitedFields || form.props.validateVisitedFields)
+		if (form.should_validate_visited_fields())
 		{
 			if (form.props.errors[field])
 			{

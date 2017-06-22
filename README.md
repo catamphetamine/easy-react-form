@@ -218,7 +218,29 @@ function Button({ busy, children }) {
 
 ### reducer
 
-The form Redux reducer is plugged into the main Redux reducer under the name of `form`.
+The form Redux reducer is plugged into the main Redux reducer under the name of `form` (by default).
+
+### Configuration
+
+`simpler-redux-form` has a global `configure()` function
+
+```js
+import { configure } from 'simpler-redux-form'
+
+configure({
+	validateVisitedFields: true,
+	trim: false,
+	defaultRequiredMessage: 'Обязательное поле'
+})
+```
+
+The configurable options are:
+
+  * `validateVisitedFields : boolean` – set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated)
+
+  * `trim : boolean` – set to `false` to disable field value trimming
+
+  * `defaultRequiredMessage : String` – the default `error` message when using `<Field required/>` feature (is `"Required"` by default)
 
 ## Field errors
 
@@ -338,9 +360,17 @@ This `@Form()` decorator creator takes the following options:
 
   * `validateVisitedFields : boolean` – set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated)
 
+  * `trim : boolean` – set to `false` to disable field value trimming
+
   * `methods : [String]` — takes an optional array of method names which will be proxied to the decorated component instance
 
 <!-- If the `@Form()` decorator is passed a string rather than an `options` object then the string argument is assumed to be the form `id`. -->
+
+### Decorated form component properties
+
+Decorated form components take the following properties (besides `formId`):
+
+  * `validateVisitedFields : boolean` – set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated)
 
 ### Form id
 

@@ -5,6 +5,7 @@ import hoist_statics from 'hoist-non-react-statics'
 import create_context, { context_prop_type } from './context'
 import build_outer_component from './wrapper'
 import redux_state_connector from './connect'
+import { get_configuration } from '../configuration'
 
 // <Form
 // 	action={this.submit}>
@@ -129,6 +130,39 @@ export function decorator_with_options(options = {})
             }
 
             return context
+			}
+
+			should_validate_visited_fields()
+			{
+				const { validateVisitedFields } = this.props
+
+				if (validateVisitedFields !== undefined)
+				{
+					return validateVisitedFields
+				}
+
+				if (options.validateVisitedFields !== undefined)
+				{
+					return options.validateVisitedFields
+				}
+
+				if (get_configuration().validateVisitedFields !== undefined)
+				{
+					return get_configuration().validateVisitedFields
+				}
+			}
+
+			should_trim_field_values()
+			{
+				if (options.trim !== undefined)
+				{
+					return options.trim
+				}
+
+				if (get_configuration().trim !== undefined)
+				{
+					return get_configuration().trim
+				}
 			}
 
 			stop_form_abandoned_listener()
@@ -302,9 +336,17 @@ export function decorator_with_options(options = {})
 				// (because if a field is unregistered that means that
 				//  its React element was removed in the process,
 				//  and therefore it's not needed anymore)
+				const should_trim = this.should_trim_field_values()
 				for (let key of Object.keys(fields))
 				{
-					form_data[key] = values[key]
+					let value = values[key]
+					
+					if (should_trim && typeof value === 'string')
+					{
+						value = value.trim()
+					}
+
+					form_data[key] = value
 				}
 
 				let result = action(form_data)
@@ -524,15 +566,8 @@ function normalize_options(options)
 		return { id: options }
 	}
 
-	if (!options.reducer)
-	{
-		options.reducer = 'form'
-	}
-
-	if (!options.defaultRequiredMessage)
-	{
-		options.defaultRequiredMessage = 'Required'
-	}
+	options.reducer = get_configuration().reducer
+	options.defaultRequiredMessage = get_configuration().defaultRequiredMessage
 
 	return options
 }
