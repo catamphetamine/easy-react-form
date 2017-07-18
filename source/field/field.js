@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import { context_prop_type } from '../form/context'
 import redux_state_connector from './connect'
 import Connectable_field from './connectable'
+import { get_configuration } from '../configuration'
 
 // <Field
 // 	name="password"
@@ -289,7 +290,7 @@ export default class Field extends Component
 		{
 			if (required && (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')))
 			{
-				return typeof required === 'string' ? required : this.context.simpler_redux_form.get_default_required_message()
+				return typeof required === 'string' ? required : get_configuration().defaultRequiredMessage
 			}
 
 			if (validate)

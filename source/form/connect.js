@@ -1,6 +1,7 @@
 import { connect } from 'react-redux'
 
 import { initial_form_state } from '../reducer'
+import { get_configuration } from '../configuration'
 
 import
 {
@@ -42,7 +43,7 @@ export default function redux_state_connector(options)
 			// to the underlying form component
 			let underlying_props
 
-			const forms_state = state[options.reducer]
+			const forms_state = state[get_configuration().reducer]
 
 			// Check that the developer didn't forget to add `form` reducer
 			if (!forms_state)

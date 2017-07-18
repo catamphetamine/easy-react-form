@@ -1,6 +1,8 @@
 import { Component, createElement } from 'react'
 import ReactDOM from 'react-dom'
 
+import { get_configuration } from '../configuration'
+
 // Build an outer component
 // with the only purpose
 // to expose instance API methods
@@ -158,7 +160,7 @@ function get_form_id(state, props, options)
 	}
 
 	// Autogenerate @Form() `id`.
-	return autogenerate_form_id(state[options.reducer])
+	return autogenerate_form_id(state[get_configuration().reducer])
 }
 
 // Autogenerate @Form() `id`

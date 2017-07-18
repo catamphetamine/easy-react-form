@@ -85,7 +85,7 @@ export default function reducer(state = {}, action)
 
 				if (!form_state.fields[action.field])
 				{
-					console.error(`Warning: An "unregister field" request was sent for field "${action.field}" which is not currently registered. This is a bug and it needs to be reported: https://github.com/halt-hammerzeit/simpler-redux-form/issues`)
+					console.error(`Warning: An "unregister field" request was sent for field "${action.field}" which is not currently registered. This is a bug and it needs to be reported: https://github.com/catamphetamine/simpler-redux-form/issues`)
 				}
 
 				// Uses a numerical counter instead of a boolean.

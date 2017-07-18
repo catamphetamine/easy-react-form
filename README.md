@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/simpler-redux-form.svg?style=flat-square)](https://www.npmjs.com/package/simpler-redux-form)
 [![npm downloads](https://img.shields.io/npm/dm/simpler-redux-form.svg?style=flat-square)](https://www.npmjs.com/package/simpler-redux-form)
-[![coverage](https://img.shields.io/coveralls/halt-hammerzeit/simpler-redux-form/master.svg?style=flat-square)](https://coveralls.io/r/halt-hammerzeit/simpler-redux-form?branch=master)
+[![coverage](https://img.shields.io/coveralls/catamphetamine/simpler-redux-form/master.svg?style=flat-square)](https://coveralls.io/r/catamphetamine/simpler-redux-form?branch=master)
 
 Just like [`redux-form`](https://github.com/erikras/redux-form) but much simpler.
 

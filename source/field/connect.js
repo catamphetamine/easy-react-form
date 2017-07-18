@@ -1,4 +1,5 @@
 import { connect } from 'react-redux'
+import { get_configuration } from '../configuration'
 
 export default function redux_state_connector(name, context)
 {
@@ -11,7 +12,7 @@ export default function redux_state_connector(name, context)
 			// seem to be recreated on each `prop`
 			// or `state` change of the context provider.
 			// https://facebook.github.io/react/docs/context.html#updating-context
-			const form_state = state[context.simpler_redux_form.get_reducer_name()][context.simpler_redux_form.get_id()]
+			const form_state = state[get_configuration().reducer][context.simpler_redux_form.get_id()]
 
 			const result =
 			{

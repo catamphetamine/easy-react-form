@@ -123,18 +123,6 @@ const create_context = (form, options) =>
 	get_id()
 	{
 		return form.props.id
-	},
-
-	// Is `form` by default
-	get_reducer_name()
-	{
-		return options.reducer
-	},
-
-	// Is `Required` by default
-	get_default_required_message()
-	{
-		return options.defaultRequiredMessage
 	}
 })
 
@@ -148,8 +136,6 @@ export const context_prop_type = PropTypes.shape
 	get_focus                    : PropTypes.func.isRequired,
 	get_scroll_to                : PropTypes.func.isRequired,
 	get_form_validation_failed   : PropTypes.func.isRequired,
-	get_reducer_name             : PropTypes.func.isRequired,
-	get_default_required_message : PropTypes.func.isRequired,
 
 	is_submitting : PropTypes.func.isRequired,
 

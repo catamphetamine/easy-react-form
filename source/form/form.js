@@ -563,11 +563,12 @@ function normalize_options(options)
 {
 	if (typeof options === 'string')
 	{
-		return { id: options }
+		options = { id: options }
 	}
-
-	options.reducer = get_configuration().reducer
-	options.defaultRequiredMessage = get_configuration().defaultRequiredMessage
+	else
+	{
+		options = { ...options }
+	}
 
 	return options
 }
