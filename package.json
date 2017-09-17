@@ -1,6 +1,6 @@
 {
   "name": "simpler-redux-form",
-  "version": "0.3.44",
+  "version": "0.3.45",
   "description": "Just like `redux-form` but much simpler",
   "main": "index.common.js",
   "module": "index.es6.js",
@@ -69,7 +69,7 @@
     "form",
     "simple"
   ],
-  "author": "Halt Hammerzeit <halt.hammerzeit.at@gmail.com>",
+  "author": "catamphetamine <purecatamphetamine@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/catamphetamine/simpler-redux-form/issues"

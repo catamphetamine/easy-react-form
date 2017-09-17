@@ -158,7 +158,7 @@ export default class Field extends Component
 		// before sending form data to the server,
 		// and in that case it will be shown once again
 		// (see the readme for more info on this case:
-		//  https://github.com/halt-hammerzeit/simpler-redux-form#field-errors)
+		//  https://github.com/catamphetamine/simpler-redux-form#field-errors)
 		if (props.error === new_props.error)
 		{
 			return
