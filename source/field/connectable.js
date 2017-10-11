@@ -58,6 +58,12 @@ export default class SimplerReduxFormField extends Component
 		this.scroll_if_requested(old_props, new_props, this.context)
 	}
 
+	componentWillUnmount()
+	{
+		// Maybe this flag is not strictly required 
+		this.unmounted = true
+	}
+
 	// If this field is being focused programmatically, then do it.
 	focus_if_requested(old_props, new_props, context)
 	{
@@ -83,6 +89,11 @@ export default class SimplerReduxFormField extends Component
 
 			// Generic focusing
 			ReactDOM.findDOMNode(this.field).focus()
+		}
+		else if (!this.unmounted)
+		{
+			// Generic focusing
+			ReactDOM.findDOMNode(this).focus()
 		}
 	}
 
