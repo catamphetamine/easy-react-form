@@ -79,6 +79,7 @@ export default class SimplerReduxFormField extends Component
 	focus()
 	{
 		// If the form hasn't been unmounted yet
+		// and an underlying component is a `React.Component`.
 		if (this.field)
 		{
 			// If the custom React component has a `.focus()` instance method
@@ -88,12 +89,25 @@ export default class SimplerReduxFormField extends Component
 			}
 
 			// Generic focusing
-			ReactDOM.findDOMNode(this.field).focus()
+			return ReactDOM.findDOMNode(this.field).focus()
 		}
-		else if (!this.unmounted)
+
+		// React throws when calling `findDOMNode` on an unmounted component
+		// therefore the explicit check for the component being still mounted.
+		if (!this.unmounted)
 		{
-			// Generic focusing
-			ReactDOM.findDOMNode(this).focus()
+			const node = ReactDOM.findDOMNode(this)
+
+			const focusable =
+				node.querySelector('input') ||
+				node.querySelector('select') ||
+				node.querySelector('textarea') ||
+				node.querySelector('button')
+
+			if (focusable)
+			{
+				focusable.focus();
+			}
 		}
 	}
 
