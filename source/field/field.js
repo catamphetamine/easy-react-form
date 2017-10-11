@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 
 import { context_prop_type } from '../form/context'
 import redux_state_connector from './connect'
-import Connectable_field from './connectable'
+import ConnectableField from './connectable'
 import { get_configuration } from '../configuration'
 
 // <Field
@@ -66,7 +66,7 @@ export default class Field extends Component
 	// (or when its invalid indication flag changes)
 	create_connected_field_component(name, context)
 	{
-		return redux_state_connector(name, context)(Connectable_field)
+		return redux_state_connector(name, context)(ConnectableField)
 	}
 
 	// Setting up the form field.

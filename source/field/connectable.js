@@ -10,7 +10,12 @@ import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
 // and updates its focus accordingly.
 // Also watches `scroll_to` flag for changes
 // and scrolls to this field upon request.
-export default class Connectable_field extends Component
+//
+// The name was originally `ConnectableField`
+// but was later changed to `SimplerReduxFormField`
+// for more user-friendly React error messages and warnings.
+//
+export default class SimplerReduxFormField extends Component
 {
 	static propTypes =
 	{
@@ -67,16 +72,16 @@ export default class Connectable_field extends Component
 	focus()
 	{
 		// If the form hasn't been unmounted yet
-		if (this.refs.field)
+		if (this.field)
 		{
 			// If the custom React component has a `.focus()` instance method
-			if (typeof this.refs.field.focus === 'function')
+			if (typeof this.field.focus === 'function')
 			{
-				return this.refs.field.focus()
+				return this.field.focus()
 			}
 
 			// Generic focusing
-			ReactDOM.findDOMNode(this.refs.field).focus()
+			ReactDOM.findDOMNode(this.field).focus()
 		}
 	}
 
@@ -99,9 +104,9 @@ export default class Connectable_field extends Component
 	scroll()
 	{
 		// If the form hasn't been unmounted yet
-		if (this.refs.field)
+		if (this.field)
 		{
-			const element = ReactDOM.findDOMNode(this.refs.field)
+			const element = ReactDOM.findDOMNode(this.field)
 
 			// https://developer.mozilla.org/ru/docs/Web/API/Element/scrollIntoViewIfNeeded
 			if (element.scrollIntoViewIfNeeded)
@@ -171,7 +176,10 @@ export default class Connectable_field extends Component
 		}
 
 		// Required for focusing on the field in case of validation errors
-		rest_props.ref = 'field'
+		if (!is_stateless(component))
+		{
+			rest_props.ref = ref => this.field = ref
+		}
 
 		// For generic Html elements (<input/>, etc)
 		if (typeof component === 'string')
@@ -190,7 +198,7 @@ export default class Connectable_field extends Component
 	}
 }
 
-const discarded_properties = Object.keys(Connectable_field.propTypes).filter((prop) =>
+const discarded_properties = Object.keys(SimplerReduxFormField.propTypes).filter((prop) =>
 {
 	switch (prop)
 	{
@@ -202,3 +210,8 @@ const discarded_properties = Object.keys(Connectable_field.propTypes).filter((pr
 			return true
 	}
 })
+
+function is_stateless(Component)
+{
+	return typeof Component !== 'string' && !Component.prototype.render
+}
