@@ -31,7 +31,7 @@ export default function build_outer_component(Connected_form, options)
 
 		getWrappedInstance()
 		{
-			return this.connected_form.getWrappedInstance().refs.user_form
+			return this.connected_form.getWrappedInstance().user_form
 		}
 
 		focus(field)
@@ -81,12 +81,6 @@ export default function build_outer_component(Connected_form, options)
 		{
 			return submit_child_form(ReactDOM.findDOMNode(this.connected_form))
 		}
-
-		// // For tests
-		// get wrappedInstance()
-		// {
-		// 	return this.connected_form.getWrappedInstance().refs.wrapped
-		// }
 
 		// Autogenerates form id and keeps returning it from then on.
 		// The form id is stored in `this.form_id` instance variable.

@@ -257,7 +257,7 @@ export default class Field extends Component
 	// Focuses on a field (can be called externally through a ref)
 	focus = () =>
 	{
-		this.refs.field.getWrappedInstance().focus()
+		this.field.getWrappedInstance().focus()
 		this.focused()
 	}
 
@@ -271,7 +271,7 @@ export default class Field extends Component
 
 	scroll = () =>
 	{
-		this.refs.field.getWrappedInstance().scroll()
+		this.field.getWrappedInstance().scroll()
 		this.scrolled()
 	}
 
@@ -313,7 +313,7 @@ export default class Field extends Component
 		return createElement(this.Connected_field,
 		{
 			...this.props,
-			ref      : 'field',
+			ref      : ref => this.field = ref,
 			onChange : this.on_change,
 			onFocus  : this.on_focus,
 			onBlur   : this.on_blur,

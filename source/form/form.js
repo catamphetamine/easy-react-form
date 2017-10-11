@@ -520,7 +520,7 @@ export function decorator_with_options(options = {})
 				return createElement(Wrapped_component,
 				{
 					...this.passthrough_props(),
-					ref    : 'user_form',
+					ref    : ref => this.user_form = ref,
 					reset  : this.reset,
 					submit : this.submit,
 					focus  : this.focus,
