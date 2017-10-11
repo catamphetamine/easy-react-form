@@ -19,6 +19,7 @@ export default class SimplerReduxFormField extends Component
 {
 	static propTypes =
 	{
+		component              : PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 		value                  : PropTypes.any,
 		indicate_invalid       : PropTypes.bool,
 		error                  : PropTypes.string,
@@ -127,9 +128,9 @@ export default class SimplerReduxFormField extends Component
 
 		// Properties used for inner operation won't be passed down.
 		// All other properties will be passed down.
-		for (let prop of Object.keys(this.props))
+		for (const prop of Object.keys(this.props))
 		{
-			if (discarded_properties.indexOf(prop) === -1)
+			if (intercepted_properties.indexOf(prop) === -1)
 			{
 				rest_props[prop] = this.props[prop]
 			}
@@ -191,6 +192,7 @@ export default class SimplerReduxFormField extends Component
 		return createElement(component,
 		{
 			...rest_props,
+			value,
 			error,
 			indicateInvalid : indicate_invalid,
 			required : required ? true : false
@@ -198,18 +200,7 @@ export default class SimplerReduxFormField extends Component
 	}
 }
 
-const discarded_properties = Object.keys(SimplerReduxFormField.propTypes).filter((prop) =>
-{
-	switch (prop)
-	{
-		case 'name':
-		case 'value':
-		case 'disabled':
-			return false
-		default:
-			return true
-	}
-})
+const intercepted_properties = Object.keys(SimplerReduxFormField.propTypes);
 
 function is_stateless(Component)
 {
