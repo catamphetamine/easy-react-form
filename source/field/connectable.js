@@ -164,6 +164,12 @@ export default class SimplerReduxFormField extends Component
 		}
 		= this.props
 
+		// Makes sure `indicateInvalid` is always set to some `boolean` value.
+		if (indicate_invalid === undefined)
+		{
+			indicate_invalid = false
+		}
+
 		// If the form validation doesn't pass
 		// then don't show externally set `error` property for this field
 		// (reset the `error` to the form validation one),
