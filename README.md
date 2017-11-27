@@ -352,7 +352,7 @@ This `@Form()` decorator creator takes the following options:
   * `id : String` — an application-wide globally unique form ID
 -->
 
-  * `values : object` — initial form field values (`{ field: value, ... }`), an alternative way of setting `value` for each `<Field/>`.
+  * `values : object` — initial form field values (`{ field: value, ... }`), an alternative way of setting `value` for each `<Field/>`. Can also be `values(props) => object`.
 
   * `submitting(reduxState, props) => boolean` — a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted. If this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. By default, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. This extra `submitting` setting complements the `Promise` based one.
 
