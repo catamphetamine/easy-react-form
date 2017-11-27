@@ -370,6 +370,8 @@ This `@Form()` decorator creator takes the following options:
 
 Decorated form components take the following properties (besides `formId`):
 
+  * `values : object` — initial form field values (`{ field: value, ... }`), an alternative way of setting `value` for each `<Field/>`.
+
   * `validateVisitedFields : boolean` – set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated)
 
 ### Form id

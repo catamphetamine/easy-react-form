@@ -64,9 +64,13 @@ export default function redux_state_connector(options)
 				// Initial form state will be like this.
 				// `props.values` are the initial form values (optional).
 				let initial_values = props.values
-				if (typeof initial_values === 'function')
+				if (!initial_values)
 				{
-					initial_values = initial_values(props)
+					initial_values = options.values
+					if (typeof initial_values === 'function')
+					{
+						initial_values = initial_values(props)
+					}
 				}
 				underlying_props = initial_form_state(initial_values)
 			}
