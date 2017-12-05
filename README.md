@@ -149,7 +149,7 @@ And also `<Field/>` takes the following optional `props`:
 
   * `value` - the initial value of the field
 
-  * `validate(value) : String` — form field value validation function returning an error message if the field value is invalid
+  * `validate(value, allFormValues) : String` — form field value validation function returning an error message if the field value is invalid
 
   * `error : String` - an error message which can be set outside of the `validate()` function. Can be used for advanced validation, e.g. setting a `"Wrong password"` error on a password field after the form is submitted. This `error` will be passed directly to the underlying field component.
 

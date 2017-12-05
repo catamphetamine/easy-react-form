@@ -41,6 +41,12 @@ const create_context = (form, options) =>
 	},
 
 	// Returns form values
+	get_values()
+	{
+		return form.props.values
+	},
+
+	// Returns form value
 	get_value(field)
 	{
 		return form.props.values[field]
@@ -131,6 +137,7 @@ export default create_context
 export const context_prop_type = PropTypes.shape
 ({
 	get_value                    : PropTypes.func.isRequired,
+	get_values                   : PropTypes.func.isRequired,
 	get_initial_value            : PropTypes.func.isRequired,
 	get_indicate_invalid         : PropTypes.func.isRequired,
 	get_focus                    : PropTypes.func.isRequired,

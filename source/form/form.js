@@ -462,10 +462,10 @@ export function decorator_with_options(options = {})
 			// Clears field value (public API)
 			clear_field = (field) =>
 			{
-				const { id, clear_field } = this.props
+				const { id, values, clear_field } = this.props
 
 				const validate = this.fields[field].validate
-				clear_field(id, field, validate(undefined))
+				clear_field(id, field, validate(undefined, values))
 			}
 
 			// Gets field value (public API)
@@ -479,10 +479,10 @@ export function decorator_with_options(options = {})
 			// Sets field value (public API)
 			set_field = (field, value) =>
 			{
-				const { id, set_field } = this.props
+				const { id, values, set_field } = this.props
 
 				const validate = this.fields[field].validate
-				set_field(id, field, value, validate(value))
+				set_field(id, field, value, validate(value, values))
 			}
 
 			// Gets the latest focused field (public API).

@@ -198,13 +198,13 @@ export default class SimplerReduxFormField extends Component
 		//
 		if (indicate_invalid && form_validation_failed)
 		{
-			error            = validate(value)
+			error            = validate(value, this.context.simpler_redux_form.get_values())
 			indicate_invalid = error ? true : false
 		}
 		// Else, don't override the externally set `error` (if it has been set).
 		else
 		{
-			error = error || validate(value)
+			error = error || validate(value, this.context.simpler_redux_form.get_values())
 		}
 
 		// Required for focusing on the field in case of validation errors

@@ -295,7 +295,7 @@ export default class Field extends Component
 
 			if (validate)
 			{
-				return validate(value)
+				return validate(value, this.context.simpler_redux_form.get_values())
 			}
 		}
 	}
