@@ -17,6 +17,7 @@ export default function redux_state_connector(name, context)
 			const result =
 			{
 				value                  : form_state.values[name],
+				values                 : form_state.values,
 				indicate_invalid       : form_state.indicate_invalid[name],
 				_focus                 : form_state.focus[name],
 				_scroll_to             : form_state.scroll_to[name],

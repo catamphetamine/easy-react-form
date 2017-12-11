@@ -21,6 +21,7 @@ export default class SimplerReduxFormField extends Component
 	{
 		component              : PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 		value                  : PropTypes.any,
+		values                 : PropTypes.object.isRequired,
 		indicate_invalid       : PropTypes.bool,
 		error                  : PropTypes.string,
 		_focus                 : PropTypes.bool,
@@ -165,6 +166,7 @@ export default class SimplerReduxFormField extends Component
 		{
 			component,
 			value,
+			values,
 			validate,
 			required,
 			form_validation_failed
@@ -198,13 +200,13 @@ export default class SimplerReduxFormField extends Component
 		//
 		if (indicate_invalid && form_validation_failed)
 		{
-			error            = validate(value, this.context.simpler_redux_form.get_values())
+			error            = validate(value, values)
 			indicate_invalid = error ? true : false
 		}
 		// Else, don't override the externally set `error` (if it has been set).
 		else
 		{
-			error = error || validate(value, this.context.simpler_redux_form.get_values())
+			error = error || validate(value, values)
 		}
 
 		// Required for focusing on the field in case of validation errors
