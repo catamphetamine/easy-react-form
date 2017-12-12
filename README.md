@@ -409,6 +409,26 @@ Also the following `@Form()` decorator options are available:
 
 Alternatively the corresponding `props` may be passed directly to the decorated form component.
 
+### Connecting form fields
+
+By default when a form field value changes the whole form is not being redrawn: only the changed form field is. This is for optimisation purposes. In case some form fields depend on the values of other form fields one can add `onChange()` property to those other form fields for calling `this.forceUpdate()` to redraw the whole form component.
+
+```js
+<form>
+	<Field
+		name="gender"
+		component={ Select }
+		options={ ['Male', 'Female', 'Other'] }
+		onChange={ (value) => this.forceUpdate() }/>
+
+	{ get('gender') === 'Other' &&
+		<Field
+			name="gender_details"
+			component={ TextInput }/>
+	}
+</form>
+```
+
 ## Reducer name
 
 It's `form` by default but can be configured by passing `reducer` parameter to the `@Form()` decorator.

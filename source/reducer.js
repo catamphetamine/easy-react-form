@@ -239,7 +239,7 @@ export default function reducer(state = {}, action)
 
 			state = { ...state }
 
-			form_state.latest_focused_field = action.field
+			form_state.misc.latest_focused_field = action.field
 
 			return state
 
@@ -274,15 +274,41 @@ export function initial_form_state(initial_values)
 {
 	const state =
 	{
-		fields               : {},
-		values               : {},
-		initial_values       : initial_values || {},
+		// All form `<Field/>`s
+		fields : {},
+
+		// All form `<Field/>` values
+		values : {},
+
+		// Initial form `<Field/>` values
+		initial_values : initial_values || {},
+
+		// `validate()` results for initial form `<Field/>` values
 		initial_value_errors : {},
-		errors               : {},
-		indicate_invalid     : {},
-		focus                : {},
-		scroll_to            : {},
-		misc                 : {}
+
+		// `validate()` results for current form `<Field/>` values
+		errors : {},
+
+		// Whether `validate()` errors for current form `<Field/>` values should be displayed
+		indicate_invalid : {},
+
+		// If a `<Field/>` is being focused programmatically then
+		// the `focus` object contains `<Field/>` `name` set to `true`.
+		focus : {},
+
+		// If a `<Field/>` is being scrolled to programmatically then
+		// the `scroll_to` object contains `<Field/>` `name` set to `true`.
+		scroll_to : {},
+
+		// Form properties which should not trigger re-`render()`ing are kept here.
+		misc :
+		{
+			// Whether `validate()`s for all form `<Field/>`s pass
+			validation_failed : undefined,
+			
+			// Is used for tracking abandoned forms in Google Analytics
+			latest_focused_field : undefined
+		}
 	}
 
 	return state
