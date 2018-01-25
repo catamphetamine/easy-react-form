@@ -276,9 +276,25 @@ export function decorator_with_options(options = {})
 				this.props.reset_form_invalid_indication(this.props.id)
 			}
 
-			// Submits the form if it's valid.
-			// Otherwise marks invalid fields.
-			validate_and_submit(action)
+			// Is called when the form has been submitted.
+			form_submitted = () =>
+			{
+				this.submitted = true
+				this.stop_form_abandoned_listener()
+
+				const { onSubmitted } = this.props
+
+				if (onSubmitted)
+				{
+					onSubmitted(this.props)
+				}
+
+				// Return a non-undefined value so that `bluebird` doesn't complain.
+				// http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it
+				return null
+			}
+
+			validate()
 			{
 				const
 				{
@@ -325,42 +341,48 @@ export function decorator_with_options(options = {})
 					return false
 				}
 
-				// All fields are valid, submit the form
-
 				// Stop ignoring form submission errors
 				set_form_validation_passed(id, true)
+			}
 
-				const form_data = {}
+			collect_form_data()
+			{
+				const { fields, values } = this.props
 
 				// Pass only registered fields to form submit action
 				// (because if a field is unregistered that means that
 				//  its React element was removed in the process,
 				//  and therefore it's not needed anymore)
 				const should_trim = this.should_trim_field_values()
-				for (let key of Object.keys(fields))
+				return Object.keys(fields).reduce((form_data, field) => 
 				{
-					let value = values[key]
+					let value = values[field]
 					
 					if (should_trim && typeof value === 'string')
 					{
 						value = value.trim()
 					}
 
-					form_data[key] = value
-				}
+					form_data[field] = value
+					return form_data
+				},
+				{})
+			}
 
-				let result = action(form_data)
+			// Calls `<form/>`'s `onSubmit` action.
+			execute_form_action(action, form_data)
+			{
+				let result
 
-				const form_submitted = () =>
+				try
 				{
-					this.submitted = true
-					this.stop_form_abandoned_listener()
-
-					const { onSubmitted } = this.props
-
-					if (onSubmitted)
+					result = action(form_data)
+				}
+				catch (error)
+				{
+					if (this.handle_error(error) === false)
 					{
-						onSubmitted(this.props)
+						throw error
 					}
 				}
 
@@ -368,32 +390,34 @@ export function decorator_with_options(options = {})
 				// then track this `Promise`'s progress.
 				if (result && typeof result.then === 'function')
 				{
-					this.setState({ submitting: true })
-
-					// Sets `submitting` flag back to `false`
-					const submit_attempt_finished = () =>
-					{
-						if (this.will_be_unmounted)
-						{
-							return
-						}
-
-						this.setState({ submitting: false })
-					}
-
-					result = result.then(() =>
-					{
-						form_submitted()
-						submit_attempt_finished()
-					},
-					submit_attempt_finished)
+					this.submit_promise(result)
 				}
 				else
 				{
-					form_submitted()
+					this.form_submitted()
 				}
+			}
 
-				return result
+			handle_error = (error) =>
+			{
+				const { dispatch } = this.props
+
+				return get_configuration().defaultErrorHandler(error, dispatch)
+			}
+
+			// Is called when `<form/>` `onSubmit` returns a `Promise`.
+			submit_promise(promise)
+			{
+				this.setState({ submitting: true })
+
+				promise.then(this.form_submitted, this.handle_error).then(() =>
+				{
+					if (!this.will_be_unmounted)
+					{
+						// Set `submitting` flag back to `false`
+						this.setState({ submitting: false })
+					}
+				})
 			}
 
 			// Creates form submit handler
@@ -413,34 +437,47 @@ export function decorator_with_options(options = {})
 
 				return (event) =>
 				{
-					// If it's an event handler then `.preventDefault()` it
-					// (which is the case for the intended
-					//  `<form onSubmit={ submit(...) }/>` use case)
-					if (event && typeof event.preventDefault === 'function')
-					{
-						event.preventDefault()
-					}
-
-					// Do nothing if the form is submitting
-					// (i.e. submit is in progress)
-					if (this.state.submitting || this.props.submitting)
-					{
-						return false
-					}
-
-					// Can be used, for example, to reset
-					// custom error messages.
-					// (not <Field/> `error`s)
-					// E.g. it could be used to reset
-					// overall form errors like "Form submission failed".
-					if (before_submit)
-					{
-						before_submit()
-					}
-
-					// Check field validity and submit the form
-					return this.validate_and_submit(action)
+					// Not returning the `Promise`
+					// so that `bluebird` doesn't complain.
+					this.on_submit(event, before_submit, action)
 				}
+			}
+
+			on_submit(event, before_submit, action)
+			{
+				// If it's an event handler then `.preventDefault()` it
+				// (which is the case for the intended
+				//  `<form onSubmit={ submit(...) }/>` use case)
+				if (event && typeof event.preventDefault === 'function')
+				{
+					event.preventDefault()
+				}
+
+				// Do nothing if the form is submitting
+				// (i.e. submit is in progress)
+				if (this.state.submitting || this.props.submitting)
+				{
+					return false
+				}
+
+				// Can be used, for example, to reset
+				// custom error messages.
+				// (not <Field/> `error`s)
+				// E.g. it could be used to reset
+				// overall form errors like "Form submission failed".
+				if (before_submit)
+				{
+					before_submit()
+				}
+
+				// Submit the form if it's valid.
+				// Otherwise mark invalid fields.
+				if (this.validate() === false)
+				{
+					return false
+				}
+
+				this.execute_form_action(action, this.collect_form_data())
 			}
 
 			// Focuses on a given form field (used internally + public API)

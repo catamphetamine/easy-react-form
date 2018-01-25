@@ -99,6 +99,12 @@ export default class Field extends Component
 		this.context.simpler_redux_form.register_field(name, value, this.validate, error)
 	}
 
+	// Is only called on client side.
+	componentDidMount()
+	{
+		this.mounted = true
+	}
+
 	componentWillUnmount()
 	{
 		const { name } = this.props
@@ -288,9 +294,15 @@ export default class Field extends Component
 
 		return (value) =>
 		{
-			if (required && (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')))
+			if (required && is_value_empty(value))
 			{
-				return typeof required === 'string' ? required : get_configuration().defaultRequiredMessage
+				// Inputs are inherently an interactive concept
+				// hence the actual "Required" error can only be shown
+				// during the interaction, not as part of the initial page render.
+				// Therefore only using `defaultRequiredMessage` in a web browser.
+				// The actual "Required" error message during the initial page render
+				// doesn't make any difference by itself since it's not shown anywhere.
+				return typeof required === 'string' ? required : (this.mounted ? get_default_required_message() : 'Required')
 			}
 
 			if (validate)
@@ -323,4 +335,27 @@ export default class Field extends Component
 			disabled : disabled || this.context.simpler_redux_form.is_submitting()
 		})
 	}
+}
+
+// Provides support for legacy `defaultRequiredMessage: string`
+// instead of it being a function.
+// `defaultRequiredMessage: string` fallback
+// should be removed in some next major version.
+function get_default_required_message()
+{
+	const defaultRequiredMessage = get_configuration().defaultRequiredMessage
+
+	if (typeof defaultRequiredMessage === 'string')
+	{
+		return defaultRequiredMessage
+	}
+
+	return defaultRequiredMessage()
+}
+
+function is_value_empty()
+{
+	return value === undefined ||
+		value === null ||
+		(typeof value === 'string' && value.trim() === '')
 }

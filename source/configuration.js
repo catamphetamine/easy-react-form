@@ -2,7 +2,8 @@ let configuration =
 {
 	reducer: 'form',
 	trim: true,
-	defaultRequiredMessage: 'Required'
+	defaultRequiredMessage: () => 'Required',
+	defaultErrorHandler: (error) => false
 }
 
 export function get_configuration()

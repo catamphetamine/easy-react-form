@@ -1,3 +1,9 @@
+0.3.56 / 25.01.2018
+===================
+
+  * Added `defaultErrorHandler(error, dispatch)` configuration property.
+  * `defaultErrorMessage` is now a function (legacy `string` values are still supported).
+
 0.3.54 / 05.12.2017
 ===================
 

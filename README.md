@@ -230,17 +230,20 @@ import { configure } from 'simpler-redux-form'
 configure({
 	validateVisitedFields: true,
 	trim: false,
-	defaultRequiredMessage: 'Обязательное поле'
+	defaultRequiredMessage: () => translateSomehow('required'),
+	defaultErrorHandler: (error, dispatch) => dispatch(showErrorNotification(translateSomehow(error.message)))
 })
 ```
 
 The configurable options are:
 
-  * `validateVisitedFields : boolean` – set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated)
+  * `validateVisitedFields : boolean` – Set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated).
 
-  * `trim : boolean` – set to `false` to disable field value trimming
+  * `trim : boolean` – Set to `false` to disable field value trimming.
 
-  * `defaultRequiredMessage : String` – the default `error` message when using `<Field required/>` feature (is `"Required"` by default)
+  * `defaultRequiredMessage : () -> String` – The default `error` message when using `<Field required/>` feature (returns `"Required"` by default). Is only called in a web browser.
+
+  * `defaultErrorHandler : (error, dispatch)` — The default `error` handler. Given that forms are submitted only in web browser this default error handler could show a popup with error details. The `error` argument is anything thrown from form submit action (if form submit action returns a `Promise` then the `error` will be the promise's error). Is only called in a web browser.
 
 ## Field errors
 

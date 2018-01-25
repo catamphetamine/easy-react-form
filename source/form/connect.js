@@ -1,4 +1,5 @@
 import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
 import { initial_form_state } from '../reducer'
 import { get_configuration } from '../configuration'
@@ -131,23 +132,32 @@ export default function redux_state_connector(options)
 			return underlying_props
 		},
 		// Redux `bindActionCreators`
+		(dispatch) =>
 		{
-			initialize_form,
-			destroy_form,
-			register_field,
-			unregister_field,
-			update_field_value,
-			indicate_invalid_field,
-			reset_invalid_indication,
-			reset_form_invalid_indication,
-			clear_field,
-			set_field,
-			focus_field,
-			focused_field,
-			scroll_to_field,
-			scrolled_to_field,
-			on_field_focused,
-			set_form_validation_passed
+			const bound_actions = bindActionCreators
+			({
+				initialize_form,
+				destroy_form,
+				register_field,
+				unregister_field,
+				update_field_value,
+				indicate_invalid_field,
+				reset_invalid_indication,
+				reset_form_invalid_indication,
+				clear_field,
+				set_field,
+				focus_field,
+				focused_field,
+				scroll_to_field,
+				scrolled_to_field,
+				on_field_focused,
+				set_form_validation_passed
+			},
+			dispatch)
+
+			bound_actions.dispatch = dispatch
+
+			return bound_actions
 		},
 		undefined,
 		{ withRef: true }
@@ -156,7 +166,7 @@ export default function redux_state_connector(options)
 
 function check_for_reserved_props(props)
 {
-	for (let prop of Object.keys(props))
+	for (const prop of Object.keys(props))
 	{
 		if (reserved_props.indexOf(prop) >= 0)
 		{
