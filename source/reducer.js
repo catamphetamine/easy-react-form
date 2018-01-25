@@ -270,10 +270,9 @@ export default function reducer(state = {}, action)
 	}
 }
 
-export function initial_form_state(initial_values)
+export function initial_form_state(initial_values = {})
 {
-	const state =
-	{
+	return {
 		// All form `<Field/>`s
 		fields : {},
 
@@ -281,7 +280,7 @@ export function initial_form_state(initial_values)
 		values : {},
 
 		// Initial form `<Field/>` values
-		initial_values : initial_values || {},
+		initial_values,
 
 		// `validate()` results for initial form `<Field/>` values
 		initial_value_errors : {},
@@ -310,6 +309,4 @@ export function initial_form_state(initial_values)
 			latest_focused_field : undefined
 		}
 	}
-
-	return state
 }

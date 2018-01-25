@@ -230,8 +230,8 @@ import { configure } from 'simpler-redux-form'
 configure({
 	validateVisitedFields: true,
 	trim: false,
-	defaultRequiredMessage: () => translateSomehow('required'),
-	defaultErrorHandler: (error, dispatch) => dispatch(showErrorNotification(translateSomehow(error.message)))
+	defaultRequiredMessage: (props) => props.translate('form.field.required'),
+	defaultErrorHandler: (error, props) => props.dispatch(showErrorNotification(error.message))
 })
 ```
 
@@ -241,9 +241,9 @@ The configurable options are:
 
   * `trim : boolean` – Set to `false` to disable field value trimming.
 
-  * `defaultRequiredMessage : () -> String` – The default `error` message when using `<Field required/>` feature (returns `"Required"` by default). Is only called in a web browser.
+  * `defaultRequiredMessage : (props) -> String` – The default `error` message when using `<Field required/>` feature (returns `"Required"` by default). `props` argument is the form's properties. Is only called in a web browser.
 
-  * `defaultErrorHandler : (error, dispatch)` — The default `error` handler. Given that forms are submitted only in web browser this default error handler could show a popup with error details. The `error` argument is anything thrown from form submit action (if form submit action returns a `Promise` then the `error` will be the promise's error). Is only called in a web browser.
+  * `defaultErrorHandler : (error, props)` — The default `error` handler. `props` argument is the form's properties (including Redux `dispatch`). Given that forms are submitted only in web browser this default error handler could show a popup with error details. The `error` argument is anything thrown from form submit action (if form submit action returns a `Promise` then the `error` will be the promise's error). Is only called in a web browser.
 
 ## Field errors
 

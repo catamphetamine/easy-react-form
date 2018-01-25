@@ -6,6 +6,7 @@ import create_context, { context_prop_type } from './context'
 import build_outer_component from './wrapper'
 import redux_state_connector from './connect'
 import { get_configuration } from '../configuration'
+import { initial_form_state } from '../reducer'
 
 // <Form
 // 	action={this.submit}>
@@ -27,7 +28,7 @@ export function decorator_with_options(options = {})
 {
 	options = normalize_options(options)
 
-	return function createFormComponent(Wrapped_component)
+	return function createFormComponent(FormComponent)
 	{
 		class Form extends Component
 		{
@@ -124,12 +125,9 @@ export function decorator_with_options(options = {})
 
 			getChildContext()
 			{
-				const context =
-				{
+				return {
 					simpler_redux_form: create_context(this, options)
             }
-
-            return context
 			}
 
 			should_validate_visited_fields()
@@ -402,7 +400,7 @@ export function decorator_with_options(options = {})
 			{
 				const { dispatch } = this.props
 
-				return get_configuration().defaultErrorHandler(error, dispatch)
+				return get_configuration().defaultErrorHandler(error, this.props)
 			}
 
 			// Is called when `<form/>` `onSubmit` returns a `Promise`.
@@ -538,10 +536,10 @@ export function decorator_with_options(options = {})
 
 				// Drop all inner props.
 				// All other user-specified props are passed on.
-				for (let prop_name of Object.keys(this.props))
+				for (const prop_name of Object.keys(this.props))
 				{
 					// Drop all inner props
-					if (Form.propTypes[prop_name])
+					if (Form.propTypes[prop_name] || form_state_properties[prop_name])
 					{
 						continue
 					}
@@ -552,12 +550,15 @@ export function decorator_with_options(options = {})
 				return passed_props
 			}
 
-			render()
+			store_instance = (ref) =>
 			{
-				return createElement(Wrapped_component,
-				{
-					...this.passthrough_props(),
-					ref    : ref => this.user_form = ref,
+				this.user_form = ref
+			}
+
+			extra_props()
+			{
+				return {
+					ref    : this.store_instance,
 					reset  : this.reset,
 					submit : this.submit,
 					focus  : this.focus,
@@ -566,16 +567,25 @@ export function decorator_with_options(options = {})
 					get    : this.get_field_value,
 					set    : this.set_field,
 					submitting : this.state.submitting || this.props.submitting,
-					reset_invalid_indication : this.reset_form_invalid_indication,
-					// camelCase alias
 					resetInvalidIndication : this.reset_form_invalid_indication,
+					// Deprecated, use camelCase name instead.
+					reset_invalid_indication : this.reset_form_invalid_indication,
 					getLatestFocusedField : this.get_latest_focused_field
+				}
+			}
+
+			render()
+			{
+				return createElement(FormComponent,
+				{
+					...this.passthrough_props(),
+					...this.extra_props()
 				})
 			}
 		}
 
 		// A more meaningful React `displayName`
-		Form.displayName = `Form(${get_display_name(Wrapped_component)})`
+		Form.displayName = `Form(${get_display_name(FormComponent)})`
 
 		// Connect the form component to Redux state
 		const Connected_form = redux_state_connector(options)(Form)
@@ -587,7 +597,7 @@ export function decorator_with_options(options = {})
 
 		// Preserve all static methods and properties
 		// defined on the original decorated component
-		return hoist_statics(ReduxForm, Wrapped_component)
+		return hoist_statics(ReduxForm, FormComponent)
 	}
 }
 
@@ -612,3 +622,5 @@ function normalize_options(options)
 
 const decorator = decorator_with_options()
 export default decorator
+
+const form_state_properties = Object.keys(initial_form_state())

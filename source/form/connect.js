@@ -73,7 +73,12 @@ export default function redux_state_connector(options)
 						initial_values = initial_values(props)
 					}
 				}
-				underlying_props = initial_form_state(initial_values)
+
+				underlying_props =
+				{
+					...props,
+					...initial_form_state(initial_values)
+				}
 			}
 			// If the form has already been initialized,
 			// then copy its state as a new object
@@ -92,6 +97,7 @@ export default function redux_state_connector(options)
 			{
 				underlying_props =
 				{
+					...props,
 					...forms_state[form_id],
 					initialized : true
 				}
@@ -175,31 +181,27 @@ function check_for_reserved_props(props)
 	}
 }
 
-const reserved_props =
-[
-	// @connect()-ed Redux state properties.
-	// These properties will be taken from Redux form state.
-	'fields',
-	// 'values',
-	'errors',
-	'indicate_invalid',
-	'focus',
-	'scroll_to',
-	'misc',
-
-	// These properties are passed to the underlying form
-	'submit',
+const reserved_props = Object.keys(initial_form_state())
+// If `values` property is passed this is gonna be the initial values.
+.filter(_ => _ !== 'values')
+.concat
+([
+	// These properties are passed to the underlying form.
+	// Same as in `form.js -> Form.extra_props()`.
+	// Could use `extra_props()` method to get these names.
 	'reset',
+	'submit',
 	'focus',
-	'clear',
 	'scroll',
+	'clear',
 	'get',
 	'set',
-	'getLatestFocusedField',
 	'submitting',
-	'reset_invalid_indication',
 	'resetInvalidIndication',
+	// Deprecated, use camelCase name instead.
+	'reset_invalid_indication',
+	'getLatestFocusedField',
 
-	// All form fields initalized flag
+	// All form fields initalized flag.
 	'initialized'
-]
+])

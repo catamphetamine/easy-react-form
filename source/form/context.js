@@ -129,6 +129,13 @@ const create_context = (form, options) =>
 	get_id()
 	{
 		return form.props.id
+	},
+
+	// Returns this form properties.
+	// Is only used when calling `defaultRequiredMessage(props)` inside a `<Field/>`.
+	get_props()
+	{
+		return form.props
 	}
 })
 
@@ -156,6 +163,9 @@ export const context_prop_type = PropTypes.shape
 	focused_field            : PropTypes.func.isRequired,
 	scrolled_to_field        : PropTypes.func.isRequired,
 	focus_field              : PropTypes.func.isRequired,
-	scroll_to_field          : PropTypes.func.isRequired
+	scroll_to_field          : PropTypes.func.isRequired,
+
+	get_id    : PropTypes.func.isRequired,
+	get_props : PropTypes.func.isRequired
 })
 .isRequired

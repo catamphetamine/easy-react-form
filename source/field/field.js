@@ -302,7 +302,7 @@ export default class Field extends Component
 				// Therefore only using `defaultRequiredMessage` in a web browser.
 				// The actual "Required" error message during the initial page render
 				// doesn't make any difference by itself since it's not shown anywhere.
-				return typeof required === 'string' ? required : (this.mounted ? get_default_required_message() : 'Required')
+				return typeof required === 'string' ? required : (this.mounted ? get_default_required_message(this.context.simpler_redux_form.get_props()) : 'Required')
 			}
 
 			if (validate)
@@ -341,7 +341,7 @@ export default class Field extends Component
 // instead of it being a function.
 // `defaultRequiredMessage: string` fallback
 // should be removed in some next major version.
-function get_default_required_message()
+function get_default_required_message(props)
 {
 	const defaultRequiredMessage = get_configuration().defaultRequiredMessage
 
@@ -350,7 +350,7 @@ function get_default_required_message()
 		return defaultRequiredMessage
 	}
 
-	return defaultRequiredMessage()
+	return defaultRequiredMessage(props)
 }
 
 function is_value_empty(_)
