@@ -353,9 +353,8 @@ function get_default_required_message()
 	return defaultRequiredMessage()
 }
 
-function is_value_empty()
+function is_value_empty(_)
 {
-	return value === undefined ||
-		value === null ||
-		(typeof value === 'string' && value.trim() === '')
+	return _ === undefined || _ === null ||
+		(typeof _ === 'string' && _.trim() === '')
 }
