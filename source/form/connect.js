@@ -74,11 +74,7 @@ export default function redux_state_connector(options)
 					}
 				}
 
-				underlying_props =
-				{
-					...props,
-					...initial_form_state(initial_values)
-				}
+				underlying_props = initial_form_state(initial_values)
 			}
 			// If the form has already been initialized,
 			// then copy its state as a new object
@@ -97,7 +93,6 @@ export default function redux_state_connector(options)
 			{
 				underlying_props =
 				{
-					...props,
 					...forms_state[form_id],
 					initialized : true
 				}
@@ -114,24 +109,14 @@ export default function redux_state_connector(options)
 				underlying_props.submitting = options.submitting(state, props)
 			}
 
-			if (options.onSubmitted)
+			if (options.onSubmitted || props.onSubmitted)
 			{
-				underlying_props.onSubmitted = options.onSubmitted
+				underlying_props.onSubmitted = options.onSubmitted || props.onSubmitted
 			}
 
-			if (props.onSubmitted)
+			if (options.onAbandoned || props.onAbandoned)
 			{
-				underlying_props.onSubmitted = props.onSubmitted
-			}
-
-			if (options.onAbandoned)
-			{
-				underlying_props.onAbandoned = options.onAbandoned
-			}
-
-			if (props.onAbandoned)
-			{
-				underlying_props.onAbandoned = props.onAbandoned
+				underlying_props.onAbandoned = options.onAbandoned || props.onAbandoned
 			}
 
 			// Return underlying form component props
