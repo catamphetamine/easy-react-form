@@ -367,6 +367,8 @@ This `@Form()` decorator creator takes the following options:
 
   * `methods : [String]` — takes an optional array of method names which will be proxied to the decorated component instance
 
+  * `onError: (error, props)` — replaces `configuration.defaultErrorHandler` for a given form
+
 <!-- If the `@Form()` decorator is passed a string rather than an `options` object then the string argument is assumed to be the form `id`. -->
 
 ### Decorated form component properties

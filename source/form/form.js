@@ -398,9 +398,8 @@ export function decorator_with_options(options = {})
 
 			handle_error = (error) =>
 			{
-				const { dispatch } = this.props
-
-				return get_configuration().defaultErrorHandler(error, this.props)
+				const handle_error = options.onError || get_configuration().defaultErrorHandler
+				return handle_error(error, this.props)
 			}
 
 			// Is called when `<form/>` `onSubmit` returns a `Promise`.
@@ -408,12 +407,24 @@ export function decorator_with_options(options = {})
 			{
 				this.setState({ submitting: true })
 
-				promise.then(this.form_submitted, this.handle_error).then(() =>
+				let throw_error
+				promise.then(this.form_submitted, (error) =>
+				{
+					if (this.handle_error(error) === false)
+					{
+						throw_error = error
+					}
+				}).then(() =>
 				{
 					if (!this.will_be_unmounted)
 					{
 						// Set `submitting` flag back to `false`
 						this.setState({ submitting: false })
+					}
+
+					if (throw_error)
+					{
+						throw throw_error
 					}
 				})
 			}
