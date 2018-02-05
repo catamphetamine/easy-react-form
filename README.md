@@ -153,7 +153,7 @@ And also `<Field/>` takes the following optional `props`:
 
   * `error : String` - an error message which can be set outside of the `validate()` function. Can be used for advanced validation, e.g. setting a `"Wrong password"` error on a password field after the form is submitted. This `error` will be passed directly to the underlying field component.
 
-  * `required : String or Boolean` — adds "this field is required" validation for the `<Field/>` with the `error` message equal to `required` property value if it's a `String` defaulting to `"Required"` otherwise (`required={true}` is passed to the underlying component).
+  * `required : String or Boolean` — adds "this field is required" validation for the `<Field/>` with the `error` message equal to `required` property value if it's a `String` defaulting to `"Required"` otherwise (`required={true}` is passed to the underlying component). Note that `false` value passes the `required` validation requirement because `false` is a value (e.g. "Yes"/"No" dropdown).
 
 All other `props` are passed through to the underlying field component.
 
