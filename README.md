@@ -373,7 +373,7 @@ This `@Form()` decorator creator takes the following options:
 
 ### Decorated form component properties
 
-Decorated form components take the following properties (besides `formId`):
+Decorated form components accept the following optional properties (besides `formId`):
 
   * `values : object` — initial form field values (`{ field: value, ... }`), an alternative way of setting `value` for each `<Field/>`.
 
