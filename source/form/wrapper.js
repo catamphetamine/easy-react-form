@@ -61,15 +61,15 @@ export default function build_outer_component(Connected_form, options)
 
 		// Gets the latest focused field (public API).
 		// (e.g. for Google Analytics on abandoned forms)
-		get_latest_focused_field()
+		getLatestFocusedField()
 		{
 			return this.connected_form.getWrappedInstance().get_latest_focused_field()
 		}
 
-		// camelCase aliasing
-		getLatestFocusedField()
+		// Deprecated alias.
+		get_latest_focused_field()
 		{
-			return this.get_latest_focused_field()
+			return this.getLatestFocusedField()
 		}
 
 		reset()
@@ -80,6 +80,13 @@ export default function build_outer_component(Connected_form, options)
 		submit()
 		{
 			return submit_child_form(ReactDOM.findDOMNode(this.connected_form))
+		}
+
+		getValues()
+		{
+			let values
+			this.connected_form.getWrappedInstance().on_submit(null, null, _ => values = _)
+			return values
 		}
 
 		// Autogenerates form id and keeps returning it from then on.

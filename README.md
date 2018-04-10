@@ -317,21 +317,23 @@ This is an advanced section describing all other miscellaneous configuration opt
 
 The decorated form component instance exposes the following instance methods (in case anyone needs them):
 
-  * `getWrappedInstance()` — returns the original form component instance
+  * `getWrappedInstance()` — Returns the original form component instance.
 
-  * `focus(fieldName : String)` — focuses on a field
+  * `focus(fieldName : String)` — Focuses on a field.
 
-  * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
+  * `scroll(fieldName : String)` — Scrolls to a field (if it's not visible on the screen).
 
-  * `clear(fieldName : String)` — clears field value
+  * `clear(fieldName : String)` — Clears field value.
 
-  * `get(fieldName : String)` — returns field value
+  * `get(fieldName : String)` — Returns field value.
 
-  * `set(fieldName : String, value : String)` — sets form field value
+  * `set(fieldName : String, value : String)` — Sets form field value.
 
-  * `reset()` — resets the form
+  * `getValues() : Object?` — Collects form field values and returns them as a `values` object. If the form is invalid or busy then returns nothing.
 
-  * `submit()` — submits the form by clicking the `<button type="submit"/>` inside this form
+  * `reset()` — Resets the form.
+
+  * `submit()` — Submits the form by clicking the `<button type="submit"/>` inside this form.
 
 ### Form decorator options
 

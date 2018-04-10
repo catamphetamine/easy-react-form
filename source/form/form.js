@@ -414,7 +414,8 @@ export function decorator_with_options(options = {})
 					{
 						throw_error = error
 					}
-				}).then(() =>
+				})
+				.then(() =>
 				{
 					if (!this.will_be_unmounted)
 					{
