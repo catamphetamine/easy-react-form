@@ -142,6 +142,15 @@ export default class Field extends Component
 		// Else, if it's the same field
 		else
 		{
+			// If the default value changed for this `<Field/>`
+			// and the field hasn't been edited yet
+			// then apply this new initial value.
+			if (new_props.value !== this.props.value && !this.has_been_edited)
+			{
+				const { name, value } = new_props
+				this.context.simpler_redux_form.update_field_value(name, value, this.validate(value))
+			}
+
 			// If an externally set `error` property is updated,
 			// then set `indicate_invalid` to `true` for this field.
 			this.show_or_hide_externally_set_error(this.props, new_props, this.context)
@@ -215,6 +224,8 @@ export default class Field extends Component
 	// `onChange` field value handler
 	on_change = (event) =>
 	{
+		const { name, onChange } = this.props
+
 		let value = event
 
 		// If it's an event then extract the input value from it
@@ -224,7 +235,13 @@ export default class Field extends Component
 			value = event.target.value
 		}
 
-		const { name, onChange } = this.props
+		// Once a user enters a non-empty value
+		// the `value` (initial value) property
+		// no longer changes the current value.
+		if (!is_value_empty(value))
+		{
+			this.has_been_edited = true
+		}
 
 		this.context.simpler_redux_form.update_field_value(name, value, this.validate(value))
 
