@@ -235,13 +235,10 @@ export default class Field extends Component
 			value = event.target.value
 		}
 
-		// Once a user enters a non-empty value
+		// Once a user enters/erases a value
 		// the `value` (initial value) property
 		// no longer changes the current value.
-		if (!is_value_empty(value))
-		{
-			this.has_been_edited = true
-		}
+		this.has_been_edited = true
 
 		this.context.simpler_redux_form.update_field_value(name, value, this.validate(value))
 
