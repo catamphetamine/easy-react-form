@@ -59,10 +59,14 @@ export default class SimplerReduxFormField extends Component
 		this.scroll_if_requested(old_props, new_props, this.context)
 	}
 
+	componentDidMount()
+	{
+		this.mounted = true
+	}
+
 	componentWillUnmount()
 	{
-		// Maybe this flag is not strictly required 
-		this.unmounted = true
+		this.mounted = false
 	}
 
 	// If this field is being focused programmatically, then do it.
@@ -79,6 +83,11 @@ export default class SimplerReduxFormField extends Component
 	// Focuses the field (e.g. in case of validation errors)
 	focus()
 	{
+		if (!this.mounted)
+		{
+			return
+		}
+
 		// If the form hasn't been unmounted yet
 		// and an underlying component is a `React.Component`.
 		if (this.field)
@@ -95,20 +104,18 @@ export default class SimplerReduxFormField extends Component
 
 		// React throws when calling `findDOMNode` on an unmounted component
 		// therefore the explicit check for the component being still mounted.
-		if (!this.unmounted)
+
+		const node = ReactDOM.findDOMNode(this)
+
+		const focusable =
+			node.querySelector('input') ||
+			node.querySelector('select') ||
+			node.querySelector('textarea') ||
+			node.querySelector('button')
+
+		if (focusable)
 		{
-			const node = ReactDOM.findDOMNode(this)
-
-			const focusable =
-				node.querySelector('input') ||
-				node.querySelector('select') ||
-				node.querySelector('textarea') ||
-				node.querySelector('button')
-
-			if (focusable)
-			{
-				focusable.focus();
-			}
+			focusable.focus();
 		}
 	}
 

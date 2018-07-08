@@ -4,6 +4,7 @@
   "description": "Just like `redux-form` but much simpler",
   "main": "index.common.js",
   "module": "index.es6.js",
+  "sideEffects": ["*.css"],
   "peerDependencies": {
     "react": ">=0.14.0",
     "react-dom": ">=0.14.0",
