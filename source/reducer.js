@@ -273,6 +273,13 @@ export default function reducer(state = {}, action)
 export function initial_form_state(initial_values = {})
 {
 	return {
+		// Whether the form has been "initialized".
+		// The form is considered "initialized"
+		// when all its fields have been initialized
+		// which is some time after it has been created,
+		// and which is some time after the first `@connect()` is called.
+		initialized : false,
+
 		// All form `<Field/>`s
 		fields : {},
 

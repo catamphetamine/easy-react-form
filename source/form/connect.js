@@ -52,15 +52,13 @@ export default function redux_state_connector(options)
 				throw new Error('You forgot to add simpler-redux-form `reducer` to your Redux reducers')
 			}
 
-			const form_already_initialized = forms_state[form_id] !== undefined
-
 			// If the form has not yet been initialized
 			// then emulate its pristine state
 			// (it will be initialized later at `componentWillMount()`
 			//  which happens after the `constructor()` is called
 			//  on the decorated component, which is where
 			//  this state mapper fires for the first time)
-			if (!form_already_initialized)
+			if (forms_state[form_id] === undefined)
 			{
 				// Initial form state will be like this.
 				// `props.values` are the initial form values (optional).
@@ -89,6 +87,16 @@ export default function redux_state_connector(options)
 			// therefore, for example, an updated `submitting` property
 			// wouldn't be reflected on the screen.
 			//
+			// Actually this is an inefficient workaround
+			// because it re-renders the decorated form
+			// each time `@connect()` is called
+			// which is not a correct behaviour.
+			// Instead it should have written in such a way
+			// that it would only re-render when the actual 
+			// form state properties are changed.
+			// Currently it always re-renders,
+			// on each Redux action being emitted,
+			// even if form state is the same.
 			else
 			{
 				underlying_props =
