@@ -245,7 +245,7 @@ export default class SimplerReduxFormField extends Component
 	}
 }
 
-const intercepted_properties = Object.keys(SimplerReduxFormField.propTypes);
+const intercepted_properties = Object.keys(SimplerReduxFormField.propTypes).concat(['dispatch']);
 
 function is_stateless(Component)
 {
