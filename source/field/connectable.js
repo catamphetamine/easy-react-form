@@ -29,7 +29,12 @@ export default class SimplerReduxFormField extends Component
 		form_validation_failed : PropTypes.bool,
 		validate               : PropTypes.func,
 		focused                : PropTypes.func.isRequired,
-		scrolled               : PropTypes.func.isRequired
+		scrolled               : PropTypes.func.isRequired,
+
+		// Whether this form field has been "initialized".
+		// A form field is "intiialized" when its `@connect()`
+		// has been called for the first time.
+		initialized : PropTypes.bool
 	}
 
 	constructor(props, context)

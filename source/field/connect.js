@@ -14,8 +14,7 @@ export default function redux_state_connector(name, context)
 			// https://facebook.github.io/react/docs/context.html#updating-context
 			const form_state = state[get_configuration().reducer][context.simpler_redux_form.get_id()]
 
-			const result =
-			{
+			return {
 				value                  : form_state.values[name],
 				values                 : form_state.values,
 				indicate_invalid       : form_state.indicate_invalid[name],
@@ -24,8 +23,6 @@ export default function redux_state_connector(name, context)
 				form_validation_failed : form_state.misc.validation_failed,
 				initialized            : true
 			}
-
-			return result
 		},
 		undefined,
 		undefined,
