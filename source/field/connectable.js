@@ -149,8 +149,8 @@ export default class SimplerReduxFormField extends Component
 			{
 				scrollMode : 'if-needed',
 				behavior   : 'smooth',
-				block      : 'center',
-				inline     : 'center'
+				block      : 'nearest',
+				inline     : 'nearest'
 			})
 		}
 	}
