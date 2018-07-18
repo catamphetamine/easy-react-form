@@ -14,7 +14,7 @@
     "react-redux": "*"
   },
   "dependencies": {
-    "hoist-non-react-statics": "^1.2.0",
+    "hoist-non-react-statics": "^2.5.5",
     "prop-types": "^15.5.6",
     "scroll-into-view-if-needed": "^1.0.2"
   },
