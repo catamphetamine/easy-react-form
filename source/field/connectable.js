@@ -1,7 +1,7 @@
 import { Component, createElement } from 'react'
 import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
-import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
+import scrollIntoView from 'scroll-into-view-if-needed'
 
 // This component will be `@connect()`ed to Redux state
 // and therefore will update itself when its value changes.
@@ -145,17 +145,13 @@ export default class SimplerReduxFormField extends Component
 		// If the form hasn't been unmounted yet
 		if (this.field)
 		{
-			const element = ReactDOM.findDOMNode(this.field)
-
-			// https://developer.mozilla.org/ru/docs/Web/API/Element/scrollIntoViewIfNeeded
-			if (element.scrollIntoViewIfNeeded)
+			scrollIntoView(ReactDOM.findDOMNode(this.field),
 			{
-				element.scrollIntoViewIfNeeded(false)
-			}
-			else
-			{
-				scrollIntoViewIfNeeded(element, false, { duration: 800 })
-			}
+				scrollMode : 'if-needed',
+				behavior   : 'smooth',
+				block      : 'center',
+				inline     : 'center'
+			})
 		}
 	}
 
