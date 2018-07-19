@@ -511,6 +511,11 @@ export function decorator_with_options(options = {})
 			{
 				const { id, values, clear_field } = this.props
 
+				// If this field hasn't been "registered" yet then ignore.
+				if (!this.fields[field]) {
+					return
+				}
+
 				const validate = this.fields[field].validate
 				clear_field(id, field, validate(undefined, values))
 			}
