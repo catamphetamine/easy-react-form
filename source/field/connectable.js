@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 import scrollIntoView from 'scroll-into-view-if-needed'
 
+import { is_value_empty } from './field'
+
 // This component will be `@connect()`ed to Redux state
 // and therefore will update itself when its value changes.
 // (or when its invalid indication changes)
@@ -236,7 +238,7 @@ export default class SimplerReduxFormField extends Component
 			value,
 			error,
 			indicateInvalid : indicate_invalid,
-			required : required ? true : false
+			required : required && is_value_empty(value) ? true : false
 		})
 	}
 }
