@@ -147,13 +147,17 @@ export default class SimplerReduxFormField extends Component
 		// If the form hasn't been unmounted yet
 		if (this.field)
 		{
-			scrollIntoView(ReactDOM.findDOMNode(this.field),
-			{
-				scrollMode : 'if-needed',
-				behavior   : 'smooth',
-				block      : 'nearest',
-				inline     : 'nearest'
-			})
+			// https://github.com/stipsan/scroll-into-view-if-needed/issues/359
+
+			// scrollIntoView(ReactDOM.findDOMNode(this.field),
+			// {
+			// 	scrollMode : 'if-needed',
+			// 	behavior   : 'smooth',
+			// 	block      : 'nearest',
+			// 	inline     : 'nearest'
+			// })
+
+			scrollIntoView(ReactDOM.findDOMNode(this.field), false, { duration: 800 })
 		}
 	}
 
