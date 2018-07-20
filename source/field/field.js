@@ -367,7 +367,7 @@ function get_default_required_message(props)
 	return defaultRequiredMessage(props)
 }
 
-function is_value_empty(_)
+export function is_value_empty(_)
 {
 	return _ === undefined || _ === null ||
 		(typeof _ === 'string' && _.trim() === '')
