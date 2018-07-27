@@ -88,7 +88,7 @@ The `<Form/>` takes the following optional properties:
 
   * `onError : Function(Error)` — Submit error handler. E.g. can show a popup with error message.
 
-  * `autoFocus : Boolean` — If `true` will automatically focus on the first form field when the form is mounted. Defauls to `true`.
+  * `autoFocus : Boolean` — Set to `true` to automatically focus on the first form field when the form is mounted. Defauls to `false`.
 
   * `onBeforeSubmit : Function`
 
