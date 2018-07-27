@@ -35,8 +35,8 @@
   },
   "scripts": {
     "test": "mocha --compilers js:babel-core/register --colors --bail --reporter spec --require test/setup \"./{,!(node_modules|commonjs|modules)/**/}*.test.js\" --recursive",
-    "test-coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --compilers js:babel-core/register --colors --reporter dot \"./{,!(node_modules|commonjs|modules)/**/}*.test.js\" --recursive",
-    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --compilers js:babel-core/register --colors --reporter spec \"./{,!(node_modules|commonjs|modules)/**/}*.test.js\" --recursive",
+    "test-coverage": "istanbul cover node_modules/mocha/bin/_mocha -- --compilers js:babel-core/register --colors --reporter dot --require test/setup \"./{,!(node_modules|commonjs|modules)/**/}*.test.js\" --recursive",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --compilers js:babel-core/register --colors --reporter spec --require test/setup \"./{,!(node_modules|commonjs|modules)/**/}*.test.js\" --recursive",
     "clean-for-build": "rimraf ./modules/**/* ./commonjs/**/*",
     "build-commonjs-modules": "better-npm-run build-commonjs-modules",
     "build-es6-modules": "better-npm-run build-es6-modules",
