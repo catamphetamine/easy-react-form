@@ -31,7 +31,7 @@ export default class Example extends Component {
   }
 
   render() {
-    const { phone } = this.props
+    const { user } = this.props
 
     return (
       <Form onSubmit={ this.submit }>
@@ -40,8 +40,8 @@ export default class Example extends Component {
           component={ TextInput }
           type="tel"
           placeholder="Enter phone number"
-          // Initial value for this field
-          value={ phone }
+          // Initial value for this field.
+          value={ user.phone }
           validate={ this.validatePhone } />
 
         <Submit component={ SubmitButton }>
