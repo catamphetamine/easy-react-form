@@ -31,7 +31,7 @@ export default class Example extends Component {
   }
 
   render() {
-    const { phone, submit, submitAction } = this.props
+    const { phone } = this.props
 
     return (
       <Form onSubmit={ this.submit }>
