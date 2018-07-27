@@ -1,117 +1,94 @@
-export const initialize_form = (form, values) =>
-({
-	type : '@@simpler-redux-form/initialize',
-	form,
-	values
-})
+export const registerField = (field, value, validate, error) => state =>
+{
+	// Uses a numerical counter instead of a boolean.
+	// https://github.com/erikras/redux-form/issues/1705
+	// If the value is `0` then it means that the field
+	// has been previously initialized so not reinitializing it.
+	// This also preserves the initial value of the field.
+	// Because a user may choose some value which would result in
+	// a couple of new form fields to appear above this field,
+	// and so React unmounts this field only to later mount it again
+	// a couple of new form fields lower.
+	// So this trick retains the field's state (including value).
+	if (state.fields[field] === undefined)
+	{
+		state.fields[field] = 1
 
-export const destroy_form = (form) =>
-({
-	type : '@@simpler-redux-form/destroy',
-	form
-})
+		// Only initializes the field with its default value
+		// if it hasn't been seen before.
+		// Otherwise will initialize the field with its current value.
+		state.values[field] = value === undefined ? state.initialValues[field] : value
+		state.errors[field] = validate(state.values[field])
 
-export const register_field = (form, field, value, validate, non_validation_error) =>
-({
-	type : '@@simpler-redux-form/register-field',
-	form,
-	field,
-	value,
-	validate,
-	non_validation_error
-})
+		// Stores the initial value for this field.
+		// Is used later when calling `reset()` to reset the form.
+		state.initialValues[field] = state.values[field]
+		// state.initialValueErrors[field] = state.errors[field]
 
-export const unregister_field = (form, field) =>
-({
-	type : '@@simpler-redux-form/unregister-field',
-	form,
-	field
-})
+		// If an externally set `error` was passed then show it.
+		if (error) {
+			state.indicateInvalid[field] = true
+		}
+	}
+	else
+	{
+		state.fields[field]++
+	}
+}
 
-export const update_field_value = (form, field, value, error) =>
-({
-	type : '@@simpler-redux-form/changed',
-	form,
-	field,
-	value,
-	error
-})
+export const unregisterField = (field) => state =>
+{
+	// Uses a numerical counter instead of a boolean.
+	// https://github.com/erikras/redux-form/issues/1705
+	// Even if the registration counter for a field
+	// becomes equal to `0` it's still not destroyed,
+	// because theoretically it could be a new field
+	// being added in the beginning of the form
+	// therefore causing all field to unregister and then register again.
+	// If those fields were destroyed then their values would be lost.
+	state.fields[field]--
+}
 
-export const indicate_invalid_field = (form, field) =>
-({
-	type : '@@simpler-redux-form/indicate-invalid',
-	form,
-	field
-})
+// The user edits field value.
+export const updateFieldValue = (field, value, error) => state =>
+{
+	state.values[field] = value
+	state.errors[field] = error
+	// The user is currently editing this field
+	// so don't show the validation error yet.
+	state.indicateInvalid[field] = false
+}
 
-export const reset_invalid_indication = (form, field) =>
-({
-	type : '@@simpler-redux-form/dont-indicate-invalid',
-	form,
-	field
-})
+// Manually set field value.
+// (e.g. `this.form.set(field, value)`).
+export const setFieldValue = (field, value, error) => state =>
+{
+	state.values[field] = value
+	state.errors[field] = error
+	state.indicateInvalid[field] = error ? true : false
+}
 
-export const clear_field = (form, field, error) =>
-({
-	type : '@@simpler-redux-form/set',
-	form,
-	field,
-	error
-})
+export const fieldFocused = (field) => state =>
+{
+	state.latestFocusedField = field
+}
 
-export const set_field = (form, field, value, error) =>
-({
-	type : '@@simpler-redux-form/set',
-	form,
-	field,
-	value,
-	error
-})
+export const setFieldIndicateInvalid = (field, indicateInvalid) => state =>
+{
+	state.indicateInvalid[field] = indicateInvalid
+}
 
-export const focus_field = (form, field) =>
-({
-	type : '@@simpler-redux-form/focus',
-	form,
-	field
-})
+export const resetFormInvalidIndication = () => state =>
+{
+	state.indicateInvalid = {}
+}
 
-export const focused_field = (form, field) =>
-({
-	type : '@@simpler-redux-form/focused',
-	form,
-	field
-})
+export const setFormSubmitting = (submitting) => state =>
+{
+	state.submitting = submitting
+}
 
-export const scroll_to_field = (form, field) =>
-({
-	type : '@@simpler-redux-form/scroll',
-	form,
-	field
-})
-
-export const scrolled_to_field = (form, field) =>
-({
-	type : '@@simpler-redux-form/scrolled',
-	form,
-	field
-})
-
-export const on_field_focused = (form, field) =>
-({
-	type : '@@simpler-redux-form/on-field-focused',
-	form,
-	field
-})
-
-export const set_form_validation_passed = (form, passed) =>
-({
-	type : '@@simpler-redux-form/validation-passed',
-	form,
-	passed
-})
-
-export const reset_form_invalid_indication = (form) =>
-({
-	type : '@@simpler-redux-form/reset-invalid-indication',
-	form
-})
+export const setFormValid = (valid) => state =>
+{
+	state.valid = valid
+}

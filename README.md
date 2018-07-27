@@ -1,249 +1,195 @@
-# simpler-redux-form
+# basic-react-form
 
-[![npm version](https://img.shields.io/npm/v/simpler-redux-form.svg?style=flat-square)](https://www.npmjs.com/package/simpler-redux-form)
-[![npm downloads](https://img.shields.io/npm/dm/simpler-redux-form.svg?style=flat-square)](https://www.npmjs.com/package/simpler-redux-form)
-[![coverage](https://img.shields.io/coveralls/catamphetamine/simpler-redux-form/master.svg?style=flat-square)](https://coveralls.io/r/catamphetamine/simpler-redux-form?branch=master)
-
-Just like [`redux-form`](https://github.com/erikras/redux-form) but much simpler.
+[![npm version](https://img.shields.io/npm/v/basic-react-form.svg?style=flat-square)](https://www.npmjs.com/package/basic-react-form)
+[![npm downloads](https://img.shields.io/npm/dm/basic-react-form.svg?style=flat-square)](https://www.npmjs.com/package/basic-react-form)
+[![coverage](https://img.shields.io/coveralls/catamphetamine/basic-react-form/master.svg?style=flat-square)](https://coveralls.io/r/catamphetamine/basic-react-form?branch=master)
 
 ## Install
 
 ```
-npm install simpler-redux-form --save
+npm install basic-react-form --save
 ```
 
-## Usage
-
-Add `form` reducer to the main Redux reducer
-
-```js
-export { default as reducer_1 } from './reducer 1'
-export { default as reducer_2 } from './reducer 2'
-...
-export { reducer as form } from 'simpler-redux-form'
-```
-
-Create the form
+## Use
 
 ```js
 import React, { Component } from 'react'
-import Form, { Field, Submit } from 'simpler-redux-form'
-import { connect } from 'react-redux'
+import { Form, Field, Submit } from 'basic-react-form'
 
-// `redux-thunk` example.
-// When `dispatch()`ed returns a `Promise`
-function submitAction(values) {
-	return (dispatch) => {
-		dispatch({ type: 'SUBMIT_REQUEST' })
+export default class Example extends Component {
+  validatePhone = (phone) => if (!phone) return 'Phone number is required'
 
-		return ajax.post('/save', values).then(
-			(result) => dispatch({ type: 'SUBMIT_SUCCESS', result }),
-			(error)  => dispatch({ type: 'SUBMIT_FAILURE', error  })
-		)
-	}
+  // Returns a `Promise`.
+  submit = (values) => {
+    console.log(values)
+    return new Promise(resolve => setTimeout(resolve, 3000))
+  }
+
+  render() {
+    const { phone, submit, submitAction } = this.props
+
+    return (
+      <Form onSubmit={ this.submit }>
+        <Field
+          name="phone"
+          component={ TextInput }
+          type="tel"
+          placeholder="Enter phone number"
+          // Initial value for this field
+          value={ phone }
+          validate={ this.validatePhone } />
+
+        <Submit component={ SubmitButton }>
+          Save
+        </Submit>
+      </Form>
+    )
+  }
 }
 
-@Form
-@connect(
-	// Get user's current phone number from Redux state
-	state => ({ phone: state.user.phone }),
-	// Redux `bindActionCreators`
-	{ submitAction }
-)
-export default class PhoneNumberForm extends Component {
-	validatePhone(phone) {
-		if (!phone) {
-			return 'Phone number is required'
-		}
-	}
-
-	render() {
-		const { phone, submit, submitAction } = this.props
-
-		return (
-			<form
-				onSubmit={submit(submitAction)}>
-
-				<Field
-					name="phone"
-					component={ TexInput }
-					type="tel"
-					// Initial value for this field
-					value={ phone }
-					validate={ this.validatePhone }
-					placeholder="Enter phone number"/>
-
-				<Submit component={ SubmitButton }>Save</Submit>
-			</form>
-		)
-	}
+function TextInput({ error, ...rest }) {
+  return (
+    <div>
+      <input type="text" { ...rest }/>
+      { error && <div className="error">{ error }</div> }
+    </div>
+  )
 }
 
-function TextInput({ error, indicateInvalid, ...rest }) {
-	return (
-		<div>
-			<input type="text" { ...rest }/>
-			{/* Shows this form field validation error */}
-			{ indicateInvalid && <div className="error">{ error }</div> }
-		</div>
-	)
-}
-
-// `children` is button text ("Save")
-function SubmitButton({ children }) {
-	return (
-		<button type="submit">
-			{ children }
-		</button>
-	)
-}
-```
-
-And use it anywhere on a page
-
-```js
-import FormComponent from './form'
-
-function Page() {
-	return <FormComponent/>
+// `busy` is `true` while form is submitting.
+function SubmitButton({ busy, children }) {
+  return (
+    <button type="submit" disabled={ busy || false }>
+      { children }
+    </button>
+  )
 }
 ```
 
 ## API
 
-### @Form
+### Form
 
-`@Form` decorator ("higher order component") decorates a React component of the original form injecting the following `props` into it:
+The `<Form/>` takes the following required properties:
 
-  * `submit : Function` — creates form submit handler, call it in your `<form/>`'s `onSubmit` property: `<form onSubmit={submit(this.submitForm)}/>`, where the `submitForm(values)` argument is your form submission function. If the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected.
+  * `onSubmit : Function(values)` — Can be `async` or return a `Promise`.
 
-  * `submitting : boolean` — "Is this form currently being submitted?" flag, complements the `submit()` function `Promise` above
+The `<Form/>` takes the following optional properties:
 
-  * `focus(fieldName : String)` — focuses on a field
+  * `trim : boolean` – Set to `false` to disable field value trimming. Defaults to `true`.
 
-  * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen)
+  * `requiredMessage : String` – The default `error` message for `<Field required/>`. Is `"Required"` by default.
 
-  * `clear(fieldName : String)` — clears field value
+  * `onError : Function(Error)` — Submit error handler. E.g. can show a popup with error details.
 
-  * `get(fieldName : String)` — gets form field value
+  * `autoFocus : boolean` — Can automatically focus on the first form field when the form is mounted. Defauls to `true`.
 
-  * `set(fieldName : String, value : String)` — sets form field value
+  * `onBeforeSubmit : Function`
 
-  * `reset()` — resets the form
+  * `onAfterSubmit : Function`
 
-  * `resetInvalidIndication()` — resets `invalidIndication` for all fields in this form
+The `<Form/>` component instance (`ref`) provides the following methods:
+
+  * `focus(fieldName : String)` — focuses on a field.
+
+  * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen).
+
+  * `clear(fieldName : String)` — clears field value.
+
+  * `get(fieldName : String)` — gets form field value.
+
+  * `set(fieldName : String, value : String)` — sets form field value.
+
+  * `values()` — returns form field values (an alternative to `get(fieldName : String)`).
+
+  * `reset()` — resets the form.
 
 Upon form submission, if any of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.
 
-Always extract the `<form/>` into its own component — it's much cleaner that way.
-
 ### Field
 
-`<Field/>` takes the following required `props`:
+`<Field/>` takes the following required properties:
 
-  * `name` — the field name (ID)
+  * `name : String`
 
-  * `component` — the actual React component for this field
+  * `component : class|function|string` — the field React component (can also be a string like `input`).
 
-And also `<Field/>` takes the following optional `props`:
+And also `<Field/>` takes the following optional properties:
 
-  * `value` - the initial value of the field
+  * `value` - the initial value of the field.
 
-  * `validate(value, allFormValues) : String` — form field value validation function returning an error message if the field value is invalid
+  * `validate(value, allFormValues) : String` — form field value validation function returning an error message if the field value is invalid.
 
-  * `error : String` - an error message which can be set outside of the `validate()` function. Can be used for advanced validation, e.g. setting a `"Wrong password"` error on a password field after the form is submitted. This `error` will be passed directly to the underlying field component.
+  * `error : String` - an error message which can be set outside of the `validate()` function. Can be used for some hypothetical advanced use cases.
 
-  * `required : String or Boolean` — adds "this field is required" validation for the `<Field/>` with the `error` message equal to `required` property value if it's a `String` defaulting to `"Required"` otherwise (`required={true}` is passed to the underlying component). Note that `false` value passes the `required` validation requirement because `false` is a value (e.g. "Yes"/"No" dropdown), therefore use `validate` instead for checkboxes that are required to be checked.
+  * `required : String or Boolean` — adds "this field is required" validation for the `<Field/>` with the `error` message equal to `required` property value if it's a `String` defaulting to `"Required"` otherwise. Note that `value={false}` is valid in case of `required` because `false` is a non-empty value (e.g. "Yes"/"No" dropdown), therefore use `validate` function instead of `required` for checkboxes that are required to be checked, otherwise an unchecked checkbox will have `value={false}` and will pass the `required` check.
 
-All other `props` are passed through to the underlying field component.
+`<Field/>` passes the following properties to the field `component`:
 
-These additional `props` are passed to the underlying `component`:
+  * `value`
 
-  * `error : String` — either the `error` property passed to the `<Field/>` or a validation error in case `validate` property was set for this `<Field/>`
+  * `onChange`
 
-  * `indicateInvalid : boolean` — tells the `component` whether it should render itself as being invalid
+  * `onFocus`
 
-The `indicateInvalid` algorythm is as follows:
+  * `onBlur`
 
-  * Initially `indicateInvalid` for a field is `false`
+  * `disabled : Boolean` — is `true` when form is submitting.
 
-  * Whenever the user submits the form, `indicateInvalid` becomes `true` for the first found invalid form field
+  * `required : Boolean` — is `true` when the `<Field/>` is `required` and the value is missing.
 
-  * Whenever the user edits a field's value, `indicateInvalid` becomes `false` for that field
+  * `error : String` — error message.
 
-  * Whenever the new `error` property is manually set on the `<Field/>` component, `indicateInvalid` becomes `true` for that field
+  * All other properties are passed through.
 
-Therefore, the purpose of `indicateInvalid` is to only show the `error` message when it makes sense. For example, while the user is inputting a phone number that phone number is invalid until the used inputs it fully, but it wouldn't make sense to show the "Invalid phone number" error to the user while he is in the process of inputting the phone number. Hence the `indicateInvalid` flag.
+The `error` display algorythm is as follows:
+
+  * Initially `error` for a field is not passed.
+
+  * Whenever the user submits the form, `error` is displayed for the first found invalid form field.
+
+  * Whenever the user edits a field's value, `error` becomes `undefined` for that field.
+
+  * Whenever the new `error` property is manually set on the `<Field/>` component, `error` is passed to that field.
+
+Therefore, the `error` message is only shown when it makes sense. For example, while the user is inputting a phone number that phone number is invalid until the used inputs it fully, but it wouldn't make sense to show the "Invalid phone number" error to the user while he is in the process of inputting the phone number.
 
 ### Submit
 
-Use `<Submit/>` component to render the form submit button.
+`<Submit/>` takes the following required properties:
 
-Takes the following required `props`:
+  * `component : class|function|string` — the field React component (can also be a string like `input`).
 
-  * `component` — the actual React submit button component
+`<Submit/>` passes the following properties to the `component`:
 
-All other `props` are passed through to the underlying button component.
+  * `busy : boolean` — indicates if the form is currently being submitted.
 
-These additional `props` are passed to the underlying submit button `component`:
-
-  * `busy : boolean` — indicates if the form is currently being submitted
+  * All other properties are passed through.
 
 ```js
-@Form
-class Form extends Component {
-	render() {
-		const { submit } = this.props
-		return (
-			<form onSubmit={ submit(...) }>
-				<Field component={ Input } name="text"/>
-				<Submit component={ Button }>Submit</Submit>
-			</form>
-		)
-	}
+function Example() {
+  return (
+    <Form onSubmit={ submit(...) }>
+      <Field name="text" component={ Input } />
+
+      <Submit component={ SubmitButton }>
+        Submit
+      </Submit>
+    </Form>
+  )
 }
 
-// `children` is button text (e.g. "Submit")
-function Button({ busy, children }) {
-	return (
-		<button
-			type="submit"
-			disabled={ busy }>
-			{ busy && <Spinner/> }
-			{ children }
-		</button>
-	)
+function SubmitButton({ busy, children }) {
+  return (
+    <button
+      type="submit"
+      disabled={ busy }>
+      { busy && <Spinner/> }
+      { children }
+    </button>
+  )
 }
 ```
-
-### reducer
-
-The form Redux reducer is plugged into the main Redux reducer under the name of `form` (by default).
-
-### Configuration
-
-`simpler-redux-form` has a global `configure()` function
-
-```js
-import { configure } from 'simpler-redux-form'
-
-configure({
-	validateVisitedFields: true,
-	trim: false,
-	defaultRequiredMessage: (props) => props.translate('form.field.required'),
-	defaultErrorHandler: (error, props) => props.dispatch(showErrorNotification(error.message))
-})
-```
-
-The configurable options are:
-
-  * `validateVisitedFields : boolean` – Set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated).
-
-  * `trim : boolean` – Set to `false` to disable field value trimming.
-
-  * `defaultRequiredMessage : (props) -> String` – The default `error` message when using `<Field required/>` feature (returns `"Required"` by default). `props` argument is the form's properties. Is only called in a web browser.
-
-  * `defaultErrorHandler : (error, props)` — The default `error` handler. `props` argument is the form's properties (including Redux `dispatch`). Given that forms are submitted only in web browser this default error handler could show a popup with error details. The `error` argument is anything thrown from form submit action (if form submit action returns a `Promise` then the `error` will be the promise's error). Is only called in a web browser.
 
 ## Field errors
 
@@ -257,153 +203,60 @@ One thing to note about `<Field/>` `error`s is that they must be reset before fo
 
 ```js
 import { connect } from 'react-redux'
-import Form, { Field } from 'simpler-redux-form'
+import { Form, Field, Submit } from 'basic-react-form'
 
-@Form({ id: 'example' })
 @connect(state => ({ loginError: state.loginForm.error }))
 class LoginForm extends Component {
-	validateNotEmpty(value) {
-		if (!value) {
-			return 'Required'
-		}
-	}
+  validateNotEmpty(value) {
+    if (!value) {
+      return 'Required'
+    }
+  }
 
-	submit(values) {
-		// Clears `state.loginForm.error`
-		dispatch({ type: 'LOGIN_FORM_CLEAR_ERROR' })
+  submit(values) {
+    // Clears `state.loginForm.error`
+    dispatch({ type: 'LOGIN_FORM_CLEAR_ERROR' })
 
-		// Sends form data to the server
-		return dispatch(sendHTTPLoginRequest(values))
-	}
+    // Sends form data to the server
+    return dispatch(sendHTTPLoginRequest(values))
+  }
 
-	render() {
-		const { loginError } = this.props
+  render() {
+    const { loginError } = this.props
 
-		return (
-			<form onSubmit={submit(this.submit)}>
-				<Field
-					component={Input}
-					name="username"
-					validate={this.validateNotEmpty}
-					error={loginError === 'User not found' ? loginError : undefined}/>
+    return (
+      <Form onSubmit={this.submit}>
+        <Field
+          name="username"
+          component={Input}
+          validate={this.validateNotEmpty}
+          error={loginError === 'User not found' ? loginError : undefined} />
 
-				<Field
-					component={Input}
-					name="password"
-					validate={this.validateNotEmpty}
-					error={loginError === 'Wrong password' ? loginError : undefined}/>
+        <Field
+          name="password"
+          component={Input}
+          validate={this.validateNotEmpty}
+          error={loginError === 'Wrong password' ? loginError : undefined} />
 
-				<button type="submit">Log in</button>
-			</form>
-		)
-	}
+        <Submit component={SubmitButton}>
+          Log In
+        </Submit>
+      </Form>
+    )
+  }
 }
 
-function Input({ error, indicateInvalid, ...rest }) {
-	return (
-		<div>
-			<input {...rest}/>
-			{ indicateInvalid && <div className="error">{error}</div> }
-		</div>
-	)
-}
-```
-
-## Advanced
-
-This is an advanced section describing all other miscellaneous configuration options and use cases.
-
-### Form instance methods
-
-The decorated form component instance exposes the following instance methods (in case anyone needs them):
-
-  * `getWrappedInstance()` — Returns the original form component instance.
-
-  * `focus(fieldName : String)` — Focuses on a field.
-
-  * `scroll(fieldName : String)` — Scrolls to a field (if it's not visible on the screen).
-
-  * `clear(fieldName : String)` — Clears field value.
-
-  * `get(fieldName : String)` — Returns field value.
-
-  * `set(fieldName : String, value : String)` — Sets form field value.
-
-  * `getValues() : Object?` — Collects form field values and returns them as a `values` object. If the form is invalid or busy then returns nothing.
-
-  * `reset()` — Resets the form.
-
-  * `submit()` — Submits the form by clicking the `<button type="submit"/>` inside this form.
-
-### Form decorator options
-
-Besides the default expored `Form` decorator there is a named exported `Form` decorator creator which takes `options`:
-
-```js
-// Use the named export `Form`
-// instead of the default one
-// to pass in options.
-import { Form } from 'simpler-redux-form'
-
-@Form({ ... })
-class OrderForm extends Component {
-	...
+function Input({ error, ...rest }) {
+  return (
+    <div>
+      <input {...rest}/>
+      { error && <div className="error">{ error }</div> }
+    </div>
+  )
 }
 ```
 
-This `@Form()` decorator creator takes the following options:
-  
 <!--
-  * `id : String` — an application-wide globally unique form ID
--->
-
-  * `values : object` — initial form field values (`{ field: value, ... }`), an alternative way of setting `value` for each `<Field/>`. Can also be `values(props) => object`.
-
-  * `submitting(reduxState, props) => boolean` — a function that determines by analysing current Redux state (having access to the `props`) if the form is currently being submitted. If this option is specified then `submitting : boolean` property will be injected into the decorated form component, and also all `<Field/>`s will be `disabled` while the form is `submitting`, and also the `<Submit/>` button will be passed `busy={true}` property. Alternatively `submitting` boolean property can be passed to the decorated form component via `props` and it would have the same effect. By default, if the form submission function returns a `Promise` then the form's `submitting` flag will be set to `true` upon submit until the returned `Promise` is either resolved or rejected. This extra `submitting` setting complements the `Promise` based one.
-
-  * `autofocus : boolean` — by default the form focuses itself upon being mounted
-
-  * `validateVisitedFields : boolean` – set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated)
-
-  * `trim : boolean` – set to `false` to disable field value trimming
-
-  * `methods : [String]` — takes an optional array of method names which will be proxied to the decorated component instance
-
-  * `onError: (error, props)` — replaces `configuration.defaultErrorHandler` for a given form
-
-<!-- If the `@Form()` decorator is passed a string rather than an `options` object then the string argument is assumed to be the form `id`. -->
-
-### Decorated form component properties
-
-Decorated form components accept the following optional properties (besides `formId`):
-
-  * `values : object` — initial form field values (`{ field: value, ... }`), an alternative way of setting `value` for each `<Field/>`.
-
-  * `validateVisitedFields : boolean` – set to `true` to enable form fields validation on "blur" event (i.e. when a user focuses out of a field it gets validated)
-
-### Form id
-
-Each form has its application-wide globally unique form ID (because form data path inside Redux store is gonna be `state.form.${id}`). It can be set via a `formId` property.
-
-```js
-@Form
-class OrderForm extends Component {
-	...
-}
-
-class Page extends Component {
-	render() {
-		<OrderForm formId="orderForm"/>
-	}
-}
-```
-
-If no `formId` is passed then it's autogenerated. Explicitly giving forms their application-wide globally unique `formId`s may be required for advanced use cases: say, if Redux state is persisted to `localStorage` for offline work and then restored back when the page is opened again then the form fields won't loose their values if the `formId` is set explicitly because in case of an autogenerated one it will be autogenerated again and obviously won't match the old one (the one in the previously saved Redux state) so all form fields will be reset on a newly opened page.
-
-### preSubmit
-
-If two arguments are passed to the `submit(preSubmit, submitForm)` form `onSubmit` handler then the first argument will be called before form submission attempt (before any validation) while the second argument (form submission itself) will be called only if the form validation passes — this can be used, for example, to reset custom form errors (not `<Field/>` `error`s) in `preSubmit` before the form tries to submit itself a subsequent time. For example, this could be used to reset overall form errors like `"Form submission failed, try again later"` which aren't bound to a particular form field, and if such errors aren't reset in `preSubmit` then they will be shown even if a user edits a field, clicks the "Submit" button once again, and a form field validation fails and nothing is actually submitted, but the aforementioned non-field errors stays confusing the user. Therefore such non-field errors should be always reset in `preSubmit`.
-
 ### Abandoned forms
 
 One day marketing department asked me if I could make it track abandoned forms via Google Analytics. For this reason form component instance has `.getLatestFocusedField()` method to find out which exact form field the user got confused by. `getLatestFocusedField` property function is also passed to the decorated form component.
@@ -412,37 +265,10 @@ Also the following `@Form()` decorator options are available:
 
   * `onSubmitted(props)` — is called after the form is submitted (if submit function returns a `Promise` then `onSubmitted()` is called after this `Promise` is resolved)
 
-  * `onAbandoned(props, field, value)` — is called if the form was focued but was then abandoned (if the form was focused and then either the page is closed, or `react-router` route is changed, or the form is unmounted), can be used for Google Analytics.
+  * `onAbandoned(props, field, value)` — is called if the form was focued but was then abandoned (if the form was focused and then either the page is closed, or `react-router` route is changed, or the form is unmounted), can be used for Google Analytics. Requires `router` configuration parameter being set to a `react-router@3` instance.
 
 Alternatively the corresponding `props` may be passed directly to the decorated form component.
-
-### Connecting form fields
-
-By default when a form field value changes the whole form is not being redrawn: only the changed form field is. This is for optimisation purposes. In case some form fields depend on the values of other form fields one can add `onChange()` property to those other form fields for calling `this.forceUpdate()` to redraw the whole form component.
-
-```js
-<form>
-	<Field
-		name="gender"
-		component={ Select }
-		options={ ['Male', 'Female', 'Other'] }
-		onChange={ (value) => this.forceUpdate() }/>
-
-	{ get('gender') === 'Other' &&
-		<Field
-			name="gender_details"
-			component={ TextInput }/>
-	}
-</form>
-```
-
-## Reducer name
-
-It's `form` by default but can be configured by passing `reducer` parameter to the `@Form()` decorator.
-
-## Contributing and Feature requests
-
-I made this little library because I liked (and almost reinvented myself) the idea of [`redux-form`](https://github.com/erikras/redux-form) but still found `redux-form` to be somewhat bloated with numerous features. I aimed for simplicity and designed this library to have the minimal sane set of features. If you're looking for all the features of `redux-form` then go with `redux-form`.
+-->
 
 <!-- ## Contributing
 

@@ -4,12 +4,13 @@
 		{
 			"follow_symlinks": true,
 			"path": ".",
-			"folder_exclude_patterns": ["simpler-redux-form/node_modules", "simpler-redux-form/coverage", "simpler-redux-form/build", "simpler-redux-form/es6", "project.sublime-workspace"]
+			"folder_exclude_patterns": ["node_modules", "coverage", "modules", "commonjs", "project.sublime-workspace"]
 		}
 	],
 	"settings":
 	{
-		"tab_size": 3,
+		"tab_size": 2,
 		"translate_tabs_to_spaces": false,
+		"trim_trailing_white_space_on_save": true
 	}
 }

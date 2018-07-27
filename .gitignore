@@ -26,5 +26,5 @@ npm-debug.log
 *.sublime-workspace
 
 # webpack build target folder
-/build/
-/es6/
+/modules/
+/commonjs/
