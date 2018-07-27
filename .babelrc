@@ -30,6 +30,15 @@
 				"transform-decorators-legacy",
 				"transform-class-properties"
 			]
+		},
+		"test":
+		{
+			"plugins": ["istanbul"],
+			"ignore": [
+				"bundle",
+				"modules",
+				"commonjs"
+			]
 		}
 	}
 }
