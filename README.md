@@ -1,7 +1,9 @@
 # basic-react-form
 
 [![npm version](https://img.shields.io/npm/v/basic-react-form.svg?style=flat-square)](https://www.npmjs.com/package/basic-react-form)
+<!--
 [![npm downloads](https://img.shields.io/npm/dm/basic-react-form.svg?style=flat-square)](https://www.npmjs.com/package/basic-react-form)
+-->
 <!--
 [![coverage](https://img.shields.io/coveralls/catamphetamine/basic-react-form/master.svg?style=flat-square)](https://coveralls.io/r/catamphetamine/basic-react-form?branch=master)
 -->
