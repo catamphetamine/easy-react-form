@@ -52,7 +52,7 @@ export default class Example extends Component {
   }
 }
 
-// `error` string is passed if the field is invalid.
+// `error` is passed if the field is invalid.
 function TextInput({ error, ...rest }) {
   return (
     <div>
