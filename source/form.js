@@ -10,8 +10,8 @@ import
 	resetFormInvalidIndication,
 	setFormValid,
 	setFormSubmitting,
-	setFieldIndicateInvalid,
-	setFieldValue
+	setFieldValue,
+	setFieldError
 }
 from './actions'
 
@@ -37,8 +37,8 @@ export default class Form extends Component
 		autoFocus : false,
 		trim : true,
 		requiredMessage : 'Required',
-		onError: (error) => false,
-		plugins: [ OnAbandonPlugin ]
+		onError : (error) => false,
+		plugins : [ OnAbandonPlugin ]
 	}
 
 	// Stores fields' `validate()` functions which are used
@@ -226,15 +226,12 @@ export default class Form extends Component
 			{
 				// Trigger `validate()` on the field
 				// so that `errors` is updated inside form state.
-				// (if it's mounted)
+				// (if the field is still mounted)
 				if (fields[field])
 				{
 					this.set(field, values[field])
 				}
 			}
-
-			// Indicate that the field is invalid.
-			this.dispatch(setFieldIndicateInvalid(field, true))
 
 			// Scroll to the invalid field.
 			this.scroll(field)
@@ -375,7 +372,11 @@ export default class Form extends Component
 	get = (field) => this.state.values[field]
 
 	// Sets field value (public API).
-	set = (field, value) => this.dispatch(setFieldValue(field, value, this.fields[field].validate(value, this.props.values)))
+	set = (field, value) =>
+	{
+		this.dispatch(setFieldValue(field, value))
+		this.dispatch(setFieldError(field, this.fields[field].validate(value)))
+	}
 
 	render()
 	{

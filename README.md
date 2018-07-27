@@ -82,17 +82,19 @@ The `<Form/>` takes the following required properties:
 
 The `<Form/>` takes the following optional properties:
 
-  * `trim : boolean` – Set to `false` to disable field value trimming. Defaults to `true`.
+  * `trim : Boolean` – Set to `false` to disable trimming strings. Defaults to `true`.
 
   * `requiredMessage : String` – The default `error` message for `<Field required/>`. Is `"Required"` by default.
 
-  * `onError : Function(Error)` — Submit error handler. E.g. can show a popup with error details.
+  * `onError : Function(Error)` — Submit error handler. E.g. can show a popup with error message.
 
-  * `autoFocus : boolean` — Can automatically focus on the first form field when the form is mounted. Defauls to `true`.
+  * `autoFocus : Boolean` — If `true` will automatically focus on the first form field when the form is mounted. Defauls to `true`.
 
   * `onBeforeSubmit : Function`
 
   * `onAfterSubmit : Function`
+
+  * `onAbandon : Function(fieldName, fieldValue)` — If a form field was focused but then the form wasn't submitted and was unmounted then this function is called meaning that the user possibly tried to fill out the form but then decided to move on for some reason (e.g. didn't know what to enter in a particular form field).
 
 The `<Form/>` component instance (`ref`) provides the following methods:
 
@@ -110,7 +112,7 @@ The `<Form/>` component instance (`ref`) provides the following methods:
 
   * `reset()` — resets the form.
 
-Upon form submission, if any of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.
+Upon form submission, if any one of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.
 
 ### Field
 
@@ -118,9 +120,9 @@ Upon form submission, if any of its fields is invalid, then that field will be a
 
   * `name : String`
 
-  * `component : class|function|string` — the field React component (can also be a string like `input`).
+  * `component : (React.Component|Function|String)` — React component (can also be a string like `input`).
 
-And also `<Field/>` takes the following optional properties:
+`<Field/>` takes the following optional properties:
 
   * `value` - the initial value of the field.
 
@@ -152,30 +154,32 @@ The `error` display algorythm is as follows:
 
   * Initially `error` for a field is not passed.
 
-  * Whenever the user submits the form, `error` is displayed for the first found invalid form field.
+  * Whenever the user submits the form, `error`s are displayed for all invalid form fields.
 
-  * Whenever the user edits a field's value, `error` becomes `undefined` for that field.
+  * Whenever the user edits a field's value, `error` becomes `undefined` for that field while the user is focused on the field.
 
-  * Whenever the new `error` property is manually set on the `<Field/>` component, `error` is passed to that field.
+  * Whenever the user focuses out of a field it is re-validated and `error` is passed if it's invalid.
 
-Therefore, the `error` message is only shown when it makes sense. For example, while the user is inputting a phone number that phone number is invalid until the used inputs it fully, but it wouldn't make sense to show the "Invalid phone number" error to the user while he is in the process of inputting the phone number.
+  * Whenever a new `error` property is manually set on the `<Field/>` component that `error` is displayed.
+
+Therefore, the `error` message is only shown when the user is not editing the field. For example, while the user is typing a phone number that phone number is invalid until the used inputs it fully, but it wouldn't make sense to show the "Invalid phone number" error to the user while he is in the process of inputting the phone number (it would just be an annoying distraction).
 
 ### Submit
 
 `<Submit/>` takes the following required properties:
 
-  * `component : class|function|string` — the field React component (can also be a string like `input`).
+  * `component : (React.Component|Function|String)` — React component (can also be a string like `button`).
 
 `<Submit/>` passes the following properties to the `component`:
 
-  * `busy : boolean` — indicates if the form is currently being submitted.
+  * `busy : Boolean` — indicates if the form is currently being submitted.
 
   * All other properties are passed through.
 
 ```js
 function Example() {
   return (
-    <Form onSubmit={ submit(...) }>
+    <Form onSubmit={ ... }>
       <Field name="text" component={ Input } />
 
       <Submit component={ SubmitButton }>
@@ -261,20 +265,6 @@ function Input({ error, ...rest }) {
   )
 }
 ```
-
-<!--
-### Abandoned forms
-
-One day marketing department asked me if I could make it track abandoned forms via Google Analytics. For this reason form component instance has `.getLatestFocusedField()` method to find out which exact form field the user got confused by. `getLatestFocusedField` property function is also passed to the decorated form component.
-
-Also the following `@Form()` decorator options are available:
-
-  * `onSubmitted(props)` — is called after the form is submitted (if submit function returns a `Promise` then `onSubmitted()` is called after this `Promise` is resolved)
-
-  * `onAbandoned(props, field, value)` — is called if the form was focued but was then abandoned (if the form was focused and then either the page is closed, or `react-router` route is changed, or the form is unmounted), can be used for Google Analytics. Requires `router` configuration parameter being set to a `react-router@3` instance.
-
-Alternatively the corresponding `props` may be passed directly to the decorated form component.
--->
 
 <!-- ## Contributing
 

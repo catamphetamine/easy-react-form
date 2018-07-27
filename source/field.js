@@ -2,8 +2,7 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import scrollIntoView from 'scroll-into-view-if-needed'
-
-import createRef from './createRef'
+import createRef from 'react-create-ref'
 
 import { Context } from './form'
 import { getPassThroughProps } from './utility'
@@ -12,8 +11,8 @@ import
 {
 	registerField,
 	unregisterField,
-	updateFieldValue,
-	setFieldIndicateInvalid,
+	setFieldValue,
+	setFieldError,
 	fieldFocused
 }
 from './actions'
@@ -93,7 +92,7 @@ class FormField extends Component
 			// then apply this new default value.
 			if (value !== prevProps.value && !this.hasBeenEdited)
 			{
-				context.dispatch(updateFieldValue(name, value, this.validate(value)))
+				context.dispatch(setFieldValue(name, value))
 			}
 
 			// If an externally set `error` property is updated,
@@ -108,18 +107,17 @@ class FormField extends Component
 		}
 	}
 
-	showOrHideExternallySetError()
+	showOrHideExternallySetError(error)
 	{
 		const { context, name } = this.props
 
 		const value = context.values[name]
-		const error = context.errors[name]
 		const indicateInvalid = context.indicateInvalid[name]
 
 		// If the `error` is set then indicate this field as being invalid.
 		if (error && !indicateInvalid)
 		{
-			context.dispatch(setFieldIndicateInvalid(name, true))
+			context.dispatch(setFieldError(name, error))
 
 			// Scroll to field and focus after React rerenders the component.
 			//
@@ -148,7 +146,7 @@ class FormField extends Component
 		// `!this.validate(value)` means "the value is valid".
 		else if (!error && indicateInvalid && !this.validate(value))
 		{
-			context.dispatch(setFieldIndicateInvalid(name, false))
+			context.dispatch(setFieldError(name, undefined))
 		}
 	}
 
@@ -167,7 +165,8 @@ class FormField extends Component
 		// the default `value` property no longer applies.
 		this.hasBeenEdited = true
 
-		context.dispatch(updateFieldValue(name, value, this.validate(value)))
+		context.dispatch(setFieldValue(name, value))
+		context.dispatch(setFieldError(name, undefined))
 
 		if (onChange) {
 			onChange(event)
@@ -189,9 +188,10 @@ class FormField extends Component
 	{
 		const { context, name, onBlur } = this.props
 
-		if (context.errors[name])
-		{
-			context.dispatch(setFieldIndicateInvalid(name, true))
+		const error = this.validate(context.values[name])
+
+		if (error) {
+			context.dispatch(setFieldError(name, error))
 		}
 
 		if (onBlur) {
@@ -263,31 +263,8 @@ class FormField extends Component
 		= this.props
 
 		const value = context.values[name]
-		let error = context.errors[name]
-		let indicateInvalid = context.indicateInvalid[name]
-
-		// If the form validation doesn't pass
-		// then don't show externally set `error` property for this field
-		// (reset the `error` to the form validation one),
-		// i.e. the user must first correct the form field values
-		// so that the form validation passes
-		// and after that can he resubmit the form
-		// and deal with those externally set `error`s.
-		//
-		// (`indicateInvalid` is set to `true`
-		//  the moment `error` property is set externally;
-		//  this is achieved using "when component props change" hook)
-		//
-		if (indicateInvalid && !context.valid)
-		{
-			error = this.validate(value)
-			indicateInvalid = error ? true : false
-		}
-		// Else, don't override the externally set `error` (if it has been set).
-		else
-		{
-			error = error || this.validate(value)
-		}
+		const error = context.errors[name]
+		const indicateInvalid = context.indicateInvalid[name]
 
 		return React.createElement(component,
 		{

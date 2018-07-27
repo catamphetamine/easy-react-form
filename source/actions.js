@@ -49,21 +49,16 @@ export const unregisterField = (field) => state =>
 	state.fields[field]--
 }
 
-// The user edits field value.
-export const updateFieldValue = (field, value, error) => state =>
-{
-	state.values[field] = value
-	state.errors[field] = error
-	// The user is currently editing this field
-	// so don't show the validation error yet.
-	state.indicateInvalid[field] = false
-}
-
 // Manually set field value.
 // (e.g. `this.form.set(field, value)`).
-export const setFieldValue = (field, value, error) => state =>
+export const setFieldValue = (field, value) => state =>
 {
 	state.values[field] = value
+}
+
+// Manually set field `error`.
+export const setFieldError = (field, error) => state =>
+{
 	state.errors[field] = error
 	state.indicateInvalid[field] = error ? true : false
 }
@@ -71,11 +66,6 @@ export const setFieldValue = (field, value, error) => state =>
 export const fieldFocused = (field) => state =>
 {
 	state.latestFocusedField = field
-}
-
-export const setFieldIndicateInvalid = (field, indicateInvalid) => state =>
-{
-	state.indicateInvalid[field] = indicateInvalid
 }
 
 export const resetFormInvalidIndication = () => state =>
