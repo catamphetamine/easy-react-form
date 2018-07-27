@@ -23,7 +23,8 @@ import { Form, Field, Submit } from 'basic-react-form'
 export default class Example extends Component {
   validatePhone = (phone) => if (!phone) return 'Phone number is required'
 
-  // Returns a `Promise`.
+  // Can be `async/await`.
+  // Can return a `Promise`.
   submit = (values) => {
     console.log(values)
     return new Promise(resolve => setTimeout(resolve, 3000))
