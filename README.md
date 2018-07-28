@@ -16,17 +16,41 @@ npm install easy-react-form --save
 
 ## Use
 
+1. Create a `<Form/>` element with `onSubmit` property being a function of `values`.
+2. Put several `<Field/>`s inside the `<Form/>` each one having a `name` and a `component`.
+3. Put a submit button inside the `<Form/>`.
+
+Simplest example:
+
 ```js
-import React, { Component } from 'react'
+import { Form, Field } from 'easy-react-form'
+
+<Form onSubmit={ values => console.log(values) }>
+  <Field
+    name="phone"
+    component="input"
+    type="tel"
+    placeholder="Enter phone number" />
+
+  <button> Submit </button>
+</Form>
+```
+
+Advanced example:
+
+```js
 import { Form, Field, Submit } from 'easy-react-form'
 
-export default class Example extends Component {
+class AdvancedExample extends React.Component {
+  // Form field validation example.
+  // If `validate` returns a string then it is the `error`.
   validatePhone = (value) => {
     if (value && !isValidPhoneNumber(value)) {
       return 'Invalid phone number'
     }
   }
 
+  // Form submit function.
   // Can be `async/await`.
   // Can return a `Promise`.
   submit = (values) => {
@@ -35,6 +59,7 @@ export default class Example extends Component {
   }
 
   render() {
+    // Initial form field value example.
     const { user } = this.props
 
     return (
