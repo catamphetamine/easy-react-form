@@ -1,6 +1,6 @@
 {
-  "name": "basic-react-form",
-  "version": "1.0.3",
+  "name": "easy-react-form",
+  "version": "1.0.0",
   "description": "React Form",
   "main": "index.commonjs.js",
   "module": "index.js",
@@ -59,7 +59,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/catamphetamine/basic-react-form.git"
+    "url": "git+https://github.com/catamphetamine/easy-react-form.git"
   },
   "keywords": [
     "react",
@@ -70,7 +70,7 @@
   "author": "catamphetamine <purecatamphetamine@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/catamphetamine/basic-react-form/issues"
+    "url": "https://github.com/catamphetamine/easy-react-form/issues"
   },
-  "homepage": "https://github.com/catamphetamine/basic-react-form#readme"
+  "homepage": "https://github.com/catamphetamine/easy-react-form#readme"
 }

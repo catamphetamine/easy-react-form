@@ -1,24 +1,24 @@
-# basic-react-form
+# easy-react-form
 
-[![npm version](https://img.shields.io/npm/v/basic-react-form.svg?style=flat-square)](https://www.npmjs.com/package/basic-react-form)
+[![npm version](https://img.shields.io/npm/v/easy-react-form.svg?style=flat-square)](https://www.npmjs.com/package/easy-react-form)
 <!--
-[![npm downloads](https://img.shields.io/npm/dm/basic-react-form.svg?style=flat-square)](https://www.npmjs.com/package/basic-react-form)
+[![npm downloads](https://img.shields.io/npm/dm/easy-react-form.svg?style=flat-square)](https://www.npmjs.com/package/easy-react-form)
 -->
 <!--
-[![coverage](https://img.shields.io/coveralls/catamphetamine/basic-react-form/master.svg?style=flat-square)](https://coveralls.io/r/catamphetamine/basic-react-form?branch=master)
+[![coverage](https://img.shields.io/coveralls/catamphetamine/easy-react-form/master.svg?style=flat-square)](https://coveralls.io/r/catamphetamine/easy-react-form?branch=master)
 -->
 
 ## Install
 
 ```
-npm install basic-react-form --save
+npm install easy-react-form --save
 ```
 
 ## Use
 
 ```js
 import React, { Component } from 'react'
-import { Form, Field, Submit } from 'basic-react-form'
+import { Form, Field, Submit } from 'easy-react-form'
 
 export default class Example extends Component {
   validatePhone = (value) => {
@@ -218,7 +218,7 @@ One thing to note about `<Field/>` `error`s is that they must be reset before fo
 
 ```js
 import { connect } from 'react-redux'
-import { Form, Field, Submit } from 'basic-react-form'
+import { Form, Field, Submit } from 'easy-react-form'
 
 @connect(state => ({ loginError: state.loginForm.error }))
 class LoginForm extends Component {
