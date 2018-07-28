@@ -67,10 +67,10 @@ function TextInput({ error, ...rest }) {
   )
 }
 
-// `busy` is `true` while form is submitting.
-function SubmitButton({ busy, children }) {
+// `wait` is `true` while form is submitting.
+function SubmitButton({ wait, children }) {
   return (
-    <button type="submit" disabled={ busy || false }>
+    <button type="submit" disabled={ wait || false }>
       { children }
     </button>
   )
@@ -177,7 +177,7 @@ Therefore, the `error` message is only shown when the user is not editing the fi
 
 `<Submit/>` passes the following properties to the `component`:
 
-  * `busy : Boolean` — indicates if the form is currently being submitted.
+  * `wait : Boolean` — indicates if the form is currently being submitted.
 
   * All other properties are passed through.
 
@@ -194,12 +194,12 @@ function Example() {
   )
 }
 
-function SubmitButton({ busy, children }) {
+function SubmitButton({ wait, children }) {
   return (
     <button
       type="submit"
-      disabled={ busy }>
-      { busy && <Spinner/> }
+      disabled={ wait }>
+      { wait && <Spinner/> }
       { children }
     </button>
   )
