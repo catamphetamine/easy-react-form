@@ -98,7 +98,7 @@ function TextInput({ error, ...rest }) {
 // `wait` is `true` while form is submitting.
 function SubmitButton({ wait, children }) {
   return (
-    <button type="submit" disabled={ wait }>
+    <button disabled={ wait }>
       { children }
     </button>
   )
