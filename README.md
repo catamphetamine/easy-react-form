@@ -224,9 +224,7 @@ function Example() {
 
 function SubmitButton({ wait, children }) {
   return (
-    <button
-      type="submit"
-      disabled={ wait }>
+    <button disabled={ wait }>
       { wait && <Spinner/> }
       { children }
     </button>
