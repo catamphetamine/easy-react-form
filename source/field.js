@@ -267,7 +267,8 @@ class FormField extends Component
 export function isValueEmpty(_)
 {
 	return _ === undefined || _ === null ||
-		(typeof _ === 'string' && _.trim() === '')
+		(typeof _ === 'string' && _.trim() === '') ||
+		(Array.isArray(_) && _.length === 0)
 }
 
 function isStateless(Component)
