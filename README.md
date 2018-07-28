@@ -21,7 +21,11 @@ import React, { Component } from 'react'
 import { Form, Field, Submit } from 'basic-react-form'
 
 export default class Example extends Component {
-  validatePhone = (phone) => if (!phone) return 'Phone number is required'
+  validatePhone = (value) => {
+    if (value && !isValidPhoneNumber(value)) {
+      return 'Invalid phone number'
+    }
+  }
 
   // Can be `async/await`.
   // Can return a `Promise`.
@@ -36,6 +40,7 @@ export default class Example extends Component {
     return (
       <Form onSubmit={ this.submit }>
         <Field
+          required
           name="phone"
           component={ TextInput }
           type="tel"

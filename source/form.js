@@ -7,8 +7,6 @@ import { getPassThroughProps } from './utility'
 
 import
 {
-	resetFormInvalidIndication,
-	setFormValid,
 	setFormSubmitting,
 	setFieldValue,
 	setFieldError
@@ -144,14 +142,12 @@ export default class Form extends Component
 		const { autoFocus } = this.props
 		const { fields, initialValues } = this.state
 
-		for (const field of Object.keys(fields))
-		{
-			this.set(field, initialValues[field])
-		}
-
-		// Make the form "untouched" again.
-		this.dispatch(resetFormInvalidIndication())
-		this.dispatch(setFormValid(true))
+		this.setState
+		({
+			...generateInitialFormState(),
+			fields,
+			values : { ...initialValues }
+		})
 
 		// Autofocus the form (if not configured otherwise)
 		if (autoFocus) {
@@ -210,41 +206,35 @@ export default class Form extends Component
 	{
 		const { fields, values } = this.state
 
-		// Form validity hasn't been checked yet.
-		this.dispatch(setFormValid(false))
-
 		// Are there any invalid fields.
 		// Returns the first one.
 		const field = this.searchForInvalidField()
 
-		// Highlight the first invalid field.
-		if (field)
-		{
-			// Re-validate all fields to highlight
-			// all required ones which are not filled.
-			for (const field of Object.keys(fields))
-			{
-				// Trigger `validate()` on the field
-				// so that `errors` is updated inside form state.
-				// (if the field is still mounted)
-				if (fields[field])
-				{
-					this.set(field, values[field])
-				}
-			}
-
-			// Scroll to the invalid field.
-			this.scroll(field)
-
-			// Focus the invalid field.
-			this.focus(field)
-
-			// The form is invalid and won't be submitted.
-			return false
+		if (!field) {
+			return true
 		}
 
-		// Stop ignoring form submission errors
-		this.dispatch(setFormValid(true))
+		// Re-validate all fields to highlight
+		// all required ones which are not filled.
+		for (const field of Object.keys(fields))
+		{
+			// Trigger `validate()` on the field
+			// so that `errors` is updated inside form state.
+			// (if the field is still mounted)
+			if (fields[field])
+			{
+				this.set(field, values[field])
+			}
+		}
+
+		// Scroll to the invalid field.
+		this.scroll(field)
+
+		// Focus the invalid field.
+		this.focus(field)
+
+		// The form is invalid.
+		return false
 	}
 
 	collectFieldValues()
@@ -337,7 +327,7 @@ export default class Form extends Component
 		// Do nothing if the form is submitting
 		// (i.e. submit is in progress)
 		if (this.state.submitting) {
-			return false
+			return
 		}
 
 		// Can be used, for example, to reset
@@ -350,12 +340,10 @@ export default class Form extends Component
 		}
 
 		// Submit the form if it's valid.
-		// Otherwise mark invalid fields.
-		if (this.validate() === false) {
-			return false
+		// Otherwise highlight invalid fields.
+		if (this.validate()) {
+			this.executeFormAction(onSubmit, this.collectFieldValues())
 		}
-
-		this.executeFormAction(onSubmit, this.collectFieldValues())
 	}
 
 	// Focuses on a given form field (is used internally + public API).
@@ -404,19 +392,13 @@ function generateInitialFormState(initialValues = {})
 		// Initial form field values.
 		initialValues,
 
-		// // `validate()` results for initial form field values.
-		// initialValueErrors : {},
-
 		// `validate()` results for current form field values.
 		errors : {},
 
-		// Whether the fields should be indicated as being invalid.
-		indicateInvalid : {},
+		// Whether should show field errors.
+		showErrors : {},
 
-		// Whether `validate()` functions for all form `<Field/>`s pass.
-		valid : true,
-
-		// // Is used for tracking abandoned forms for Google Analytics.
-		// latestFocusedField : undefined
+		// Is used for tracking abandoned forms for Google Analytics.
+		latestFocusedField : undefined
 	}
 }

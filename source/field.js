@@ -13,6 +13,7 @@ import
 	unregisterField,
 	setFieldValue,
 	setFieldError,
+	showFieldError,
 	fieldFocused
 }
 from './actions'
@@ -45,7 +46,7 @@ class FormField extends Component
 
 	componentDidMount()
 	{
-		const { context, name, value, error } = this.props
+		const { context, name, value } = this.props
 
 		this.mounted = true
 
@@ -56,7 +57,7 @@ class FormField extends Component
 		// "registered"/"unregistered" several times in those cases.
 		//
 		context.onRegisterField(name, this.validate, this.scroll, this.focus)
-		context.dispatch(registerField(name, value, this.validate, error))
+		context.dispatch(registerField(name, value, this.validate))
 	}
 
 	componentWillUnmount()
@@ -82,7 +83,7 @@ class FormField extends Component
 
 			// Register new field.
 			context.onRegisterField(name, this.validate, this.scroll, this.focus)
-			context.dispatch(registerField(name, value, this.validate, error))
+			context.dispatch(registerField(name, value, this.validate))
 		}
 		// Else, if it's still the same field.
 		else
@@ -112,39 +113,20 @@ class FormField extends Component
 		const { context, name } = this.props
 
 		const value = context.values[name]
-		const indicateInvalid = context.indicateInvalid[name]
+		const showError = context.showErrors[name]
 
 		// If the `error` is set then indicate this field as being invalid.
-		if (error && !indicateInvalid)
+		if (error)
 		{
 			context.dispatch(setFieldError(name, error))
-
-			// Scroll to field and focus after React rerenders the component.
-			//
-			// Because `this.setState({ submitting: false })`
-			// will be called after this code,
-			// `submitting` is still `true` at this time,
-			// which means `busy` is `true`,
-			// which in turn means that all `<Field/>`s are `disabled`,
-			// and `disabled` `<input/>`s can't receive focus.
-			//
-			// Therefore set focus on the `<Field/>` in a timeout
-			// so that this "request set focus" action happens after
-			// `this.setState({ submitting: false })` is called in `form.js`.
-			// This way focus will be set after the `<input/>` is enabled
-			// and therefore will be able to receive focus.
-			//
-			setTimeout(() =>
-			{
-				this.scroll()
-				this.focus()
-			},
-			0)
+			context.dispatch(showFieldError(name))
+			this.scroll()
+			this.focus()
 		}
 		// If the `error` is reset and the field is valid
 		// then reset invalid indication.
 		// `!this.validate(value)` means "the value is valid".
-		else if (!error && indicateInvalid && !this.validate(value))
+		else if (!error && !this.validate(value))
 		{
 			context.dispatch(setFieldError(name, undefined))
 		}
@@ -163,6 +145,7 @@ class FormField extends Component
 
 		// Once a user enters/erases a value in this field
 		// the default `value` property no longer applies.
+		// This flag won't work with `form.reset()`.
 		this.hasBeenEdited = true
 
 		context.dispatch(setFieldValue(name, value))
@@ -264,7 +247,7 @@ class FormField extends Component
 
 		const value = context.values[name]
 		const error = context.errors[name]
-		const indicateInvalid = context.indicateInvalid[name]
+		const showError = context.showErrors[name]
 
 		return React.createElement(component,
 		{
@@ -274,9 +257,9 @@ class FormField extends Component
 			onFocus  : this.onFocus,
 			onBlur   : this.onBlur,
 			disabled : disabled || context.submitting,
-			value,
-			error    : indicateInvalid ? error : undefined,
-			required : required && isValueEmpty(value) ? true : false
+			error    : showError ? error : undefined,
+			required : required && isValueEmpty(value) ? true : false,
+			value
 		})
 	}
 }

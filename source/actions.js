@@ -1,4 +1,4 @@
-export const registerField = (field, value, validate, error) => state =>
+export const registerField = (field, value, validate) => state =>
 {
 	// Uses a numerical counter instead of a boolean.
 	// https://github.com/erikras/redux-form/issues/1705
@@ -20,15 +20,10 @@ export const registerField = (field, value, validate, error) => state =>
 		state.values[field] = value === undefined ? state.initialValues[field] : value
 		state.errors[field] = validate(state.values[field])
 
-		// Stores the initial value for this field.
+		// Stores the initial `value` for this `<Field/>`.
+		// (the one passed directly to `<Field/>` rather than to the `<Form/>`).
 		// Is used later when calling `reset()` to reset the form.
 		state.initialValues[field] = state.values[field]
-		// state.initialValueErrors[field] = state.errors[field]
-
-		// If an externally set `error` was passed then show it.
-		if (error) {
-			state.indicateInvalid[field] = true
-		}
 	}
 	else
 	{
@@ -60,7 +55,7 @@ export const setFieldValue = (field, value) => state =>
 export const setFieldError = (field, error) => state =>
 {
 	state.errors[field] = error
-	state.indicateInvalid[field] = error ? true : false
+	state.showErrors[field] = error ? true : false
 }
 
 export const fieldFocused = (field) => state =>
@@ -68,17 +63,12 @@ export const fieldFocused = (field) => state =>
 	state.latestFocusedField = field
 }
 
-export const resetFormInvalidIndication = () => state =>
-{
-	state.indicateInvalid = {}
-}
-
 export const setFormSubmitting = (submitting) => state =>
 {
 	state.submitting = submitting
 }
 
-export const setFormValid = (valid) => state =>
+export const showFieldError = (field) => state =>
 {
-	state.valid = valid
+	state.showErrors[field] = true
 }
