@@ -399,6 +399,10 @@ function generateInitialFormState(initialValues = {})
 		showErrors : {},
 
 		// Is used for tracking abandoned forms for Google Analytics.
-		latestFocusedField : undefined
+		latestFocusedField : undefined,
+
+		// If `onSubmit` returns a `Promise` (or is `async/await`)
+		// then `submitting` will be `true` until `onSubmit` finishes.
+		submitting : false
 	}
 }
