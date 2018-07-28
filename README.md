@@ -1,5 +1,7 @@
 # easy-react-form
 
+Simple, fast and easy-to-use React Form.
+
 [![npm version](https://img.shields.io/npm/v/easy-react-form.svg?style=flat-square)](https://www.npmjs.com/package/easy-react-form)
 <!--
 [![npm downloads](https://img.shields.io/npm/dm/easy-react-form.svg?style=flat-square)](https://www.npmjs.com/package/easy-react-form)
@@ -43,7 +45,8 @@ import { Form, Field, Submit } from 'easy-react-form'
 
 class AdvancedExample extends React.Component {
   // Form field validation example.
-  // If `validate` returns a string then it is the `error`.
+  // If `validate` returns a string
+  // then it becomes the `error` of the `<Field/>`.
   validatePhone = (value) => {
     if (value && !isValidPhoneNumber(value)) {
       return 'Invalid phone number'
