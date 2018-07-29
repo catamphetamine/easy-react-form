@@ -63,9 +63,7 @@
   },
   "keywords": [
     "react",
-    "redux",
-    "form",
-    "simple"
+    "form"
   ],
   "author": "catamphetamine <purecatamphetamine@gmail.com>",
   "license": "MIT",
