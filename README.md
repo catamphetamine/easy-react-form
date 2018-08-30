@@ -232,6 +232,19 @@ function SubmitButton({ wait, children }) {
 }
 ```
 
+## onError
+
+To set default `<Form/>`'s `onError` handler:
+
+```js
+import { setDefaultOnError } from 'easy-react-form'
+
+setDefaultOnError((error) => {
+  console.error(error)
+  alert(error.message)
+})
+```
+
 ## Field errors
 
 An `error` property can be set on a `<Field/>` if this field was the reason form submission failed on the server side.
