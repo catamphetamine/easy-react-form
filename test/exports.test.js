@@ -2,8 +2,7 @@ import
 {
 	Form,
 	Field,
-	Submit,
-	setDefaultOnError
+	Submit
 }
 from '../index'
 
@@ -14,7 +13,6 @@ describe(`exports`, function()
 		expect(Form).to.be.a('function')
 		expect(Field).to.be.a('function')
 		expect(Submit).to.be.a('function')
-		expect(setDefaultOnError).to.be.a('function')
 	})
 
 	it(`should export CommonJS`, function()
@@ -24,6 +22,5 @@ describe(`exports`, function()
 		expect(Library.Form).to.be.a('function')
 		expect(Library.Field).to.be.a('function')
 		expect(Library.Submit).to.be.a('function')
-		expect(Library.setDefaultOnError).to.be.a('function')
 	})
 })

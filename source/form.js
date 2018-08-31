@@ -13,9 +13,6 @@ import
 }
 from './actions'
 
-let defaultOnError = (error) => false
-export const setDefaultOnError = (onError) => defaultOnError = onError
-
 export const Context = createContext()
 
 export default class Form extends Component
@@ -29,7 +26,7 @@ export default class Form extends Component
 		autoFocus : PropTypes.bool.isRequired,
 		trim : PropTypes.bool.isRequired,
 		requiredMessage : PropTypes.string.isRequired,
-		onError : PropTypes.func,
+		onError : PropTypes.func.isRequired,
 		plugins : PropTypes.arrayOf(PropTypes.func).isRequired
 	}
 
@@ -38,6 +35,7 @@ export default class Form extends Component
 		autoFocus : false,
 		trim : true,
 		requiredMessage : 'Required',
+		onError : (error) => false,
 		plugins : [ OnAbandonPlugin ]
 	}
 
@@ -275,7 +273,7 @@ export default class Form extends Component
 		}
 		catch (error)
 		{
-			if ((onError || defaultOnError)(error) === false) {
+			if (onError(error) === false) {
 				throw error
 			}
 		}
@@ -299,7 +297,7 @@ export default class Form extends Component
 		let throwError
 		promise.then(this.onAfterSubmit, (error) =>
 		{
-			if ((onError || defaultOnError)(error) === false) {
+			if (onError(error) === false) {
 				throwError = error
 			}
 		})
