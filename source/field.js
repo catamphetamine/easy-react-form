@@ -44,11 +44,17 @@ class FormField extends Component
 
 	field = createRef()
 
-	componentDidMount()
+	constructor(props, context)
+	{
+		super(props, context)
+		// The field could register itself inside `componentDidMount`
+		// but in that case initial `value` wouldn't yet be applied at mount time.
+		this.register()
+	}
+
+	register()
 	{
 		const { context, name, value } = this.props
-
-		this.mounted = true
 
 		// "Register" the field and initialize it with the default value.
 		//
@@ -58,6 +64,11 @@ class FormField extends Component
 		//
 		context.onRegisterField(name, this.validate, this.scroll, this.focus)
 		context.dispatch(registerField(name, value, this.validate))
+	}
+
+	componentDidMount()
+	{
+		this.mounted = true
 	}
 
 	componentWillUnmount()
