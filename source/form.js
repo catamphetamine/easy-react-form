@@ -23,6 +23,7 @@ export default class Form extends Component
 		onBeforeSubmit : PropTypes.func,
 		onAfterSubmit : PropTypes.func,
 		onAbandon : PropTypes.func,
+		values : PropTypes.object,
 		autoFocus : PropTypes.bool.isRequired,
 		trim : PropTypes.bool.isRequired,
 		requiredMessage : PropTypes.string.isRequired,
