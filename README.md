@@ -115,6 +115,8 @@ The `<Form/>` takes the following required properties:
 
 The `<Form/>` takes the following optional properties:
 
+  * `values : object` — The initial values for this form's fields.
+
   * `trim : Boolean` – Set to `false` to disable trimming strings. Defaults to `true`.
 
   * `requiredMessage : String` – The default `error` message for `<Field required/>`. Is `"Required"` by default.
