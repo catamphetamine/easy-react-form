@@ -28,3 +28,6 @@ npm-debug.log
 # webpack build target folder
 /build/
 /es6/
+/modules/
+/commonjs/
+/.nyc_output/
