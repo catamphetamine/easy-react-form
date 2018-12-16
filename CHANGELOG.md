@@ -1,3 +1,5 @@
+<!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
+
 1.0.0 / 28.07.2018
 ===================
 
