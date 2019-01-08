@@ -132,6 +132,10 @@ export default class Form extends Component
 	{
 		action(this.state)
 		this.setState(this.state)
+		// const { onStateChange } = this.props
+		// if (onStateChange) {
+		// 	onStateChange(this.state)
+		// }
 	}
 
 	// Public API
