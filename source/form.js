@@ -254,6 +254,10 @@ export default class Form extends Component
 			if (trim && typeof value === 'string')
 			{
 				value = value.trim()
+				// Convert empty strings to `undefined`.
+				if (!value) {
+					value = undefined
+				}
 			}
 
 			allValues[field] = value
