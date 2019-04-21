@@ -105,21 +105,15 @@ export default class Form extends Component
 		// The stored field info is used to `validate()` field `value`s
 		// and set the corresponding `error`s
 		// when calling `set(field, value)` and `clear(field)`.
-		// It also holds initial field values for form `reset()`.
 		//
 		// If a field happens to register the second time
-		// (e.g. due to React "reconciliation" due to order change)
-		// then no need to update its info.
-		// This also prevents loosing the initial value of the field.
+		// (e.g. as a result of React "reconciliation" because of the order change)
+		// then the methods for the field will be updated.
 		//
-		if (!this.fields[field])
-		{
-			this.fields[field] =
-			{
-				validate,
-				scroll,
-				focus
-			}
+		this.fields[field] = {
+			validate,
+			scroll,
+			focus
 		}
 
 		// This is used for the `autofocus` feature.
