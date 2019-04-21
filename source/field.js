@@ -1,11 +1,10 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
-import scrollIntoView from 'scroll-into-view-if-needed'
 import createRef from 'react-create-ref'
 
 import { Context } from './form'
-import { getPassThroughProps } from './utility'
+import { getPassThroughProps, scrollTo } from './utility'
 
 import
 {
@@ -212,22 +211,10 @@ class FormField extends Component
 		ReactDOM.findDOMNode(this.field.current).focus()
 	}
 
-	scroll = () =>
-	{
-		if (!this.mounted) {
-			return
+	scroll = () => {
+		if (this.mounted) {
+			scrollTo(ReactDOM.findDOMNode(this.field.current))
 		}
-
-		// https://github.com/stipsan/scroll-into-view-if-needed/issues/359
-		// scrollIntoView(ReactDOM.findDOMNode(this.field.current), false, { duration: 300 })
-
-		scrollIntoView(ReactDOM.findDOMNode(this.field.current),
-		{
-			scrollMode : 'if-needed',
-			behavior   : 'smooth',
-			block      : 'nearest',
-			inline     : 'nearest'
-		})
 	}
 
 	validate = (value) =>

@@ -350,10 +350,14 @@ export default class Form extends Component
 	}
 
 	// Focuses on a given form field (is used internally + public API).
-	focus = (field) => this.fields[field || this.firstField].focus()
+	focus = (field) => {
+		if (field || this.firstField) {
+			this.fields[field || this.firstField].focus()
+		}
+	}
 
 	// Scrolls to a form field (is used internally + public API).
-	scroll = (field) => this.fields[field || this.firstField].scroll()
+	scroll = (field) => this.fields[field].scroll()
 
 	// Clears field value (public API).
 	// If this field hasn't been "registered" yet then ignore.
