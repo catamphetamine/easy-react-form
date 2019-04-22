@@ -192,9 +192,17 @@ class FormField extends Component
 		}
 	}
 
+	getNode() {
+		if (this.field.current) {
+			return ReactDOM.findDOMNode(this.field.current)
+		}
+	}
+
 	// Focuses on a field (can be called externally through a ref).
 	focus = () =>
 	{
+		// `.focus()` could theoretically maybe potentially be called in a timeout,
+		// so check if the component is still mounted.
 		if (!this.mounted) {
 			return
 		}
@@ -208,12 +216,26 @@ class FormField extends Component
 		}
 
 		// Generic DOM focusing.
-		ReactDOM.findDOMNode(this.field.current).focus()
+		const node = this.getNode()
+		if (node) {
+			node.focus()
+		} else {
+			console.error(`Couldn't focus on field "${this.props.name}": DOM Node not found. ${STATELESS_COMPONENT_HINT}`)
+		}
 	}
 
 	scroll = () => {
-		if (this.mounted) {
-			scrollTo(ReactDOM.findDOMNode(this.field.current))
+		// `.scroll()` could theoretically maybe potentially be called in a timeout,
+		// so check if the component is still mounted.
+		if (!this.mounted) {
+			return
+		}
+
+		const node = this.getNode()
+		if (node) {
+			scrollTo(node)
+		} else {
+			console.error(`Couldn't scroll to field "${this.props.name}": DOM Node not found. ${STATELESS_COMPONENT_HINT}`)
 		}
 	}
 
@@ -273,3 +295,5 @@ function isStateless(Component)
 {
 	return typeof Component !== 'string' && !Component.prototype.render
 }
+
+const STATELESS_COMPONENT_HINT = 'For example, if it\'s a "stateless" component then rewrite it as a "React.Component" having a ".focus()" method.'
