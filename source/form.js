@@ -122,10 +122,10 @@ export default class Form extends Component
 		}
 	}
 
-	dispatch = (action) =>
+	dispatch = (action, callback) =>
 	{
 		action(this.state)
-		this.setState(this.state)
+		this.setState(this.state, callback)
 		// const { onStateChange } = this.props
 		// if (onStateChange) {
 		// 	onStateChange(this.state)
@@ -290,30 +290,58 @@ export default class Form extends Component
 		}
 	}
 
+	snapshotFocus() {
+		// On Mac, elements that aren't text input elements
+		// tend not to get focus assigned to them.
+		// Therefore, if the submit button was clicked to submit the form
+		// then `document.activeElement` will still be `<body/>`.
+		this.focusedNodeBeforeSubmit = document.activeElement
+		if (!document.activeElement || document.activeElement === document.body) {
+			this.focusedNodeBeforeSubmit = this.getSubmitButtonNode()
+		}
+	}
+
+	restoreFocus() {
+		if (this.focusedNodeBeforeSubmit) {
+			this.focusedNodeBeforeSubmit.focus()
+			this.focusedNodeBeforeSubmit = undefined
+		}
+	}
+
+	resetFormSubmittingState() {
+		return new Promise((resolve) => {
+			if (this.mounted) {
+				this.dispatch(setFormSubmitting(false), () => {
+					this.restoreFocus()
+					resolve()
+				})
+			} else {
+				resolve()
+			}
+		})
+	}
+
 	// Is called when `<form/>` `onSubmit` returns a `Promise`.
 	onSubmitPromise(promise)
 	{
-		const { onError } = this.props
-
+		// When `submitting` flag is set to `true`
+		// all fields and the submit button will become disabled.
+		// This results in focus being lost.
+		// To preserve focus, the currently focused DOM node is noted
+		// and after the form is submitted the focus is restored.
+		// The focus must be restored after the form re-renders
+		// with `submitting: false`, hence the `.setState()` `Promise`.
+		this.snapshotFocus()
 		this.dispatch(setFormSubmitting(true))
-
-		let throwError
-		promise.then(this.onAfterSubmit, (error) =>
-		{
-			if (onError(error) === false) {
-				throwError = error
-			}
-		})
-		.then(() =>
-		{
-			if (this.mounted) {
-				this.dispatch(setFormSubmitting(false))
-			}
-
-			if (throwError) {
-				throw throwError
-			}
-		})
+		promise.then(
+			() => this.resetFormSubmittingState(),
+			(error) => this.resetFormSubmittingState().then(() => {
+				const { onError } = this.props
+				if (onError(error) === false) {
+					throw error
+				}
+			})
+		)
 	}
 
 	onSubmit = (event) =>
@@ -353,6 +381,8 @@ export default class Form extends Component
 	focus = (field) => {
 		if (field || this.firstField) {
 			this.fields[field || this.firstField].focus()
+		} else if (this.getSubmitButtonNode()) {
+			this.getSubmitButtonNode().focus()
 		}
 	}
 
@@ -373,12 +403,18 @@ export default class Form extends Component
 		this.dispatch(setFieldError(field, this.fields[field].validate(value)))
 	}
 
+	setFormNode = (node) => this.form = node
+	getSubmitButtonNode = () => this.form.querySelector('button[type="submit"]')
+
 	render()
 	{
 		const { children } = this.props
 
 		return (
-			<form {...getPassThroughProps(this.props, Form.propTypes)} onSubmit={this.onSubmit}>
+			<form
+				ref={this.setFormNode}
+				{...getPassThroughProps(this.props, Form.propTypes)}
+				onSubmit={this.onSubmit}>
 				<Context.Provider value={this.state}>
 					{children}
 				</Context.Provider>
