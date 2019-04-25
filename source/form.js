@@ -301,18 +301,22 @@ export default class Form extends Component
 		}
 	}
 
-	restoreFocus() {
-		if (this.focusedNodeBeforeSubmit) {
-			this.focusedNodeBeforeSubmit.focus()
-			this.focusedNodeBeforeSubmit = undefined
+	restoreFocus(force) {
+		if (force ||
+			!document.activeElement ||
+			document.activeElement === document.body) {
+			if (this.focusedNodeBeforeSubmit) {
+				this.focusedNodeBeforeSubmit.focus()
+				this.focusedNodeBeforeSubmit = undefined
+			}
 		}
 	}
 
-	resetFormSubmittingState() {
+	resetFormSubmittingState(forceRestoreFocus) {
 		return new Promise((resolve) => {
 			if (this.mounted) {
 				this.dispatch(setFormSubmitting(false), () => {
-					this.restoreFocus()
+					this.restoreFocus(forceRestoreFocus)
 					resolve()
 				})
 			} else {
@@ -335,7 +339,7 @@ export default class Form extends Component
 		this.dispatch(setFormSubmitting(true))
 		promise.then(
 			() => this.resetFormSubmittingState(),
-			(error) => this.resetFormSubmittingState().then(() => {
+			(error) => this.resetFormSubmittingState(true).then(() => {
 				const { onError } = this.props
 				if (onError(error) === false) {
 					throw error
