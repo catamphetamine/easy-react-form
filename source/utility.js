@@ -1,5 +1,11 @@
 import scrollIntoView from 'scroll-into-view-if-needed'
 
+import {
+	LIST_VALUE_NOT_FOUND,
+	getListValue,
+	convertListValues
+} from './utility.list'
+
 export function getPassThroughProps(props, excludeProps) {
 	const rest = {}
 	for (const property of Object.keys(props)) {
@@ -19,4 +25,26 @@ export function scrollTo(node) {
 		block      : 'nearest',
 		inline     : 'nearest'
 	})
+}
+
+export function getValues(values, fields) {
+	// Select only values for non-removed fields.
+	// Removed fields have `0` field counter.
+	const existingValues = {}
+	for (const key of Object.keys(values)) {
+		if (fields[key]) {
+			existingValues[key] = values[key]
+		}
+	}
+	// Convert list value keys having format
+	// `${list}:${index}:${field}` to arrays of objects.
+	return convertListValues(existingValues)
+}
+
+export function getValue(values, key) {
+	const listValue = getListValue(values, key)
+	if (listValue !== LIST_VALUE_NOT_FOUND) {
+		return listValue
+	}
+	return values[key]
 }

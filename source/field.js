@@ -3,33 +3,38 @@ import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import createRef from 'react-create-ref'
 
-import { Context } from './form'
-import { getPassThroughProps, scrollTo } from './utility'
+import { Context, contextPropType } from './form'
+import { ListContext, listContextPropType } from './list'
+import { getPassThroughProps, scrollTo, getValues } from './utility'
 
-import
-{
+import {
 	registerField,
 	unregisterField,
 	setFieldValue,
 	setFieldError,
 	showFieldError,
 	fieldFocused
-}
-from './actions'
+} from './actions'
 
-export default function Field(props)
-{
+export default function Field(props) {
 	return (
 		<Context.Consumer>
-			{context => <FormField {...props} context={context}/>}
+			{context => (
+				<ListContext.Consumer>
+					{listContext => (
+						<FormField
+							{...props}
+							context={context}
+							listContext={listContext}/>
+					)}
+				</ListContext.Consumer>
+			)}
 		</Context.Consumer>
 	)
 }
 
-class FormField extends Component
-{
-	static propTypes =
-	{
+class FormField extends Component {
+	static propTypes = {
 		name      : PropTypes.string.isRequired,
 		component : PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]).isRequired,
 		required  : PropTypes.oneOfType([ PropTypes.bool, PropTypes.string ]),
@@ -38,22 +43,38 @@ class FormField extends Component
 		error    : PropTypes.string,
 		validate : PropTypes.func,
 
-		context : PropTypes.object.isRequired
+		context: contextPropType.isRequired,
+		listContext: listContextPropType,
+		i: PropTypes.number
 	}
 
 	field = createRef()
 
-	constructor(props, context)
-	{
-		super(props, context)
+	constructor(props) {
+		super(props)
 		// The field could register itself inside `componentDidMount`
 		// but in that case initial `value` wouldn't yet be applied at mount time.
 		this.register()
 	}
 
-	register()
-	{
-		const { context, name, value } = this.props
+	getName(props = this.props) {
+		const { listContext, i, name } = props
+		if (listContext) {
+			if (typeof i !== 'number') {
+				throw new Error('Each `<Feild/>` in a `<List/>` must have an `i` property')
+			}
+			return `${listContext.name}:${i}:${name}`
+		}
+		return name
+	}
+
+	register() {
+		const {
+			context,
+			listContext,
+			name,
+			value
+		} = this.props
 
 		// "Register" the field and initialize it with the default value.
 		//
@@ -61,51 +82,53 @@ class FormField extends Component
 		// when hiding/showing new fields, so a field might get
 		// "registered"/"unregistered" several times in those cases.
 		//
-		context.onRegisterField(name, this.validate, this.scroll, this.focus)
-		context.dispatch(registerField(name, value, this.validate))
+		context.onRegisterField(
+			this.getName(),
+			this.validate,
+			this.scroll,
+			this.focus
+		)
+		context.dispatch(registerField(
+			this.getName(),
+			value,
+			this.validate
+		))
+
+		if (listContext) {
+			listContext.onRegisterField(name)
+		}
 	}
 
-	componentDidMount()
-	{
+	componentDidMount() {
 		this.mounted = true
 	}
 
-	componentWillUnmount()
-	{
-		const { context, name } = this.props
-
+	componentWillUnmount() {
+		const { context } = this.props
 		// "Unregister" field.
-		context.dispatch(unregisterField(name))
-
+		context.dispatch(unregisterField(this.getName()))
 		this.mounted = false
 	}
 
-	componentDidUpdate(prevProps)
-	{
-		const { context, name, value, error } = this.props
+	componentDidUpdate(prevProps) {
+		const { context, value, error } = this.props
 
 		// If React reused one `<Field/>` element for another form field
 		// then handle this type of situation correctly.
-		if (name !== prevProps.name)
-		{
+		if (this.getName() !== this.getName(prevProps)) {
 			// Unregister old field.
-			context.dispatch(unregisterField(prevProps.name))
-
+			context.dispatch(unregisterField(this.getName(prevProps)))
 			// Register new field.
-			context.onRegisterField(name, this.validate, this.scroll, this.focus)
-			context.dispatch(registerField(name, value, this.validate))
+			this.register()
 		}
 		// Else, if it's still the same field.
-		else
-		{
+		else {
 			// If the default value changed for this `<Field/>`
 			// and the field hasn't been edited yet
 			// then apply this new default value.
-			if (value !== prevProps.value && !this.hasBeenEdited)
-			{
-				context.dispatch(setFieldValue(name, value))
+			if (value !== prevProps.value && !this.hasBeenEdited) {
+				context.dispatch(setFieldValue(this.getName(), value))
 			}
-
 			// If an externally set `error` property is updated,
 			// then update invalid indication for this field accordingly.
 			// If the same error happened once again,
@@ -118,38 +141,31 @@ class FormField extends Component
 		}
 	}
 
-	showOrHideExternallySetError(error)
-	{
-		const { context, name } = this.props
+	showOrHideExternallySetError(error) {
+		const { context } = this.props
 
-		const value = context.values[name]
-		const showError = context.showErrors[name]
+		const value = context.values[this.getName()]
+		const showError = context.showErrors[this.getName()]
 
 		// If the `error` is set then indicate this field as being invalid.
-		if (error)
-		{
-			context.dispatch(setFieldError(name, error))
-			context.dispatch(showFieldError(name))
+		if (error) {
+			context.dispatch(setFieldError(this.getName(), error))
+			context.dispatch(showFieldError(this.getName()))
 			this.scroll()
 			this.focus()
 		}
 		// If the `error` is reset and the field is valid
 		// then reset invalid indication.
 		// `!this.validate(value)` means "the value is valid".
-		else if (!error && !this.validate(value))
-		{
-			context.dispatch(setFieldError(name, undefined))
+		else if (!error && !this.validate(value)) {
+			context.dispatch(setFieldError(this.getName(), undefined))
 		}
 	}
 
-	onChange = (event) =>
-	{
-		const { context, name, onChange } = this.props
-
+	onChange = (event) => {
+		const { context, onChange } = this.props
 		let value = event
-
-		if (event && typeof event.preventDefault === 'function')
-		{
+		if (event && typeof event.preventDefault === 'function') {
 			value = event.target.value
 		}
 
@@ -158,35 +174,28 @@ class FormField extends Component
 		// This flag won't work with `form.reset()`.
 		this.hasBeenEdited = true
 
-		context.dispatch(setFieldValue(name, value))
-		context.dispatch(setFieldError(name, undefined))
+		context.dispatch(setFieldValue(this.getName(), value))
+		context.dispatch(setFieldError(this.getName(), undefined))
 
 		if (onChange) {
 			onChange(event)
 		}
 	}
 
-	onFocus = (event) =>
-	{
-		const { context, name, onFocus } = this.props
-
-		context.dispatch(fieldFocused(name))
-
+	onFocus = (event) => {
+		const { context, onFocus } = this.props
+		context.dispatch(fieldFocused(this.getName()))
 		if (onFocus) {
 			onFocus(event)
 		}
 	}
 
-	onBlur = (event) =>
-	{
-		const { context, name, onBlur } = this.props
-
-		const error = this.validate(context.values[name])
-
+	onBlur = (event) => {
+		const { context, onBlur } = this.props
+		const error = this.validate(context.values[this.getName()])
 		if (error) {
-			context.dispatch(setFieldError(name, error))
+			context.dispatch(setFieldError(this.getName(), error))
 		}
-
 		if (onBlur) {
 			onBlur(event)
 		}
@@ -199,28 +208,24 @@ class FormField extends Component
 	}
 
 	// Focuses on a field (can be called externally through a ref).
-	focus = () =>
-	{
+	focus = () => {
 		// `.focus()` could theoretically maybe potentially be called in a timeout,
 		// so check if the component is still mounted.
 		if (!this.mounted) {
 			return
 		}
-
 		if (!this.field.current) {
 			return
 		}
-
 		if (typeof this.field.current.focus === 'function') {
 			return this.field.current.focus()
 		}
-
 		// Generic DOM focusing.
 		const node = this.getNode()
 		if (node) {
 			node.focus()
 		} else {
-			console.error(`Couldn't focus on field "${this.props.name}": DOM Node not found. ${STATELESS_COMPONENT_HINT}`)
+			console.error(`Couldn't focus on field "${this.getName()}": DOM Node not found. ${STATELESS_COMPONENT_HINT}`)
 		}
 	}
 
@@ -230,47 +235,47 @@ class FormField extends Component
 		if (!this.mounted) {
 			return
 		}
-
 		const node = this.getNode()
 		if (node) {
 			scrollTo(node)
 		} else {
-			console.error(`Couldn't scroll to field "${this.props.name}": DOM Node not found. ${STATELESS_COMPONENT_HINT}`)
+			console.error(`Couldn't scroll to field "${this.getName()}": DOM Node not found. ${STATELESS_COMPONENT_HINT}`)
 		}
 	}
 
-	validate = (value) =>
-	{
-		const { context, name, validate, required } = this.props
-
-		if (required && isValueEmpty(value))
-		{
+	validate = (value) => {
+		const { context, validate, required } = this.props
+		if (required && isValueEmpty(value)) {
 			return typeof required === 'string' ? required : context.getRequiredMessage()
 		}
-
 		if (validate) {
-			return validate(value, context.values)
+			// `context.values` could be replaced with
+			// something else, like `getValues(context.values, context.fields)`
+			// because `<List/>` values are prefixed in `context.values`.
+			// But running RegExps and re-creating the object
+			// on each `validate()` call seems like a not-the-best architecture.
+			// Instead `values` could be replaced with something like
+			// `() => getValues(context.values, context.fields)` but that would be a
+			// "breaking change" in the API.
+			// On a modern CPU a single `getValues()` run is about 0.005 ms.
+			// So I guess it's acceptable, since the API already exists.
+			return validate(value, getValues(context.values, context.fields))
 		}
 	}
 
-	render()
-	{
-		const
-		{
+	render() {
+		const {
 			context,
-			name,
 			required,
 			disabled,
 			component
-		}
-		= this.props
+		} = this.props
 
-		const value = context.values[name]
-		const error = context.errors[name]
-		const showError = context.showErrors[name]
+		const value = context.values[this.getName()]
+		const error = context.errors[this.getName()]
+		const showError = context.showErrors[this.getName()]
 
-		return React.createElement(component,
-		{
+		return React.createElement(component, {
 			...getPassThroughProps(this.props, FormField.propTypes),
 			ref      : isStateless(component) ? undefined : this.field,
 			onChange : this.onChange,

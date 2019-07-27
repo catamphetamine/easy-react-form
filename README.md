@@ -299,6 +299,57 @@ function Input({ error, ...rest }) {
 }
 ```
 
+## Lists
+
+Sometimes there're forms on which new rows can be added by clicking "Add new row" button. For such cases there's `<List/>` component that handles adding new rows and removing existing ones.
+
+```js
+import React from 'react'
+import { Form, Field, List, Submit } from 'easy-react-form'
+
+export default function Page() {
+  return (
+    <Form onSubmit={...}>
+      <h1>
+        The list of employees
+      </h1>
+      <List name="employees">
+        {(items) => (
+          <React.Fragment>
+            {items.map((i) => (
+              <React.Fragment>
+                <Field
+                  i={i}
+                  name="firstName"
+                  .../>
+                <Field
+                  i={i}
+                  name="lastName"
+                  .../>
+                <button onClick={() => items.remove(i)}>
+                  Remove
+                </button>
+              </React.Fragment>
+            ))}
+            <button onClick={items.add}>
+              Add
+            </button>
+          </React.Fragment>
+        )}
+      </List>
+      <Submit component="button">
+        Save
+      </Submit>
+    </Form>
+  )
+}
+```
+
+`<List/>` accepts properties:
+
+* `name: String` — (required) The name of the list property in form `values`.
+* `count: Number` — The initial items count. Is `0` by default.
+
 <!-- ## Contributing
 
 After cloning this repo, ensure dependencies are installed by running:

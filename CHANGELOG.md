@@ -1,5 +1,12 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
+1.0.15 / 26.07.2019
+===================
+
+* Added `<List/>` for lists of fields.
+
+<!-- * `validate(name, values)` now receives a function instead of an object as the second argument: `validate(name, getValues())`. The reason is the addition of `<List/>`. -->
+
 1.0.0 / 28.07.2018
 ===================
 

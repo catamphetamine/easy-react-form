@@ -3,22 +3,18 @@ import PropTypes from 'prop-types'
 import createContext from 'create-react-context'
 
 import OnAbandonPlugin from './plugins/onAbandon'
-import { getPassThroughProps } from './utility'
+import { getPassThroughProps, getValues } from './utility'
 
-import
-{
+import {
 	setFormSubmitting,
 	setFieldValue,
 	setFieldError
-}
-from './actions'
+} from './actions'
 
 export const Context = createContext()
 
-export default class Form extends Component
-{
-	static propTypes =
-	{
+export default class Form extends Component {
+	static propTypes = {
 		onSubmit : PropTypes.func.isRequired,
 		onBeforeSubmit : PropTypes.func,
 		onAfterSubmit : PropTypes.func,
@@ -31,8 +27,7 @@ export default class Form extends Component
 		plugins : PropTypes.arrayOf(PropTypes.func).isRequired
 	}
 
-	static defaultProps =
-	{
+	static defaultProps = {
 		autoFocus : false,
 		trim : true,
 		requiredMessage : 'Required',
@@ -45,21 +40,20 @@ export default class Form extends Component
 	// Also stores fields' `scroll()` and `focus()` functions.
 	fields = {}
 
-	constructor(props)
-	{
+	constructor(props) {
 		super(props)
-
-		this.state =
-		{
+		this.state = {
+			resetCounter: 0,
 			...generateInitialFormState(this.props.values),
-			dispatch : this.dispatch,
-			onRegisterField : this.onRegisterField,
-			getRequiredMessage : () => this.props.requiredMessage
+			dispatch: this.dispatch,
+			onRegisterField: this.onRegisterField,
+			getRequiredMessage: () => this.props.requiredMessage,
+			// Is used by `<List/>`.
+			focus: this.focus
 		}
 	}
 
-	componentDidMount()
-	{
+	componentDidMount() {
 		const { plugins, autoFocus } = this.props
 
 		this.mounted = true
@@ -73,8 +67,7 @@ export default class Form extends Component
 
 		this.plugins = plugins.map(Plugin => new Plugin(() => this.props, () => this.state))
 
-		for (const plugin of this.plugins)
-		{
+		for (const plugin of this.plugins) {
 			if (plugin.onMount) {
 				plugin.onMount()
 			}
@@ -86,22 +79,18 @@ export default class Form extends Component
 		}
 	}
 
-	componentWillUnmount()
-	{
-		for (const plugin of this.plugins)
-		{
+	componentWillUnmount() {
+		for (const plugin of this.plugins) {
 			if (plugin.onUnmount) {
 				plugin.onUnmount()
 			}
 		}
-
 		this.mounted = false
 	}
 
 	// `value` is initial field value
 	// (which is restored on form reset)
-	onRegisterField = (field, validate, scroll, focus) =>
-	{
+	onRegisterField = (field, validate, scroll, focus) => {
 		// The stored field info is used to `validate()` field `value`s
 		// and set the corresponding `error`s
 		// when calling `set(field, value)` and `clear(field)`.
@@ -115,15 +104,13 @@ export default class Form extends Component
 			scroll,
 			focus
 		}
-
 		// This is used for the `autofocus` feature.
 		if (!this.firstField) {
 			this.firstField = field
 		}
 	}
 
-	dispatch = (action, callback) =>
-	{
+	dispatch = (action, callback) => {
 		action(this.state)
 		this.setState(this.state, callback)
 		// const { onStateChange } = this.props
@@ -133,46 +120,43 @@ export default class Form extends Component
 	}
 
 	// Public API
-	values = () => this.state.values
+	values = () => getValues(this.state.values, this.state.fields)
 
 	// Public API
-	reset = () =>
-	{
+	reset = () => {
 		const { autoFocus } = this.props
-		const { fields, initialValues } = this.state
+		const { fields, initialValues, resetCounter } = this.state
 
-		this.setState
-		({
-			...generateInitialFormState(),
-			fields,
-			values : { ...initialValues }
+		this.setState({
+			resetCounter: resetCounter + 1,
+			// Form `children` will re-mount and all fields will be re-registered.
+			...generateInitialFormState(initialValues),
+			// Form `children` will be unmounted before the new ones are mounted.
+			// If `fields` weren't preserved then `unregisterField()` would mess up
+			// `fields` counters.
+			fields
+		}, () => {
+			// Autofocus the form (if not configured otherwise)
+			if (autoFocus) {
+				this.focus()
+			}
 		})
-
-		// Autofocus the form (if not configured otherwise)
-		if (autoFocus) {
-			this.focus()
-		}
 	}
 
 	// Is called when the form has been submitted.
-	onAfterSubmit = () =>
-	{
+	onAfterSubmit = () => {
 		const { onAfterSubmit } = this.props
-
-		for (const plugin of this.plugins)
-		{
+		for (const plugin of this.plugins) {
 			if (plugin.onAfterSubmit) {
 				plugin.onAfterSubmit()
 			}
 		}
-
 		if (onAfterSubmit) {
 			onAfterSubmit(this.props)
 		}
 	}
 
-	searchForInvalidField()
-	{
+	searchForInvalidField() {
 		const { fields, values, errors } = this.state
 
 		// Re-run `validate()` for each field.
@@ -182,18 +166,15 @@ export default class Form extends Component
 		// therefore other form field values could change since then
 		// and that particular `validate()` wouldn't get called
 		// without this explicit "revalidate all fields before submit".
-		for (const field of Object.keys(fields))
-		{
+		for (const field of Object.keys(fields)) {
 			// If the field is not mounted then ignore it.
 			if (!fields[field]) {
 				continue
 			}
-
 			// Check for an externally set `error`.
 			if (errors[field] !== undefined) {
 				return field
 			}
-
 			// `if (validate(value))` means "if the value is invalid".
 			if (this.fields[field].validate(values[field])) {
 				return field
@@ -201,8 +182,7 @@ export default class Form extends Component
 		}
 	}
 
-	validate()
-	{
+	validate() {
 		const { fields, values } = this.state
 
 		// Are there any invalid fields.
@@ -215,13 +195,11 @@ export default class Form extends Component
 
 		// Re-validate all fields to highlight
 		// all required ones which are not filled.
-		for (const field of Object.keys(fields))
-		{
+		for (const field of Object.keys(fields)) {
 			// Trigger `validate()` on the field
 			// so that `errors` is updated inside form state.
 			// (if the field is still mounted)
-			if (fields[field])
-			{
+			if (fields[field]) {
 				this.set(field, values[field])
 			}
 		}
@@ -236,8 +214,7 @@ export default class Form extends Component
 		return false
 	}
 
-	collectFieldValues()
-	{
+	collectFieldValues() {
 		const { trim } = this.props
 		const { fields, values } = this.state
 
@@ -245,12 +222,10 @@ export default class Form extends Component
 		// (because if a field is unregistered that means that
 		//  its React element was removed in the process,
 		//  and therefore it's not needed anymore)
-		return Object.keys(fields).reduce((allValues, field) =>
-		{
+		return Object.keys(fields).reduce((allValues, field) => {
 			let value = values[field]
 
-			if (trim && typeof value === 'string')
-			{
+			if (trim && typeof value === 'string') {
 				value = value.trim()
 				// Convert empty strings to `undefined`.
 				if (!value) {
@@ -265,17 +240,15 @@ export default class Form extends Component
 	}
 
 	// Calls `<form/>`'s `onSubmit` action.
-	executeFormAction(action, values)
-	{
+	executeFormAction(action, values) {
 		const { onError } = this.props
+		const { fields } = this.state
 
 		let result
 
 		try {
-			result = action(values)
-		}
-		catch (error)
-		{
+			result = action(getValues(values, fields))
+		} catch (error) {
 			if (onError(error) === false) {
 				throw error
 			}
@@ -326,8 +299,7 @@ export default class Form extends Component
 	}
 
 	// Is called when `<form/>` `onSubmit` returns a `Promise`.
-	onSubmitPromise(promise)
-	{
+	onSubmitPromise(promise) {
 		// When `submitting` flag is set to `true`
 		// all fields and the submit button will become disabled.
 		// This results in focus being lost.
@@ -348,8 +320,7 @@ export default class Form extends Component
 		)
 	}
 
-	onSubmit = (event) =>
-	{
+	onSubmit = (event) => {
 		const { onSubmit, onBeforeSubmit } = this.props
 
 		// If it's an event handler then `.preventDefault()` it
@@ -401,8 +372,7 @@ export default class Form extends Component
 	get = (field) => this.state.values[field]
 
 	// Sets field value (public API).
-	set = (field, value) =>
-	{
+	set = (field, value) => {
 		this.dispatch(setFieldValue(field, value))
 		this.dispatch(setFieldError(field, this.fields[field].validate(value)))
 	}
@@ -410,12 +380,12 @@ export default class Form extends Component
 	setFormNode = (node) => this.form = node
 	getSubmitButtonNode = () => this.form.querySelector('button[type="submit"]')
 
-	render()
-	{
+	render() {
 		const { children } = this.props
-
+		const { resetCounter } = this.state
 		return (
 			<form
+				key={resetCounter}
 				ref={this.setFormNode}
 				{...getPassThroughProps(this.props, Form.propTypes)}
 				onSubmit={this.onSubmit}>
@@ -427,8 +397,7 @@ export default class Form extends Component
 	}
 }
 
-function generateInitialFormState(initialValues = {})
-{
+function generateInitialFormState(initialValues = {}) {
 	return {
 		// `mounted`/`unmounted` counters for each form field.
 		fields : {},
@@ -453,3 +422,16 @@ function generateInitialFormState(initialValues = {})
 		submitting : false
 	}
 }
+
+export const contextPropType = PropTypes.shape({
+	fields: PropTypes.object.isRequired,
+	values: PropTypes.object.isRequired,
+	initialValues: PropTypes.object.isRequired,
+	errors: PropTypes.object.isRequired,
+	showErrors: PropTypes.object.isRequired,
+	submitting: PropTypes.bool.isRequired,
+	onRegisterField: PropTypes.func.isRequired,
+	focus: PropTypes.isRequired,
+	dispatch: PropTypes.func.isRequired,
+	getRequiredMessage: PropTypes.func.isRequired
+})

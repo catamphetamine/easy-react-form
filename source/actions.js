@@ -1,3 +1,5 @@
+import { getValue } from './utility'
+
 export const registerField = (field, value, validate) => state =>
 {
 	// Uses a numerical counter instead of a boolean.
@@ -17,13 +19,8 @@ export const registerField = (field, value, validate) => state =>
 		// Only initializes the field with its default value
 		// if it hasn't been seen before.
 		// Otherwise will initialize the field with its current value.
-		state.values[field] = value === undefined ? state.initialValues[field] : value
+		state.values[field] = value === undefined ? getValue(state.initialValues, field) : value
 		state.errors[field] = validate(state.values[field])
-
-		// Stores the initial `value` for this `<Field/>`.
-		// (the one passed directly to `<Field/>` rather than to the `<Form/>`).
-		// Is used later when calling `reset()` to reset the form.
-		state.initialValues[field] = state.values[field]
 	}
 	else
 	{
