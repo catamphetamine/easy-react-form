@@ -112,7 +112,7 @@ List.propTypes = {
 }
 
 List.defaultProps = {
-	count: 0
+	count: 1
 }
 
 export const ListContext = createContext()

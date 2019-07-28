@@ -348,7 +348,7 @@ export default function Page() {
 `<List/>` accepts properties:
 
 * `name: String` — (required) The name of the list property in form `values`.
-* `count: Number` — The initial items count. Is `0` by default.
+* `count: Number` — The initial items count. Is `1` by default.
 
 <!-- ## Contributing
 
