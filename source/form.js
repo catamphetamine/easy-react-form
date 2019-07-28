@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import createContext from 'create-react-context'
 
-import OnAbandonPlugin from './plugins/onAbandon'
-import { getPassThroughProps, getValues } from './utility'
+import OnAbandonPlugin from './plugins/OnAbandonPlugin'
+import ListPlugin from './plugins/ListPlugin'
+import { getPassThroughProps, getValues, getValue, NOT_FOUND } from './utility'
 
 import {
 	setFormSubmitting,
@@ -15,24 +16,27 @@ export const Context = createContext()
 
 export default class Form extends Component {
 	static propTypes = {
-		onSubmit : PropTypes.func.isRequired,
-		onBeforeSubmit : PropTypes.func,
-		onAfterSubmit : PropTypes.func,
-		onAbandon : PropTypes.func,
-		values : PropTypes.object,
-		autoFocus : PropTypes.bool.isRequired,
-		trim : PropTypes.bool.isRequired,
-		requiredMessage : PropTypes.string.isRequired,
-		onError : PropTypes.func.isRequired,
-		plugins : PropTypes.arrayOf(PropTypes.func).isRequired
+		onSubmit: PropTypes.func.isRequired,
+		onBeforeSubmit: PropTypes.func,
+		onAfterSubmit: PropTypes.func,
+		onAbandon: PropTypes.func,
+		values: PropTypes.object,
+		autoFocus: PropTypes.bool.isRequired,
+		trim: PropTypes.bool.isRequired,
+		requiredMessage: PropTypes.string.isRequired,
+		onError: PropTypes.func.isRequired,
+		plugins: PropTypes.arrayOf(PropTypes.func).isRequired
 	}
 
 	static defaultProps = {
-		autoFocus : false,
-		trim : true,
-		requiredMessage : 'Required',
-		onError : (error) => false,
-		plugins : [ OnAbandonPlugin ]
+		autoFocus: false,
+		trim: true,
+		requiredMessage: 'Required',
+		onError: (error) => false,
+		plugins: [
+			OnAbandonPlugin,
+			ListPlugin
+		]
 	}
 
 	// Stores fields' `validate()` functions which are used
@@ -42,19 +46,23 @@ export default class Form extends Component {
 
 	constructor(props) {
 		super(props)
+		const { values, requiredMessage, plugins } = this.props
 		this.state = {
 			resetCounter: 0,
-			...generateInitialFormState(this.props.values),
+			...generateInitialFormState(values),
 			dispatch: this.dispatch,
 			onRegisterField: this.onRegisterField,
-			getRequiredMessage: () => this.props.requiredMessage,
+			getRequiredMessage: () => requiredMessage,
 			// Is used by `<List/>`.
-			focus: this.focus
+			focus: this.focus,
+			getValues: this.values,
+			getInitialValue: this.getInitialValue
 		}
+		this.plugins = plugins.map(Plugin => new Plugin(() => this.props, () => this.state))
 	}
 
 	componentDidMount() {
-		const { plugins, autoFocus } = this.props
+		const { autoFocus } = this.props
 
 		this.mounted = true
 
@@ -64,8 +72,6 @@ export default class Form extends Component {
 		// then `field.componentWillMount` is called,
 		// then `field.componentDidMount` is called,
 		// then `form.componentDidMount` is called.
-
-		this.plugins = plugins.map(Plugin => new Plugin(() => this.props, () => this.state))
 
 		for (const plugin of this.plugins) {
 			if (plugin.onMount) {
@@ -119,13 +125,41 @@ export default class Form extends Component {
 		// }
 	}
 
+	getInitialValue = (name) => {
+		const { initialValues } = this.state
+		for (const plugin of this.plugins) {
+			if (plugin.getValue) {
+				const value = plugin.getValue(initialValues, name)
+				if (value !== NOT_FOUND) {
+					return value
+				}
+			}
+		}
+		return getValue(initialValues, name)
+	}
+
 	// Public API
-	values = () => getValues(this.state.values, this.state.fields)
+	values = (customValues) => {
+		const { values, fields } = this.state
+		let _values = getValues(customValues || values, fields)
+		for (const plugin of this.plugins) {
+			if (plugin.getValues) {
+				_values = plugin.getValues(_values)
+			}
+		}
+		return _values
+	}
 
 	// Public API
 	reset = () => {
-		const { autoFocus } = this.props
+		const { autoFocus, plugins } = this.props
 		const { fields, initialValues, resetCounter } = this.state
+
+		for (const plugin of this.plugins) {
+			if (plugin.onReset) {
+				plugin.onReset()
+			}
+		}
 
 		this.setState({
 			resetCounter: resetCounter + 1,
@@ -214,17 +248,19 @@ export default class Form extends Component {
 		return false
 	}
 
+	/**
+	 * Trims strings. Converts empty strings to `undefined`.
+	 * @return {object} `values`
+	 */
 	collectFieldValues() {
 		const { trim } = this.props
 		const { fields, values } = this.state
-
 		// Pass only registered fields to form submit action
 		// (because if a field is unregistered that means that
 		//  its React element was removed in the process,
 		//  and therefore it's not needed anymore)
 		return Object.keys(fields).reduce((allValues, field) => {
 			let value = values[field]
-
 			if (trim && typeof value === 'string') {
 				value = value.trim()
 				// Convert empty strings to `undefined`.
@@ -232,28 +268,22 @@ export default class Form extends Component {
 					value = undefined
 				}
 			}
-
 			allValues[field] = value
 			return allValues
-		},
-		{})
+		}, {})
 	}
 
 	// Calls `<form/>`'s `onSubmit` action.
 	executeFormAction(action, values) {
 		const { onError } = this.props
-		const { fields } = this.state
-
 		let result
-
 		try {
-			result = action(getValues(values, fields))
+			result = action(this.values(values))
 		} catch (error) {
 			if (onError(error) === false) {
 				throw error
 			}
 		}
-
 		// If the form submit action returned a `Promise`
 		// then track this `Promise`'s progress.
 		if (result && typeof result.then === 'function') {
@@ -433,5 +463,7 @@ export const contextPropType = PropTypes.shape({
 	onRegisterField: PropTypes.func.isRequired,
 	focus: PropTypes.isRequired,
 	dispatch: PropTypes.func.isRequired,
-	getRequiredMessage: PropTypes.func.isRequired
+	getRequiredMessage: PropTypes.func.isRequired,
+	getValues: PropTypes.func.isRequired,
+	getInitialValue: PropTypes.func.isRequired
 })

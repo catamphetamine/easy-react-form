@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import createContext from 'create-react-context'
 
 import { Context } from './form'
+import { getFieldName } from './plugins/ListPlugin.utility'
 
 export default function List_(props) {
 	return (
@@ -21,7 +22,7 @@ class List extends React.Component {
 		const items = this.getInitialItems()
 		this.state = {
 			context: {
-				name,
+				getFieldName: this.getFieldName,
 				onRegisterField: this.onRegisterField
 			},
 			items,
@@ -35,6 +36,13 @@ class List extends React.Component {
 			return createIndexArray(context.initialValues[name].length)
 		}
 		return createIndexArray(count)
+	}
+
+	getFieldName = (i, name) => {
+		if (typeof i !== 'number') {
+			throw new Error('Each `<Feild/>` in a `<List/>` must have an `i` property')
+		}
+		return getFieldName(this.props.name, i, name)
 	}
 
 	onRegisterField = (name) => {
@@ -120,5 +128,6 @@ function createIndexArray(size) {
 }
 
 export const listContextPropType = PropTypes.shape({
-	name: PropTypes.string.isRequired
+	getFieldName: PropTypes.func.isRequired,
+	onRegisterField: PropTypes.func.isRequired
 })

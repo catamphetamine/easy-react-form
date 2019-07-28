@@ -5,7 +5,7 @@ import createRef from 'react-create-ref'
 
 import { Context, contextPropType } from './form'
 import { ListContext, listContextPropType } from './list'
-import { getPassThroughProps, scrollTo, getValues } from './utility'
+import { getPassThroughProps, scrollTo } from './utility'
 
 import {
 	registerField,
@@ -60,10 +60,7 @@ class FormField extends Component {
 	getName(props = this.props) {
 		const { listContext, i, name } = props
 		if (listContext) {
-			if (typeof i !== 'number') {
-				throw new Error('Each `<Feild/>` in a `<List/>` must have an `i` property')
-			}
-			return `${listContext.name}:${i}:${name}`
+			return listContext.getFieldName(i, name)
 		}
 		return name
 	}
@@ -90,7 +87,7 @@ class FormField extends Component {
 		)
 		context.dispatch(registerField(
 			this.getName(),
-			value,
+			value === undefined ? context.getInitialValue(this.getName()) : value,
 			this.validate
 		))
 
@@ -250,16 +247,15 @@ class FormField extends Component {
 		}
 		if (validate) {
 			// `context.values` could be replaced with
-			// something else, like `getValues(context.values, context.fields)`
+			// something else, like `context.getValues()`
 			// because `<List/>` values are prefixed in `context.values`.
 			// But running RegExps and re-creating the object
 			// on each `validate()` call seems like a not-the-best architecture.
 			// Instead `values` could be replaced with something like
-			// `() => getValues(context.values, context.fields)` but that would be a
-			// "breaking change" in the API.
-			// On a modern CPU a single `getValues()` run is about 0.005 ms.
+			// `context.getValues()` but that would be a "breaking change" in the API.
+			// On a modern CPU a single `context.getValues()` run is about 0.005 ms.
 			// So I guess it's acceptable, since the API already exists.
-			return validate(value, getValues(context.values, context.fields))
+			return validate(value, context.getValues())
 		}
 	}
 

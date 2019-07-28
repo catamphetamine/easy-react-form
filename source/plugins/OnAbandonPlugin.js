@@ -1,38 +1,30 @@
-export default class OnAbandonPlugin
-{
-	constructor(getProps, getState)
-	{
+export default class OnAbandonPlugin {
+	constructor(getProps, getState) {
 		this.getProps = getProps
 		this.getState = getState
+		this.onReset()
 	}
 
-	onMount()
-	{
+	onMount() {
 		const { onAbandon } = this.getProps()
-
 		if (!onAbandon) {
 			return
 		}
-
 		// Report abandoned form on page close.
 		// (though it might not have time sufficient to report anything)
 		window.addEventListener('beforeunload', this.onLeaveForm)
 	}
 
-	onUnmount()
-	{
+	onUnmount() {
 		const { onAbandon } = this.getProps()
-
 		if (!onAbandon) {
 			return
 		}
-
 		window.removeEventListener('beforeunload', this.onLeaveForm)
 		this.onLeaveForm()
 	}
 
-	onLeaveForm = () =>
-	{
+	onLeaveForm = () => {
 		const { onAbandon } = this.getProps()
 
 		// If the form is already submitted
@@ -53,8 +45,11 @@ export default class OnAbandonPlugin
 		onAbandon(field, this.getState().values[field])
 	}
 
-	onAfterSubmit()
-	{
+	onAfterSubmit() {
 		this.submitted = true
+	}
+
+	onReset() {
+		this.submitted = undefined
 	}
 }

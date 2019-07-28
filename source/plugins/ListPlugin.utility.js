@@ -1,5 +1,6 @@
+import { NOT_FOUND } from '../utility'
+
 const LIST_ITEM_KEY_REGEXP = /^([^:]+):(\d+):([^:]+)$/
-export const LIST_VALUE_NOT_FOUND = {}
 
 /**
  * Converts values having keys `${list}:${i}:${field}`
@@ -47,7 +48,7 @@ export function convertListValues(values) {
  * from an object having shape `{ list: [{ field, ... }, ...] }`.
  * @param {object} values
  * @param {string} key
- * @return {any} Returns `LIST_VALUE_NOT_FOUND` if the value wasn't found.
+ * @return {any} Returns `NOT_FOUND` if the value wasn't found.
  */
 export function getListValue(values, key) {
 	const match = key.match(LIST_ITEM_KEY_REGEXP)
@@ -60,5 +61,9 @@ export function getListValue(values, key) {
 		] = match
 		return values[list] && values[list][index] && values[list][index][name]
 	}
-	return LIST_VALUE_NOT_FOUND
+	return NOT_FOUND
+}
+
+export function getFieldName(listName, i, name) {
+	return `${listName}:${i}:${name}`
 }

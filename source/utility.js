@@ -1,10 +1,6 @@
 import scrollIntoView from 'scroll-into-view-if-needed'
 
-import {
-	LIST_VALUE_NOT_FOUND,
-	getListValue,
-	convertListValues
-} from './utility.list'
+export const NOT_FOUND = {}
 
 export function getPassThroughProps(props, excludeProps) {
 	const rest = {}
@@ -36,15 +32,9 @@ export function getValues(values, fields) {
 			existingValues[key] = values[key]
 		}
 	}
-	// Convert list value keys having format
-	// `${list}:${index}:${field}` to arrays of objects.
-	return convertListValues(existingValues)
+	return existingValues
 }
 
 export function getValue(values, key) {
-	const listValue = getListValue(values, key)
-	if (listValue !== LIST_VALUE_NOT_FOUND) {
-		return listValue
-	}
 	return values[key]
 }
