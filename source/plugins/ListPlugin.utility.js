@@ -9,6 +9,7 @@ const LIST_ITEM_KEY_REGEXP = /^([^:]+):(\d+):([^:]+)$/
  * @return {object}
  */
 export function convertListValues(values) {
+	// `values` are converted to `actualValues`.
 	const actualValues = {}
 	const listNames = []
 	for (const key of Object.keys(values)) {
@@ -37,6 +38,11 @@ export function convertListValues(values) {
 	}
 	// Compact lists: remove removed items.
 	// When an item is removed indexes are not shifted.
+	// Example:
+	// "list:0:value": "a"
+	// "list:2:value": "c"
+	// Result:
+	// "list": [{ value: "a" }, { value: "c" }]
 	for (const listName of listNames) {
 		actualValues[listName] = actualValues[listName].filter(_ => _)
 	}

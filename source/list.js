@@ -18,7 +18,7 @@ export default function List_(props) {
 class List extends React.Component {
 	constructor(props) {
 		super(props)
-		const {  name } = this.props
+		const { name } = this.props
 		const items = this.getInitialItems()
 		this.state = {
 			context: {
@@ -49,14 +49,6 @@ class List extends React.Component {
 		if (!this.firstFieldName) {
 			this.firstFieldName = name
 		}
-	}
-
-	onReset = () => {
-		const items = this.getInitialItems()
-		this.setState({
-			items,
-			itemsCounter: items.length
-		})
 	}
 
 	add = () => {

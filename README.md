@@ -350,6 +350,10 @@ export default function Page() {
 * `name: String` — (required) The name of the list property in form `values`.
 * `count: Number` — The initial items count. Is `1` by default.
 
+Nested `<List/>`s are not supported.
+
+<!-- For setting `<List/>` value manually use `.setList(name, value)` method of a `Form` instance (analogous to `.set(name, value)`). -->
+
 <!-- ## Contributing
 
 After cloning this repo, ensure dependencies are installed by running:
