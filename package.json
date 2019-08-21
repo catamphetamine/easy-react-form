@@ -1,6 +1,6 @@
 {
   "name": "easy-react-form",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Simple, fast and easy-to-use React Form.",
   "main": "index.commonjs.js",
   "module": "index.js",
