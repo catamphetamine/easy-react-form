@@ -25,7 +25,11 @@ export default class Form extends Component {
 		trim: PropTypes.bool.isRequired,
 		requiredMessage: PropTypes.string.isRequired,
 		onError: PropTypes.func.isRequired,
-		plugins: PropTypes.arrayOf(PropTypes.func).isRequired
+		plugins: PropTypes.arrayOf(PropTypes.func).isRequired,
+		children: PropTypes.oneOfType([
+			PropTypes.func,
+			PropTypes.node
+		]).isRequired
 	}
 
 	static defaultProps = {
@@ -119,6 +123,10 @@ export default class Form extends Component {
 	dispatch = (action, callback) => {
 		action(this.state)
 		this.setState(this.state, callback)
+		const { children } = this.props
+		if (typeof children === 'function') {
+			this.forceUpdate()
+		}
 		// const { onStateChange } = this.props
 		// if (onStateChange) {
 		// 	onStateChange(this.state)
@@ -420,11 +428,33 @@ export default class Form extends Component {
 				{...getPassThroughProps(this.props, Form.propTypes)}
 				onSubmit={this.onSubmit}>
 				<Context.Provider value={this.state}>
-					{children}
+					{typeof children === 'function' ?
+						<Children values={this.values()}>
+							{children}
+						</Children> :
+						children
+					}
 				</Context.Provider>
 			</form>
 		)
 	}
+}
+
+class Children extends React.Component {
+	componentDidMount() {
+		this._isMounted = true
+	}
+	render() {
+		const { values, children } = this.props
+		return children({
+			values: this._isMounted ? values : undefined
+		})
+	}
+}
+
+Children.propTypes = {
+	values: PropTypes.object.isRequired,
+	children: PropTypes.func.isRequired
 }
 
 function generateInitialFormState(initialValues = {}) {
