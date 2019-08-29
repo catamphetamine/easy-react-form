@@ -34,8 +34,8 @@ class List extends React.Component {
 		})
 	}
 
-	onReset = (callback) => {
-		this.setState(this.getInitialItemsState(), callback)
+	onReset = () => {
+		this.setState(this.getInitialItemsState())
 	}
 
 	getInitialItems() {

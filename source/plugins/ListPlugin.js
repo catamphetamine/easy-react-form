@@ -31,7 +31,7 @@ export default class ListPlugin {
 					form.resetField(field)
 				}
 			}
-			this.lists[name].onReset(form.cleanUpRemovedFields)
+			this.lists[name].onReset()
 			return true
 		}
 	}

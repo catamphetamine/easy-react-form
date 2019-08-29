@@ -143,16 +143,30 @@ export default class Form extends Component {
 		this.dispatch(unregisterField(field))
 		// Rerender the form so that the field is
 		// removed if it's no longer mounted.
-		this.setState(...this.state)
+		this.forceUpdate()
 	}
 
+	/**
+	 * `callback` is currently only used when calling
+	 * `context.dispatch(setFormSubmitting(false))`.
+	 * @param  {function}   action — A function of `state`.
+	 * @param  {function} callback
+	 */
 	dispatch = (action, callback) => {
 		action(this.state)
+		// A `React.Component` always re-renders on `this.setState()`,
+		// even if the `state` hasn't changed.
+		// The re-rendering of the `<Form/>` is used to re-render
+		// the `<Field/`>s with the updated `value`s.
+		// This could potentially result in slower performance
+		// on `<Form/>`s with a lots of `<Field/>`s
+		// (maybe hundreds or something like that?)
+		// but on regular `<Form/>`s I didn't notice any lag.
+		// A possible performance optimization could be
+		// not calling `this.setState()` for `<Form/>` re-rendering
+		// and instead calling something like `this.forceUpdate()`
+		// on the `<Field/>` that called `context.dispatch()`.
 		this.setState(this.state, callback)
-		const { children } = this.props
-		if (typeof children === 'function') {
-			this.forceUpdate()
-		}
 		// const { onStateChange } = this.props
 		// if (onStateChange) {
 		// 	onStateChange(this.state)
@@ -185,7 +199,11 @@ export default class Form extends Component {
 	}
 
 	// Public API
-	reset = () => {
+	reset = (field) => {
+		if (typeof field === 'string') {
+			return this.resetField(field)
+		}
+
 		const { autoFocus, plugins } = this.props
 		const { fields, initialValues, resetCounter } = this.state
 
@@ -215,7 +233,7 @@ export default class Form extends Component {
 	resetField = (name) => {
 		for (const plugin of this.plugins) {
 			if (plugin.onResetField) {
-				if (plugin.onResetField(name, form)) {
+				if (plugin.onResetField(name, this)) {
 					return
 				}
 			}

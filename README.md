@@ -133,19 +133,19 @@ The `<Form/>` takes the following optional properties:
 
 The `<Form/>` component instance (`ref`) provides the following methods:
 
-  * `focus(fieldName : String)` — focuses on a field.
+  * `focus(fieldName : String)` — Focuses on a field.
 
-  * `scroll(fieldName : String)` — scrolls to a field (if it's not visible on the screen).
+  * `scroll(fieldName : String)` — Scrolls to a field (if it's not visible on the screen).
 
-  * `clear(fieldName : String)` — clears field value.
+  * `clear(fieldName : String)` — Clears field value.
 
-  * `get(fieldName : String)` — gets form field value.
+  * `get(fieldName : String)` — Gets form field value.
 
-  * `set(fieldName : String, value : String)` — sets form field value.
+  * `set(fieldName : String, value : String)` — Sets form field value.
 
-  * `values()` — returns form field values (an alternative to `get(fieldName : String)`).
+  * `values()` — Returns form field values (an alternative to `get(fieldName : String)`).
 
-  * `reset()` — resets the form.
+  * `reset(fieldName : String?)` — Resets the field. If no `fieldName` is passed then the whole form is reset.
 
 Upon form submission, if any one of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.
 
