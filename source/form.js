@@ -61,14 +61,17 @@ export default class Form extends Component {
 			onRegisterField: this.onRegisterField,
 			onUnregisterField: this.onUnregisterField,
 			getRequiredMessage: () => requiredMessage,
-			// These're used by `<List/>` (plus `.fields`).
-			resetField: this.resetField,
-			cleanUpRemovedFields: this.cleanUpRemovedFields,
+			// These're used by `<List/>`.
 			focus: this.focus,
 			getValues: this.values,
 			getInitialValue: this.getInitialValue
 		}
 		this.plugins = plugins.map(Plugin => new Plugin(() => this.props, () => this.state))
+		for (const plugin of this.plugins) {
+			if (plugin.initContext) {
+				plugin.initContext(this.state)
+			}
+		}
 	}
 
 	componentDidMount() {
@@ -210,6 +213,13 @@ export default class Form extends Component {
 
 	// Not tested.
 	resetField = (name) => {
+		for (const plugin of this.plugins) {
+			if (plugin.onResetField) {
+				if (plugin.onResetField(name, form)) {
+					return
+				}
+			}
+		}
 		const initialValue = this.fields[name].initialValue === undefined ? this.getInitialValue(name) : this.fields[name].initialValue
 		this.dispatch(setFieldValue(name, initialValue))
 		// A default value isn't supposed to generate an error.
@@ -538,6 +548,7 @@ export const contextPropType = PropTypes.shape({
 	submitting: PropTypes.bool.isRequired,
 	onRegisterField: PropTypes.func.isRequired,
 	onUnregisterField: PropTypes.func.isRequired,
+	onRegisterList: PropTypes.func.isRequired,
 	focus: PropTypes.isRequired,
 	dispatch: PropTypes.func.isRequired,
 	getRequiredMessage: PropTypes.func.isRequired,

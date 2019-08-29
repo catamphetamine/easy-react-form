@@ -27,6 +27,17 @@ class List extends React.Component {
 		}
 	}
 
+	componentDidMount() {
+		const { name, context } = this.props
+		context.onRegisterList(name, {
+			onReset: this.onReset
+		})
+	}
+
+	onReset = (callback) => {
+		this.setState(this.getInitialItemsState(), callback)
+	}
+
 	getInitialItems() {
 		const { context, name, count } = this.props
 		if (context.initialValues[name]) {
@@ -80,17 +91,6 @@ class List extends React.Component {
 	map = (func) => {
 		const { items } = this.state
 		return items.map(i => func(i))
-	}
-
-	// Hasn't been tested.
-	reset = () => {
-		const { name, context } = this.props
-		for (const field of Object.keys(context.fields)) {
-			if (field.indexOf(`${name}:`) === 0) {
-				context.resetField(field)
-			}
-		}
-		this.setState(this.getInitialItemsState(), context.cleanUpRemovedFields)
 	}
 
 	render() {
