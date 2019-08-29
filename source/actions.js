@@ -67,3 +67,13 @@ export const showFieldError = (field) => state =>
 {
 	state.showErrors[field] = true
 }
+
+export const removeField = (field) => state => {
+	delete state.fields[field]
+	delete state.values[field]
+	delete state.errors[field]
+	delete state.showErrors[field]
+	if (state.latestFocusedField === field) {
+		state.latestFocusedField = undefined
+	}
+}

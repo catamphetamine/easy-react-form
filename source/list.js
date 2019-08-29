@@ -18,15 +18,12 @@ export default function List_(props) {
 class List extends React.Component {
 	constructor(props) {
 		super(props)
-		const { name } = this.props
-		const items = this.getInitialItems()
 		this.state = {
 			context: {
 				getFieldName: this.getFieldName,
 				onRegisterField: this.onRegisterField
 			},
-			items,
-			itemsCounter: items.length
+			...this.getInitialItemsState()
 		}
 	}
 
@@ -36,6 +33,14 @@ class List extends React.Component {
 			return createIndexArray(context.initialValues[name].length)
 		}
 		return createIndexArray(count)
+	}
+
+	getInitialItemsState() {
+		const items = this.getInitialItems()
+		return {
+			items,
+			itemsCounter: items.length
+		}
 	}
 
 	getFieldName = (i, name) => {
@@ -75,6 +80,17 @@ class List extends React.Component {
 	map = (func) => {
 		const { items } = this.state
 		return items.map(i => func(i))
+	}
+
+	// Hasn't been tested.
+	reset = () => {
+		const { name, context } = this.props
+		for (const field of Object.keys(context.fields)) {
+			if (field.indexOf(`${name}:`) === 0) {
+				context.resetField(field)
+			}
+		}
+		this.setState(this.getInitialItemsState(), context.cleanUpRemovedFields)
 	}
 
 	render() {

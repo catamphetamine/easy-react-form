@@ -38,3 +38,13 @@ export function getValues(values, fields) {
 export function getValue(values, key) {
 	return values[key]
 }
+
+// `MAX_SAFE_INTEGER` is not supported by older browsers
+const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || Math.pow(2, 53)
+export function getNext(counter) {
+	if (counter < MAX_SAFE_INTEGER) {
+		return counter + 1
+	} else {
+		return 0
+	}
+}

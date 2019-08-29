@@ -8,8 +8,6 @@ import { ListContext, listContextPropType } from './list'
 import { getPassThroughProps, scrollTo } from './utility'
 
 import {
-	registerField,
-	unregisterField,
 	setFieldValue,
 	setFieldError,
 	showFieldError,
@@ -79,21 +77,23 @@ class FormField extends Component {
 		// when hiding/showing new fields, so a field might get
 		// "registered"/"unregistered" several times in those cases.
 		//
+		const initialValue = value === undefined ? context.getInitialValue(this.getName()) : value
 		context.onRegisterField(
 			this.getName(),
+			initialValue,
 			this.validate,
 			this.scroll,
 			this.focus
 		)
-		context.dispatch(registerField(
-			this.getName(),
-			value === undefined ? context.getInitialValue(this.getName()) : value,
-			this.validate
-		))
 
 		if (listContext) {
 			listContext.onRegisterField(name)
 		}
+	}
+
+	unregister(prevProps) {
+		const { context } = this.props
+		context.onUnregisterField(this.getName(prevProps))
 	}
 
 	componentDidMount() {
@@ -101,9 +101,8 @@ class FormField extends Component {
 	}
 
 	componentWillUnmount() {
-		const { context } = this.props
 		// "Unregister" field.
-		context.dispatch(unregisterField(this.getName()))
+		this.unregister()
 		this.mounted = false
 	}
 
@@ -114,7 +113,7 @@ class FormField extends Component {
 		// then handle this type of situation correctly.
 		if (this.getName() !== this.getName(prevProps)) {
 			// Unregister old field.
-			context.dispatch(unregisterField(this.getName(prevProps)))
+			this.unregister(prevProps)
 			// Register new field.
 			this.register()
 		}
@@ -123,6 +122,7 @@ class FormField extends Component {
 			// If the default value changed for this `<Field/>`
 			// and the field hasn't been edited yet
 			// then apply this new default value.
+			// A default value isn't supposed to generate an error.
 			if (value !== prevProps.value && !this.hasBeenEdited) {
 				context.dispatch(setFieldValue(this.getName(), value))
 			}

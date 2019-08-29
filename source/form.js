@@ -4,12 +4,15 @@ import createContext from 'create-react-context'
 
 import OnAbandonPlugin from './plugins/OnAbandonPlugin'
 import ListPlugin from './plugins/ListPlugin'
-import { getPassThroughProps, getValues, getValue, NOT_FOUND } from './utility'
+import { getPassThroughProps, getValues, getValue, getNext, NOT_FOUND } from './utility'
 
 import {
 	setFormSubmitting,
 	setFieldValue,
-	setFieldError
+	setFieldError,
+	registerField,
+	unregisterField,
+	removeField
 } from './actions'
 
 export const Context = createContext()
@@ -56,8 +59,11 @@ export default class Form extends Component {
 			...generateInitialFormState(values),
 			dispatch: this.dispatch,
 			onRegisterField: this.onRegisterField,
+			onUnregisterField: this.onUnregisterField,
 			getRequiredMessage: () => requiredMessage,
-			// Is used by `<List/>`.
+			// These're used by `<List/>` (plus `.fields`).
+			resetField: this.resetField,
+			cleanUpRemovedFields: this.cleanUpRemovedFields,
 			focus: this.focus,
 			getValues: this.values,
 			getInitialValue: this.getInitialValue
@@ -89,6 +95,10 @@ export default class Form extends Component {
 		}
 	}
 
+	componentDidUpdate() {
+		this.cleanUpRemovedFields()
+	}
+
 	componentWillUnmount() {
 		for (const plugin of this.plugins) {
 			if (plugin.onUnmount) {
@@ -100,7 +110,7 @@ export default class Form extends Component {
 
 	// `value` is initial field value
 	// (which is restored on form reset)
-	onRegisterField = (field, validate, scroll, focus) => {
+	onRegisterField = (field, initialValue, validate, scroll, focus) => {
 		// The stored field info is used to `validate()` field `value`s
 		// and set the corresponding `error`s
 		// when calling `set(field, value)` and `clear(field)`.
@@ -110,6 +120,7 @@ export default class Form extends Component {
 		// then the methods for the field will be updated.
 		//
 		this.fields[field] = {
+			initialValue,
 			validate,
 			scroll,
 			focus
@@ -118,6 +129,18 @@ export default class Form extends Component {
 		if (!this.firstField) {
 			this.firstField = field
 		}
+		this.dispatch(registerField(
+			field,
+			initialValue,
+			validate
+		))
+	}
+
+	onUnregisterField = (field) => {
+		this.dispatch(unregisterField(field))
+		// Rerender the form so that the field is
+		// removed if it's no longer mounted.
+		this.setState(...this.state)
 	}
 
 	dispatch = (action, callback) => {
@@ -170,7 +193,7 @@ export default class Form extends Component {
 		}
 
 		this.setState({
-			resetCounter: resetCounter + 1,
+			resetCounter: getNext(resetCounter),
 			// Form `children` will re-mount and all fields will be re-registered.
 			...generateInitialFormState(initialValues),
 			// Form `children` will be unmounted before the new ones are mounted.
@@ -183,6 +206,29 @@ export default class Form extends Component {
 				this.focus()
 			}
 		})
+	}
+
+	// Not tested.
+	resetField = (name) => {
+		const initialValue = this.fields[name].initialValue === undefined ? this.getInitialValue(name) : this.fields[name].initialValue
+		this.dispatch(setFieldValue(name, initialValue))
+		// A default value isn't supposed to generate an error.
+		this.dispatch(setFieldError(name, undefined))
+	}
+
+	removeField = (field) => {
+		this.dispatch(removeField(field))
+		delete this.fields[field]
+	}
+
+	cleanUpRemovedFields = () => {
+		const { fields } = this.state
+		for (const field of Object.keys(fields)) {
+			// Remove unmounted `<Field/>`s.
+			if (fields[field] === 0) {
+				this.removeField(field)
+			}
+		}
 	}
 
 	// Is called when the form has been submitted.
@@ -491,6 +537,7 @@ export const contextPropType = PropTypes.shape({
 	showErrors: PropTypes.object.isRequired,
 	submitting: PropTypes.bool.isRequired,
 	onRegisterField: PropTypes.func.isRequired,
+	onUnregisterField: PropTypes.func.isRequired,
 	focus: PropTypes.isRequired,
 	dispatch: PropTypes.func.isRequired,
 	getRequiredMessage: PropTypes.func.isRequired,
