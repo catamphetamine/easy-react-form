@@ -159,7 +159,7 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 
   * `name : String`
 
-  * `component : (React.Component|Function|String)` — React component (can also be a string like `input`).
+  * `component : (React.Component|Function|String)` — React component (can also be a string like `input`). Must accept a `ref` (use `React.forwardRef()` for "functional" components). The obtained `ref` should be a DOM Element, or at least should provide a `.focus()` method for focusing the field and a `.getDOMNode()` method for scrolling to the field.
 
 `<Field/>` takes the following optional properties:
 

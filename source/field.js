@@ -34,7 +34,7 @@ export default function Field(props) {
 class FormField extends Component {
 	static propTypes = {
 		name      : PropTypes.string.isRequired,
-		component : PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]).isRequired,
+		component : PropTypes.elementType.isRequired,
 		required  : PropTypes.oneOfType([ PropTypes.bool, PropTypes.string ]),
 
 		value    : PropTypes.any,
@@ -200,7 +200,16 @@ class FormField extends Component {
 
 	getNode() {
 		if (this.field.current) {
-			return ReactDOM.findDOMNode(this.field.current)
+			// Using `useImperativeHandle()` would throw an error here:
+			// "Argument appears to not be a ReactComponent. Keys: focus".
+			try {
+				return ReactDOM.findDOMNode(this.field.current)
+			} catch (error) {
+				console.warn(error)
+			}
+			if (this.field.current.getDOMNode) {
+				return this.field.current.getDOMNode()
+			}
 		}
 	}
 
@@ -273,7 +282,7 @@ class FormField extends Component {
 
 		return React.createElement(component, {
 			...getPassThroughProps(this.props, FormField.propTypes),
-			ref      : isStateless(component) ? undefined : this.field,
+			ref      : this.field,
 			onChange : this.onChange,
 			onFocus  : this.onFocus,
 			onBlur   : this.onBlur,
@@ -290,11 +299,6 @@ export function isValueEmpty(_)
 	return _ === undefined || _ === null ||
 		(typeof _ === 'string' && _.trim() === '') ||
 		(Array.isArray(_) && _.length === 0)
-}
-
-function isStateless(Component)
-{
-	return typeof Component !== 'string' && !Component.prototype.render
 }
 
 const STATELESS_COMPONENT_HINT = 'For example, if it\'s a "stateless" component then rewrite it as a "React.Component" having a ".focus()" method.'
