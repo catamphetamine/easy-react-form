@@ -15,10 +15,13 @@ export function getPassThroughProps(props, excludeProps) {
 export function scrollTo(node) {
 	// https://github.com/stipsan/scroll-into-view-if-needed/issues/359
 	// scrollIntoView(ReactDOM.findDOMNode(this.field.current), false, { duration: 300 })
+	// Using `block: "center"` instead of `block: "nearest"`
+	// because otherwise the `node` might be obstructed by a "floating" header.
+	// https://github.com/stipsan/scroll-into-view-if-needed/issues/126#issuecomment-533089870
 	scrollIntoView(node, {
 		scrollMode : 'if-needed',
 		behavior   : 'smooth',
-		block      : 'nearest',
+		block      : 'center',
 		inline     : 'nearest'
 	})
 }

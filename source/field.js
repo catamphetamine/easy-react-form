@@ -200,15 +200,22 @@ class FormField extends Component {
 
 	getNode() {
 		if (this.field.current) {
+			// Using `ReactDOM.findDOMNode` instead of `this.field.current`
+			// to supports non-functional components that don't use `React.forwardRef()`.
+			// For example, `<DropFileUpload/>` from `react-responsive-ui`.
+			//
 			// Using `useImperativeHandle()` would throw an error here:
 			// "Argument appears to not be a ReactComponent. Keys: focus".
+			//
 			try {
 				return ReactDOM.findDOMNode(this.field.current)
 			} catch (error) {
+				// A workaround for components that use `useImperativeHandle()`
+				// for adding `ref` suport.
+				if (this.field.current.getDOMNode) {
+					return this.field.current.getDOMNode()
+				}
 				console.warn(error)
-			}
-			if (this.field.current.getDOMNode) {
-				return this.field.current.getDOMNode()
 			}
 		}
 	}
