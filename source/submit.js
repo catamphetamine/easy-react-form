@@ -4,8 +4,7 @@ import PropTypes from 'prop-types'
 import { Context } from './form'
 import { getPassThroughProps } from './utility'
 
-export default function Submit(props)
-{
+export default function Submit(props) {
 	return (
 		<Context.Consumer>
 			{context => React.createElement(props.component, {
@@ -16,7 +15,6 @@ export default function Submit(props)
 	)
 }
 
-Submit.propTypes =
-{
-	component : PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]).isRequired
+Submit.propTypes = {
+	component: PropTypes.elementType.isRequired
 }
