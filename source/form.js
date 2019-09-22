@@ -268,7 +268,7 @@ export default class Form extends Component {
 			}
 		}
 		if (onAfterSubmit) {
-			onAfterSubmit(this.props)
+			onAfterSubmit()
 		}
 	}
 
@@ -369,7 +369,7 @@ export default class Form extends Component {
 		// If the form submit action returned a `Promise`
 		// then track this `Promise`'s progress.
 		if (result && typeof result.then === 'function') {
-			this.onSubmitPromise(result)
+			this.onSubmitPromise(result).then(this.onAfterSubmit)
 		} else {
 			this.onAfterSubmit()
 		}
@@ -421,7 +421,7 @@ export default class Form extends Component {
 		// with `submitting: false`, hence the `.setState()` `Promise`.
 		this.snapshotFocus()
 		this.dispatch(setFormSubmitting(true))
-		promise.then(
+		return promise.then(
 			() => this.resetFormSubmittingState(),
 			(error) => this.resetFormSubmittingState(true).then(() => {
 				const { onError } = this.props
