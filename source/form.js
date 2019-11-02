@@ -238,7 +238,7 @@ export default class Form extends Component {
 				}
 			}
 		}
-		const initialValue = this.fields[name].initialValue === undefined ? this.getInitialValue(name) : this.fields[name].initialValue
+		const initialValue = !this.fields[name] || this.fields[name].initialValue === undefined ? this.getInitialValue(name) : this.fields[name].initialValue
 		this.dispatch(setFieldValue(name, initialValue))
 		// A default value isn't supposed to generate an error.
 		this.dispatch(setFieldError(name, undefined))
