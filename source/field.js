@@ -159,8 +159,8 @@ class FormField extends Component {
 		}
 	}
 
-	onChange = (event) => {
-		const { context, onChange } = this.props
+	onChange = (...args) => {
+		const [event] = args
 		let value = event
 		if (event && typeof event.preventDefault === 'function') {
 			value = event.target.value
@@ -171,11 +171,13 @@ class FormField extends Component {
 		// This flag won't work with `form.reset()`.
 		this.hasBeenEdited = true
 
+		const { context, onChange } = this.props
+
 		context.dispatch(setFieldValue(this.getName(), value))
 		context.dispatch(setFieldError(this.getName(), undefined))
 
 		if (onChange) {
-			onChange(event)
+			onChange(...args)
 		}
 	}
 
