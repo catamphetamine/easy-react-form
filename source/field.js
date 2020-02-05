@@ -297,7 +297,7 @@ class FormField extends Component {
 			onBlur   : this.onBlur,
 			disabled : disabled || context.submitting,
 			error    : showError ? error : undefined,
-			required : required && isValueEmpty(value) ? true : false,
+			required : required ? true : false,
 			value
 		})
 	}

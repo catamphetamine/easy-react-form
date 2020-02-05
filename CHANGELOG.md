@@ -1,5 +1,10 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
+1.1.0 / 05.02.2020
+===================
+
+* `<Field required={true}/>` property is now always passed through to the underlying `component` (previously it was passed through only when the field `value` was empty).
+
 1.0.15 / 26.07.2019
 ===================
 
