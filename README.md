@@ -125,6 +125,8 @@ The `<Form/>` takes the following optional properties:
 
   * `autoFocus : Boolean` — Set to `true` to automatically focus on the first form field when the form is mounted. Defauls to `false`.
 
+  * `wait : Boolean` — The initial `wait` state of the submit button. Can be used when the form is "loading" on first render.
+
   * `onBeforeSubmit : Function`
 
   * `onAfterSubmit : Function`
@@ -145,13 +147,15 @@ The `<Form/>` component instance (`ref`) provides the following methods:
 
   * `values()` — Returns form field values (an alternative to `get(fieldName : String)`).
 
-  * `reset(fieldName : String?)` — Resets the field. If no `fieldName` is passed then the whole form is reset.
+  * `reset()` — Resets all form field values.
 
 Upon form submission, if any one of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.
 
 The `<Form/>` can also accept `children` being a `function(parameters)` returning a `React.Element` that will be called on any form value change, so it can be used in cases when re-rendering the whole `<Form/>` is required on any form value change. Available `parameters`:
 
 * `values : Object` — Form values. Is `undefined` until the form is initialized (mounted) (`<Field/>` `value`s are `undefined` until those `<Feild/>`s are mounted).
+
+* `submitting : boolean` — Whether the form is currently being submitted.
 
 ### Field
 

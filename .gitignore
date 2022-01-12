@@ -14,9 +14,6 @@ npm-debug.log
 # nyc test coverage
 .nyc_output
 
-# github pages
-/gh-pages/
-
 # for OS X users
 .DS_Store
 

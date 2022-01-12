@@ -68,7 +68,8 @@ class FormField extends Component {
 			context,
 			listContext,
 			name,
-			value
+			value,
+			onChange
 		} = this.props
 
 		// "Register" the field and initialize it with the default value.
@@ -78,13 +79,13 @@ class FormField extends Component {
 		// "registered"/"unregistered" several times in those cases.
 		//
 		const initialValue = value === undefined ? context.getInitialValue(this.getName()) : value
-		context.onRegisterField(
-			this.getName(),
+		context.onRegisterField(this.getName(), {
 			initialValue,
-			this.validate,
-			this.scroll,
-			this.focus
-		)
+			onChange,
+			validate: this.validate,
+			scroll: this.scroll,
+			focus: this.focus
+		})
 
 		if (listContext) {
 			listContext.onRegisterField(name)
@@ -244,7 +245,7 @@ class FormField extends Component {
 		}
 	}
 
-	scroll = () => {
+	scroll = (options) => {
 		// `.scroll()` could theoretically maybe potentially be called in a timeout,
 		// so check if the component is still mounted.
 		if (!this.mounted) {
@@ -252,7 +253,7 @@ class FormField extends Component {
 		}
 		const node = this.getNode()
 		if (node) {
-			scrollTo(node)
+			scrollTo(node, options)
 		} else {
 			console.error(`Couldn't scroll to field "${this.getName()}": DOM Node not found. ${STATELESS_COMPONENT_HINT}`)
 		}

@@ -1,6 +1,6 @@
 {
   "name": "easy-react-form",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "Simple, fast and easy-to-use React Form.",
   "main": "index.commonjs.js",
   "module": "index.js",
@@ -15,7 +15,8 @@
     "create-react-context": "^0.2.2",
     "prop-types": "^15.7.2",
     "react-create-ref": "^1.0.0",
-    "scroll-into-view-if-needed": "^2.2.16"
+    "scroll-into-view-if-needed": "^2.2.24",
+    "smooth-scroll-into-view-if-needed": "^1.1.27"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -59,7 +60,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/catamphetamine/easy-react-form.git"
+    "url": "git+https://gitlab.com/catamphetamine/easy-react-form.git"
   },
   "keywords": [
     "react",
@@ -68,7 +69,7 @@
   "author": "catamphetamine <purecatamphetamine@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/catamphetamine/easy-react-form/issues"
+    "url": "https://gitlab.com/catamphetamine/easy-react-form/issues"
   },
-  "homepage": "https://github.com/catamphetamine/easy-react-form#readme"
+  "homepage": "https://gitlab.com/catamphetamine/easy-react-form#readme"
 }

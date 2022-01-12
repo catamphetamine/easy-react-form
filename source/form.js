@@ -27,7 +27,9 @@ export default class Form extends Component {
 		autoFocus: PropTypes.bool.isRequired,
 		trim: PropTypes.bool.isRequired,
 		requiredMessage: PropTypes.string.isRequired,
+		wait: PropTypes.bool.isRequired,
 		onError: PropTypes.func.isRequired,
+		scrollDuration: PropTypes.number.isRequired,
 		plugins: PropTypes.arrayOf(PropTypes.func).isRequired,
 		children: PropTypes.oneOfType([
 			PropTypes.func,
@@ -39,7 +41,9 @@ export default class Form extends Component {
 		autoFocus: false,
 		trim: true,
 		requiredMessage: 'Required',
+		wait: false,
 		onError: (error) => false,
+		scrollDuration: 300,
 		plugins: [
 			OnAbandonPlugin,
 			ListPlugin
@@ -53,10 +57,10 @@ export default class Form extends Component {
 
 	constructor(props) {
 		super(props)
-		const { values, requiredMessage, plugins } = this.props
+		const { values, requiredMessage, plugins, wait } = this.props
 		this.state = {
 			resetCounter: 0,
-			...generateInitialFormState(values),
+			...generateInitialFormState(values, { submitting: wait }),
 			dispatch: this.dispatch,
 			onRegisterField: this.onRegisterField,
 			onUnregisterField: this.onUnregisterField,
@@ -98,7 +102,11 @@ export default class Form extends Component {
 		}
 	}
 
-	componentDidUpdate() {
+	componentDidUpdate(prevProps) {
+		const { wait } = this.props
+		if (wait !== prevProps.wait) {
+			this.setFormSubmitting(wait)
+		}
 		this.cleanUpRemovedFields()
 	}
 
@@ -113,7 +121,7 @@ export default class Form extends Component {
 
 	// `value` is initial field value
 	// (which is restored on form reset)
-	onRegisterField = (field, initialValue, validate, scroll, focus) => {
+	onRegisterField = (field, { initialValue, onChange, validate, scroll, focus }) => {
 		// The stored field info is used to `validate()` field `value`s
 		// and set the corresponding `error`s
 		// when calling `set(field, value)` and `clear(field)`.
@@ -126,7 +134,8 @@ export default class Form extends Component {
 			initialValue,
 			validate,
 			scroll,
-			focus
+			focus,
+			onChange
 		}
 		// This is used for the `autofocus` feature.
 		if (!this.firstField) {
@@ -154,6 +163,7 @@ export default class Form extends Component {
 	 */
 	dispatch = (action, callback) => {
 		action(this.state)
+
 		// A `React.Component` always re-renders on `this.setState()`,
 		// even if the `state` hasn't changed.
 		// The re-rendering of the `<Form/>` is used to re-render
@@ -166,7 +176,14 @@ export default class Form extends Component {
 		// not calling `this.setState()` for `<Form/>` re-rendering
 		// and instead calling something like `this.forceUpdate()`
 		// on the `<Field/>` that called `context.dispatch()`.
+		//
+		// `this.setState()` is called on `this.state`
+		// rather than creating a new `state` because `this.state`
+		// is used as the `context` property for `React.Context`
+		// meaning that `state` reference shouldn't change.
+		//
 		this.setState(this.state, callback)
+
 		// const { onStateChange } = this.props
 		// if (onStateChange) {
 		// 	onStateChange(this.state)
@@ -200,11 +217,15 @@ export default class Form extends Component {
 
 	// Public API
 	reset = (field) => {
+		// `<Form/>` `.reset()` instance method no longer accepts `fieldName: string` argument.
+		// It still works the old way, but the `fieldName: string` arugment is considered deprecated.
+		// It worked in a weird way: reset the field to its initial value rather than `undefined`.
+		// To reset a field, use `.clear(fieldName)` instance method instead.
 		if (typeof field === 'string') {
 			return this.resetField(field)
 		}
 
-		const { autoFocus, plugins } = this.props
+		const { autoFocus, plugins, wait } = this.props
 		const { fields, initialValues, resetCounter } = this.state
 
 		for (const plugin of this.plugins) {
@@ -213,18 +234,59 @@ export default class Form extends Component {
 			}
 		}
 
-		this.setState({
-			resetCounter: getNext(resetCounter),
-			// Form `children` will re-mount and all fields will be re-registered.
-			...generateInitialFormState(initialValues),
-			// Form `children` will be unmounted before the new ones are mounted.
-			// If `fields` weren't preserved then `unregisterField()` would mess up
-			// `fields` counters.
-			fields
-		}, () => {
+		// `this.setState()` is called on `this.state`
+		// rather than creating a new `state` because `this.state`
+		// is used as the `context` property for `React.Context`
+		// meaning that `state` reference shouldn't change.
+
+		// Changing `resetCounter` results in a complete re-mounting of the `<form/>`,
+		// including all of the `<Field/>`s.
+		this.state.resetCounter = getNext(resetCounter)
+
+		// All `<Field/>`s will be re-mounted and re-registered.
+		const initialFormState = generateInitialFormState(initialValues, { submitting: wait })
+		for (const key of Object.keys(initialFormState)) {
+			this.state[key] = initialFormState[key]
+		}
+
+		// `generateInitialFormState()` produces a state with zero `fields` counters.
+		// But, subsequently, the change to `resetCounter` results in  a complete
+		// re-mounting of the `<form/>`, including all of the `<Field/>`s, which
+		// decrements all `fields` counters.
+		// If the current `fields` counters weren't preserved, then the counters
+		// would first be decremented to `-1` on unmount, and then incremented to `0`
+		// on re-mount, and the form would think that no fields are mounted.
+		// Preserving the current non-zero `fields` counters fixes that.
+		this.state.fields = fields
+
+		// Reset first focusable field since the form is gonna be reset.
+		this.firstField = undefined
+
+		this.setState(this.state, () => {
+			if (!this.mounted) {
+				return
+			}
 			// Autofocus the form (if not configured otherwise)
 			if (autoFocus) {
-				this.focus()
+				// If `reset()` was called inside `onSubmit()`, then
+				// don't focus on a field here because it might be `disabled`.
+				// Instead, schedule the autofocus for later, when the fields
+				// are no longer disabled.
+				if (this.state.submitting) {
+					this.focusableBeforeSubmit = this.getFocusable()
+				} else {
+					this.focus()
+				}
+			}
+			// Trigger each `<Field/>`'s `onChange()` handler.
+			for (const field of Object.keys(fields)) {
+				// If the field is still mounted.
+				if (this.fields[field]) {
+					const { onChange, initialValue } = this.fields[field]
+					if (onChange) {
+						onChange(initialValue)
+					}
+				}
 			}
 		})
 	}
@@ -242,6 +304,14 @@ export default class Form extends Component {
 		this.dispatch(setFieldValue(name, initialValue))
 		// A default value isn't supposed to generate an error.
 		this.dispatch(setFieldError(name, undefined))
+		// Trigger the `<Field/>`'s `onChange()` handler.
+		// If the field is still mounted.
+		if (this.fields[name]) {
+			const { onChange, initialValue } = this.fields[name]
+			if (onChange) {
+				onChange(initialValue)
+			}
+		}
 	}
 
 	removeField = (field) => {
@@ -299,6 +369,7 @@ export default class Form extends Component {
 	}
 
 	validate() {
+		const { scrollDuration } = this.props
 		const { fields, values } = this.state
 
 		// Are there any invalid fields.
@@ -321,10 +392,15 @@ export default class Form extends Component {
 		}
 
 		// Scroll to the invalid field.
-		this.scroll(field)
+		this.scroll(field, { duration: scrollDuration })
 
-		// Focus the invalid field.
-		this.focus(field)
+		// Focus the invalid field after it has been scrolled to.
+		setTimeout(() => {
+			if (this.mounted) {
+				// Focus the invalid field.
+				this.focus(field)
+			}
+		}, scrollDuration)
 
 		// The form is invalid.
 		return false
@@ -345,9 +421,12 @@ export default class Form extends Component {
 			let value = values[field]
 			if (trim && typeof value === 'string') {
 				value = value.trim()
-				// Convert empty strings to `undefined`.
+				// Convert empty strings to `null`.
+				// Using `undefined` instead of `null` wouldn't work because the browser
+				// wouldn't send such fields to the server because `JSON.stringify()` skips
+				// `undefined` properties when converting a JSON object to a string.
 				if (!value) {
-					value = undefined
+					value = null
 				}
 			}
 			allValues[field] = value
@@ -380,9 +459,9 @@ export default class Form extends Component {
 		// tend not to get focus assigned to them.
 		// Therefore, if the submit button was clicked to submit the form
 		// then `document.activeElement` will still be `<body/>`.
-		this.focusedNodeBeforeSubmit = document.activeElement
+		this.focusableBeforeSubmit = document.activeElement
 		if (!document.activeElement || document.activeElement === document.body) {
-			this.focusedNodeBeforeSubmit = this.getSubmitButtonNode()
+			this.focusableBeforeSubmit = this.getSubmitButtonNode()
 		}
 	}
 
@@ -390,20 +469,35 @@ export default class Form extends Component {
 		if (force ||
 			!document.activeElement ||
 			document.activeElement === document.body) {
-			if (this.focusedNodeBeforeSubmit) {
-				this.focusedNodeBeforeSubmit.focus()
-				this.focusedNodeBeforeSubmit = undefined
+			// The `<input/>` field might have been remounted right after form submit,
+			// for example, if the developer calls `form.reset()` in `onSubmit()`.
+			if (this.focusableBeforeSubmit instanceof Element &&
+				!document.body.contains(this.focusableBeforeSubmit)) {
+				this.focusableBeforeSubmit = undefined
+			}
+			if (this.focusableBeforeSubmit) {
+				this.focusableBeforeSubmit.focus()
+				this.focusableBeforeSubmit = undefined
 			}
 		}
+	}
+
+	setFormSubmitting(submitting, callback, forceRestoreFocus) {
+		this.dispatch(setFormSubmitting(submitting), () => {
+			if (!submitting) {
+				this.restoreFocus(forceRestoreFocus)
+			}
+			if (callback) {
+				callback()
+			}
+		})
 	}
 
 	resetFormSubmittingState(forceRestoreFocus) {
 		return new Promise((resolve) => {
 			if (this.mounted) {
-				this.dispatch(setFormSubmitting(false), () => {
-					this.restoreFocus(forceRestoreFocus)
-					resolve()
-				})
+				const { wait } = this.props
+				this.setFormSubmitting(wait, resolve, forceRestoreFocus)
 			} else {
 				resolve()
 			}
@@ -420,7 +514,7 @@ export default class Form extends Component {
 		// The focus must be restored after the form re-renders
 		// with `submitting: false`, hence the `.setState()` `Promise`.
 		this.snapshotFocus()
-		this.dispatch(setFormSubmitting(true))
+		this.setFormSubmitting(true)
 		return promise.then(
 			() => this.resetFormSubmittingState(),
 			(error) => this.resetFormSubmittingState(true).then(() => {
@@ -466,15 +560,25 @@ export default class Form extends Component {
 
 	// Focuses on a given form field (is used internally + public API).
 	focus = (field) => {
-		if (field || this.firstField) {
-			this.fields[field || this.firstField].focus()
-		} else if (this.getSubmitButtonNode()) {
-			this.getSubmitButtonNode().focus()
+		if (field) {
+			return this.fields[field].focus()
 		}
+		this.getFocusable().focus()
+	}
+
+	/**
+	 * Returns a "focusable".
+	 * @return {(object|Element)} Returns either a `field` object having `.focus()` method or the submit button `Element`.
+	 */
+	getFocusable() {
+		if (this.firstField) {
+			return this.fields[this.firstField]
+		}
+		return this.getSubmitButtonNode()
 	}
 
 	// Scrolls to a form field (is used internally + public API).
-	scroll = (field) => this.fields[field].scroll()
+	scroll = (field, options) => this.fields[field].scroll(options)
 
 	// Clears field value (public API).
 	// If this field hasn't been "registered" yet then ignore.
@@ -486,7 +590,16 @@ export default class Form extends Component {
 	// Sets field value (public API).
 	set = (field, value) => {
 		this.dispatch(setFieldValue(field, value))
-		this.dispatch(setFieldError(field, this.fields[field].validate(value)))
+		// If the field is still mounted.
+		if (this.fields[field]) {
+			// Validate field value.
+			this.dispatch(setFieldError(field, this.fields[field].validate(value)))
+			// Trigger the `<Field/>`'s `onChange()` handler.
+			const { onChange, initialValue } = this.fields[field]
+			if (onChange) {
+				onChange(value)
+			}
+		}
 	}
 
 	setFormNode = (node) => this.form = node
@@ -494,7 +607,7 @@ export default class Form extends Component {
 
 	render() {
 		const { children } = this.props
-		const { resetCounter } = this.state
+		const { resetCounter, submitting } = this.state
 		return (
 			<form
 				key={resetCounter}
@@ -503,7 +616,7 @@ export default class Form extends Component {
 				onSubmit={this.onSubmit}>
 				<Context.Provider value={this.state}>
 					{typeof children === 'function' ?
-						<Children values={this.values()}>
+						<Children values={this.values()} submitting={submitting}>
 							{children}
 						</Children> :
 						children
@@ -519,19 +632,21 @@ class Children extends React.Component {
 		this._isMounted = true
 	}
 	render() {
-		const { values, children } = this.props
+		const { values, submitting, children } = this.props
 		return children({
-			values: this._isMounted ? values : undefined
+			values: this._isMounted ? values : undefined,
+			submitting
 		})
 	}
 }
 
 Children.propTypes = {
 	values: PropTypes.object.isRequired,
+	submitting: PropTypes.bool,
 	children: PropTypes.func.isRequired
 }
 
-function generateInitialFormState(initialValues = {}) {
+function generateInitialFormState(initialValues = {}, { submitting = false } = {}) {
 	return {
 		// `mounted`/`unmounted` counters for each form field.
 		fields : {},
@@ -553,7 +668,7 @@ function generateInitialFormState(initialValues = {}) {
 
 		// If `onSubmit` returns a `Promise` (or is `async/await`)
 		// then `submitting` will be `true` until `onSubmit` finishes.
-		submitting : false
+		submitting
 	}
 }
 
@@ -567,7 +682,7 @@ export const contextPropType = PropTypes.shape({
 	onRegisterField: PropTypes.func.isRequired,
 	onUnregisterField: PropTypes.func.isRequired,
 	onRegisterList: PropTypes.func.isRequired,
-	focus: PropTypes.isRequired,
+	focus: PropTypes.func.isRequired,
 	dispatch: PropTypes.func.isRequired,
 	getRequiredMessage: PropTypes.func.isRequired,
 	getValues: PropTypes.func.isRequired,

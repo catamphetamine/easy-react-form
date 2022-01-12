@@ -1,5 +1,15 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
+1.2.0 / 09.08.2021
+==================
+
+* (could hypothetically be a breaking change for someone) Empty `<input/>` values used to be converted to `undefined`. Now they're converted to `null`: otherwise the browser doesn't send such fields to the server because `JSON.stringify()` skips `undefined` properties when converting a JSON object to a string.
+
+1.1.2 / 16.01.2021
+===================
+
+* `<Form/>` `.reset()` instance method no longer accepts `fieldName: string` argument. It still works the old way, but the `fieldName: string` arugment is considered deprecated. It worked in a weird way: reset the field to its initial value rather than `undefined`. To reset a field, use `.clear(fieldName)` instance method instead.
+
 1.1.0 / 05.02.2020
 ===================
 
