@@ -10,7 +10,8 @@ import { getPassThroughProps, scrollTo } from './utility'
 import {
 	setFieldValue,
 	setFieldError,
-	showFieldError,
+	setFieldValidationError,
+	// showFieldError,
 	fieldFocused
 } from './actions'
 
@@ -67,6 +68,7 @@ class FormField extends Component {
 		const {
 			context,
 			listContext,
+			error,
 			name,
 			value,
 			onChange
@@ -78,10 +80,10 @@ class FormField extends Component {
 		// when hiding/showing new fields, so a field might get
 		// "registered"/"unregistered" several times in those cases.
 		//
-		const initialValue = value === undefined ? context.getInitialValue(this.getName()) : value
 		context.onRegisterField(this.getName(), {
-			initialValue,
+			value,
 			onChange,
+			error,
 			validate: this.validate,
 			scroll: this.scroll,
 			focus: this.focus
@@ -148,7 +150,8 @@ class FormField extends Component {
 		// If the `error` is set then indicate this field as being invalid.
 		if (error) {
 			context.dispatch(setFieldError(this.getName(), error))
-			context.dispatch(showFieldError(this.getName()))
+			// `setFieldError()` action also automatically sets `showErrors[field]` property.
+			// context.dispatch(showFieldError(this.getName()))
 			this.scroll()
 			this.focus()
 		}
@@ -175,7 +178,7 @@ class FormField extends Component {
 		const { context, onChange } = this.props
 
 		context.dispatch(setFieldValue(this.getName(), value))
-		context.dispatch(setFieldError(this.getName(), undefined))
+		context.dispatch(setFieldValidationError(this.getName(), undefined))
 
 		if (onChange) {
 			onChange(...args)
@@ -194,7 +197,7 @@ class FormField extends Component {
 		const { context, onBlur } = this.props
 		const error = this.validate(context.values[this.getName()])
 		if (error) {
-			context.dispatch(setFieldError(this.getName(), error))
+			context.dispatch(setFieldValidationError(this.getName(), error))
 		}
 		if (onBlur) {
 			onBlur(event)
@@ -261,6 +264,7 @@ class FormField extends Component {
 
 	validate = (value) => {
 		const { context, validate, required } = this.props
+		value = context.getSubmittedValue(value)
 		if (required && isValueEmpty(value)) {
 			return typeof required === 'string' ? required : context.getRequiredMessage()
 		}
@@ -287,7 +291,7 @@ class FormField extends Component {
 		} = this.props
 
 		const value = context.values[this.getName()]
-		const error = context.errors[this.getName()]
+		const error = context.validationErrors[this.getName()] || context.errors[this.getName()]
 		const showError = context.showErrors[this.getName()]
 
 		return React.createElement(component, {
@@ -304,10 +308,9 @@ class FormField extends Component {
 	}
 }
 
-export function isValueEmpty(_)
+function isValueEmpty(_)
 {
 	return _ === undefined || _ === null ||
-		(typeof _ === 'string' && _.trim() === '') ||
 		(Array.isArray(_) && _.length === 0)
 }
 

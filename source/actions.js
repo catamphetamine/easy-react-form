@@ -1,4 +1,4 @@
-export const registerField = (field, value, validate) => state =>
+export const registerField = ({ field, value, validate, error }) => state =>
 {
 	// Uses a numerical counter instead of a boolean.
 	// https://github.com/erikras/redux-form/issues/1705
@@ -14,11 +14,15 @@ export const registerField = (field, value, validate) => state =>
 	{
 		state.fields[field] = 1
 
-		// Only initializes the field with its default value
+		// Only initializes the field with its default `value`
 		// if it hasn't been seen before.
-		// Otherwise will initialize the field with its current value.
 		state.values[field] = value
-		state.errors[field] = validate(value)
+		state.validationErrors[field] = validate(value)
+
+		if (error) {
+			state.errors[field] = error
+			state.showErrors[field] = true
+		}
 	}
 	else
 	{
@@ -39,18 +43,25 @@ export const unregisterField = (field) => state =>
 	state.fields[field]--
 }
 
-// Manually set field value.
+// Sets field `value`.
 // (e.g. `this.form.set(field, value)`).
 export const setFieldValue = (field, value) => state =>
 {
 	state.values[field] = value
 }
 
-// Manually set field `error`.
+// Sets field externally-set `error`.
 export const setFieldError = (field, error) => state =>
 {
 	state.errors[field] = error
-	state.showErrors[field] = error ? true : false
+	state.showErrors[field] = Boolean(state.validationErrors[field] || state.errors[field])
+}
+
+// Sets field validation `error`.
+export const setFieldValidationError = (field, error) => state =>
+{
+	state.validationErrors[field] = error
+	state.showErrors[field] = Boolean(state.validationErrors[field] || state.errors[field])
 }
 
 export const fieldFocused = (field) => state =>
@@ -72,6 +83,7 @@ export const removeField = (field) => state => {
 	delete state.fields[field]
 	delete state.values[field]
 	delete state.errors[field]
+	delete state.validationErrors[field]
 	delete state.showErrors[field]
 	if (state.latestFocusedField === field) {
 		state.latestFocusedField = undefined

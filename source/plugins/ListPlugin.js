@@ -14,8 +14,8 @@ export default class ListPlugin {
 	}
 
 	getValues(values) {
-		// Convert list value keys having format
-		// `${list}:${index}:${field}` to arrays of objects.
+		// In `values`, replace all entries having keys `${list}:${index}:${field}`
+		// with a single `${list}` entry being an array of objects with keys `${field}`.
 		return convertListValues(values)
 	}
 

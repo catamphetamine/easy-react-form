@@ -9,7 +9,7 @@ import { getPassThroughProps, getValues, getValue, getNext, NOT_FOUND } from './
 import {
 	setFormSubmitting,
 	setFieldValue,
-	setFieldError,
+	setFieldValidationError,
 	registerField,
 	unregisterField,
 	removeField
@@ -55,6 +55,9 @@ export default class Form extends Component {
 	// Also stores fields' `scroll()` and `focus()` functions.
 	fields = {}
 
+	watchedFields = {}
+	watchedFieldsList = []
+
 	constructor(props) {
 		super(props)
 		const { values, requiredMessage, plugins, wait } = this.props
@@ -64,11 +67,11 @@ export default class Form extends Component {
 			dispatch: this.dispatch,
 			onRegisterField: this.onRegisterField,
 			onUnregisterField: this.onUnregisterField,
+			getSubmittedValue: this.getSubmittedValue,
 			getRequiredMessage: () => requiredMessage,
 			// These're used by `<List/>`.
 			focus: this.focus,
-			getValues: this.values,
-			getInitialValue: this.getInitialValue
+			getValues: this.values
 		}
 		this.plugins = plugins.map(Plugin => new Plugin(() => this.props, () => this.state))
 		for (const plugin of this.plugins) {
@@ -119,9 +122,37 @@ export default class Form extends Component {
 		this.mounted = false
 	}
 
-	// `value` is initial field value
-	// (which is restored on form reset)
-	onRegisterField = (field, { initialValue, onChange, validate, scroll, focus }) => {
+	updateState(newState, callback) {
+		// See if any fields are watched.
+		// If they are, see if their values have changed.
+		// If they have, re-render the form after updating state.
+		for (const field of this.watchedFieldsList) {
+			const prevValue = this.state.values[field]
+			const newValue = newState.values[field]
+			if (newValue !== prevValue) {
+				// Re-render the form after updating state.
+				newState = { ...newState }
+				break
+			}
+		}
+		// Update state.
+		this.setState(newState, callback)
+	}
+
+	// `value` parameter is an initial field value.
+	// It is used later in case of a form or field reset.
+	onRegisterField = (field, {
+		value,
+		onChange,
+		validate,
+		error,
+		scroll,
+		focus
+	}) => {
+		if (value === undefined) {
+			value = this.getInitialValue(field)
+		}
+
 		// The stored field info is used to `validate()` field `value`s
 		// and set the corresponding `error`s
 		// when calling `set(field, value)` and `clear(field)`.
@@ -131,7 +162,7 @@ export default class Form extends Component {
 		// then the methods for the field will be updated.
 		//
 		this.fields[field] = {
-			initialValue,
+			initialValue: value,
 			validate,
 			scroll,
 			focus,
@@ -141,11 +172,12 @@ export default class Form extends Component {
 		if (!this.firstField) {
 			this.firstField = field
 		}
-		this.dispatch(registerField(
+		this.dispatch(registerField({
 			field,
-			initialValue,
-			validate
-		))
+			value,
+			validate,
+			error
+		}))
 	}
 
 	onUnregisterField = (field) => {
@@ -182,12 +214,32 @@ export default class Form extends Component {
 		// is used as the `context` property for `React.Context`
 		// meaning that `state` reference shouldn't change.
 		//
-		this.setState(this.state, callback)
+		this.updateState(this.state, callback)
 
 		// const { onStateChange } = this.props
 		// if (onStateChange) {
 		// 	onStateChange(this.state)
 		// }
+	}
+
+	getSubmittedValue = (value) => {
+		const { trim } = this.props
+		if (trim && typeof value === 'string') {
+			value = value.trim()
+		}
+		// Convert empty strings to `null`.
+		//
+		// Using `undefined` instead of `null` wouldn't work because the browser
+		// wouldn't send such fields to the server because `JSON.stringify()` skips
+		// `undefined` properties when converting a JSON object to a string.
+		//
+		// Sending a `null` field value rather than omitting it entirely from an HTTP request
+		// is used in order to be able to "clear" the form field value on the server side.
+		//
+		if (value === '') {
+			value = null
+		}
+		return value
 	}
 
 	getInitialValue = (name) => {
@@ -204,15 +256,27 @@ export default class Form extends Component {
 	}
 
 	// Public API
-	values = (customValues) => {
+	/**
+	 * Returns form field values.
+	 * @return {object}
+	 */
+	values = () => {
 		const { values, fields } = this.state
-		let _values = getValues(customValues || values, fields)
+		return this.applyPluginValueTransforms(getValues(values, fields))
+	}
+
+	/**
+	 * Applies plugins' transformations to form field values.
+	 * @param  {object} values
+	 * @return {object}
+	 */
+	applyPluginValueTransforms(values) {
 		for (const plugin of this.plugins) {
 			if (plugin.getValues) {
-				_values = plugin.getValues(_values)
+				values = plugin.getValues(values)
 			}
 		}
-		return _values
+		return values
 	}
 
 	// Public API
@@ -262,7 +326,7 @@ export default class Form extends Component {
 		// Reset first focusable field since the form is gonna be reset.
 		this.firstField = undefined
 
-		this.setState(this.state, () => {
+		this.updateState(this.state, () => {
 			if (!this.mounted) {
 				return
 			}
@@ -303,7 +367,7 @@ export default class Form extends Component {
 		const initialValue = !this.fields[name] || this.fields[name].initialValue === undefined ? this.getInitialValue(name) : this.fields[name].initialValue
 		this.dispatch(setFieldValue(name, initialValue))
 		// A default value isn't supposed to generate an error.
-		this.dispatch(setFieldError(name, undefined))
+		this.dispatch(setFieldValidationError(name, undefined))
 		// Trigger the `<Field/>`'s `onChange()` handler.
 		// If the field is still mounted.
 		if (this.fields[name]) {
@@ -343,7 +407,11 @@ export default class Form extends Component {
 	}
 
 	searchForInvalidField() {
-		const { fields, values, errors } = this.state
+		const {
+			fields,
+			values,
+			errors
+		} = this.state
 
 		// Re-run `validate()` for each field.
 		// Because `validate()` function takes two arguments:
@@ -361,7 +429,8 @@ export default class Form extends Component {
 			if (errors[field] !== undefined) {
 				return field
 			}
-			// `if (validate(value))` means "if the value is invalid".
+			// If the field's `value` is not valid,
+			// `validate(value)` returns a validation error message (or `true`).
 			if (this.fields[field].validate(values[field])) {
 				return field
 			}
@@ -380,14 +449,19 @@ export default class Form extends Component {
 			return true
 		}
 
-		// Re-validate all fields to highlight
-		// all required ones which are not filled.
+		// Re-validate all fields to highlight all required ones that're empty.
+		// Otherwise, it'd just stop at the first not-valid field
+		// and the user would just see that single field highlighted
+		// as "Required", and then they'd have to re-submit the form
+		// just to find out that some other field is "Required" too,
+		// so it's better "user experience" to just highlight all
+		// required fields right away.
 		for (const field of Object.keys(fields)) {
 			// Trigger `validate()` on the field
 			// so that `errors` is updated inside form state.
 			// (if the field is still mounted)
 			if (fields[field]) {
-				this.set(field, values[field])
+				this._set(field, values[field], { changed: false })
 			}
 		}
 
@@ -407,31 +481,20 @@ export default class Form extends Component {
 	}
 
 	/**
-	 * Trims strings. Converts empty strings to `undefined`.
+	 * Collects the currently "registered" fields' values.
 	 * @return {object} `values`
 	 */
-	collectFieldValues() {
-		const { trim } = this.props
+	getSubmittedValues() {
 		const { fields, values } = this.state
-		// Pass only registered fields to form submit action
-		// (because if a field is unregistered that means that
-		//  its React element was removed in the process,
-		//  and therefore it's not needed anymore)
-		return Object.keys(fields).reduce((allValues, field) => {
-			let value = values[field]
-			if (trim && typeof value === 'string') {
-				value = value.trim()
-				// Convert empty strings to `null`.
-				// Using `undefined` instead of `null` wouldn't work because the browser
-				// wouldn't send such fields to the server because `JSON.stringify()` skips
-				// `undefined` properties when converting a JSON object to a string.
-				if (!value) {
-					value = null
-				}
-			}
-			allValues[field] = value
-			return allValues
-		}, {})
+		// Get only "registered" (non-removed) field values.
+		const fieldValues = getValues(values, fields)
+		for (const key of Object.keys(fieldValues)) {
+			// Trim strings (if `trim` option is set to `true`, which is the default setting).
+			// Convert empty strings to `null`s.
+			fieldValues[key] = this.getSubmittedValue(fieldValues[key])
+		}
+		// Apply plugins' value transformations.
+		return this.applyPluginValueTransforms(fieldValues)
 	}
 
 	// Calls `<form/>`'s `onSubmit` action.
@@ -439,7 +502,7 @@ export default class Form extends Component {
 		const { onError } = this.props
 		let result
 		try {
-			result = action(this.values(values))
+			result = action(values)
 		} catch (error) {
 			if (onError(error) === false) {
 				throw error
@@ -554,7 +617,7 @@ export default class Form extends Component {
 		// Submit the form if it's valid.
 		// Otherwise highlight invalid fields.
 		if (this.validate()) {
-			this.executeFormAction(onSubmit, this.collectFieldValues())
+			this.executeFormAction(onSubmit, this.getSubmittedValues())
 		}
 	}
 
@@ -588,18 +651,31 @@ export default class Form extends Component {
 	get = (field) => this.state.values[field]
 
 	// Sets field value (public API).
-	set = (field, value) => {
+	set = (field, value) => this._set(field, value, {})
+
+	// Sets field value.
+	_set = (field, value, { changed }) => {
 		this.dispatch(setFieldValue(field, value))
 		// If the field is still mounted.
 		if (this.fields[field]) {
 			// Validate field value.
-			this.dispatch(setFieldError(field, this.fields[field].validate(value)))
+			this.dispatch(setFieldValidationError(field, this.fields[field].validate(value)))
 			// Trigger the `<Field/>`'s `onChange()` handler.
-			const { onChange, initialValue } = this.fields[field]
-			if (onChange) {
-				onChange(value)
+			if (changed !== false) {
+				const { onChange } = this.fields[field]
+				if (onChange) {
+					onChange(value)
+				}
 			}
 		}
+	}
+
+	watch = (field) => {
+		if (!this.watchedFields[field]) {
+			this.watchedFields[field] = true
+			this.watchedFieldsList.push(field)
+		}
+		return this.get(field)
 	}
 
 	setFormNode = (node) => this.form = node
@@ -616,7 +692,15 @@ export default class Form extends Component {
 				onSubmit={this.onSubmit}>
 				<Context.Provider value={this.state}>
 					{typeof children === 'function' ?
-						<Children values={this.values()} submitting={submitting}>
+						<Children
+							values={this.mounted ? this.values() : undefined}
+							reset={this.reset}
+							set={this.set}
+							clear={this.clear}
+							scroll={this.scroll}
+							focus={this.focus}
+							watch={this.watch}
+							submitting={submitting}>
 							{children}
 						</Children> :
 						children
@@ -627,21 +711,39 @@ export default class Form extends Component {
 	}
 }
 
-class Children extends React.Component {
-	componentDidMount() {
-		this._isMounted = true
-	}
-	render() {
-		const { values, submitting, children } = this.props
-		return children({
-			values: this._isMounted ? values : undefined,
-			submitting
-		})
-	}
+// Added a functional `Children` component to work around a React warning:
+// "Invalid hook call. Hooks can only be called inside of the body of a function component".
+function Children({
+	values,
+	reset,
+	set,
+	clear,
+	scroll,
+	focus,
+	watch,
+	submitting,
+	children
+}) {
+	return children({
+		values,
+		reset,
+		set,
+		clear,
+		scroll,
+		focus,
+		watch,
+		submitting
+	})
 }
 
 Children.propTypes = {
-	values: PropTypes.object.isRequired,
+	values: PropTypes.object,
+	reset: PropTypes.func.isRequired,
+	set: PropTypes.func.isRequired,
+	clear: PropTypes.func.isRequired,
+	scroll: PropTypes.func.isRequired,
+	focus: PropTypes.func.isRequired,
+	watch: PropTypes.func.isRequired,
 	submitting: PropTypes.bool,
 	children: PropTypes.func.isRequired
 }
@@ -657,8 +759,12 @@ function generateInitialFormState(initialValues = {}, { submitting = false } = {
 		// Initial form field values.
 		initialValues,
 
-		// `validate()` results for current form field values.
+		// Externally set `error`s on form fields.
 		errors : {},
+
+		// The results of `validate()` functions called on
+		// the corresponding form field `value`s.
+		validationErrors : {},
 
 		// Whether should show field errors.
 		showErrors : {},
@@ -677,14 +783,15 @@ export const contextPropType = PropTypes.shape({
 	values: PropTypes.object.isRequired,
 	initialValues: PropTypes.object.isRequired,
 	errors: PropTypes.object.isRequired,
+	validationErrors: PropTypes.object.isRequired,
 	showErrors: PropTypes.object.isRequired,
 	submitting: PropTypes.bool.isRequired,
 	onRegisterField: PropTypes.func.isRequired,
 	onUnregisterField: PropTypes.func.isRequired,
 	onRegisterList: PropTypes.func.isRequired,
+	getSubmittedValue: PropTypes.func.isRequired,
 	focus: PropTypes.func.isRequired,
 	dispatch: PropTypes.func.isRequired,
 	getRequiredMessage: PropTypes.func.isRequired,
-	getValues: PropTypes.func.isRequired,
-	getInitialValue: PropTypes.func.isRequired
+	getValues: PropTypes.func.isRequired
 })

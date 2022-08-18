@@ -5,6 +5,19 @@ const LIST_ITEM_KEY_REGEXP = /^([^:]+):(\d+):([^:]+)$/
 /**
  * Converts values having keys `${list}:${i}:${field}`
  * into arrays of objects `{ list: [{ field, ... }, ...] }`.
+ *
+ * For example, in a form, there's a `<List name="list">` container element
+ * and inside that container element there're 3 `<Field name="value"/>` elements.
+ *
+ * Then, in `values` argument, there'd be 3 fields names corresponding to those list items:
+ * * "list:0:value": "a"
+ * * "list:1:value": "b"
+ * * "list:2:value": "c"
+ *
+ * After calling this function, a new `values` object is returned
+ * where those 3 entries have been replaced with a single entry:
+ * * "list": [{ value: "a" }, { value: "c" }]
+ *
  * @param {object} values
  * @return {object}
  */

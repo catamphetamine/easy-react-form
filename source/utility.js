@@ -27,16 +27,30 @@ export function scrollTo(node, options) {
 	})
 }
 
+/**
+ * Selects only the values for non-removed fields:
+ * removes fields thats have `0` field counter.
+ *
+ * Filters `values` object to contain only the "registered" fields' entries.
+ * Because if a field is "unregistered", it means that the React element
+ * was removed in the process, and therefore that field's entry shouldn't
+ * exist in the returned `values` object.
+ *
+ * Values for "unregistered" fields don't get cleared from form's `values` by default
+ * because of how React rendering works with unmounting and then re-mounted elements.
+ *
+ * @param  {object} values
+ * @param  {object} fields
+ * @return {object}
+ */
 export function getValues(values, fields) {
-	// Select only values for non-removed fields.
-	// Removed fields have `0` field counter.
-	const existingValues = {}
+	const nonRemovedFieldValues = {}
 	for (const key of Object.keys(values)) {
 		if (fields[key]) {
-			existingValues[key] = values[key]
+			nonRemovedFieldValues[key] = values[key]
 		}
 	}
-	return existingValues
+	return nonRemovedFieldValues
 }
 
 export function getValue(values, key) {

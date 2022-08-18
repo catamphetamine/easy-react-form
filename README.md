@@ -117,7 +117,7 @@ The `<Form/>` takes the following optional properties:
 
   * `values : object` — The initial values for this form's fields.
 
-  * `trim : Boolean` – Set to `false` to disable trimming strings. Defaults to `true`.
+  * `trim : Boolean` – By default, the form trims string field values when passing them to `onSubmit()` function. To disable this feature, set `trim` property to `false` (defaults to `true`). Regardless of the `trim` setting, empty string field values are converted to `null`s when passed to `onSubmit()` function.
 
   * `requiredMessage : String` – The default `error` message for `<Field required/>`. Is `"Required"` by default.
 
@@ -143,9 +143,13 @@ The `<Form/>` component instance (`ref`) provides the following methods:
 
   * `get(fieldName : String)` — Gets form field value.
 
-  * `set(fieldName : String, value : String)` — Sets form field value.
+  * `set(fieldName : String, value : any)` — Sets form field value.
 
-  * `values()` — Returns form field values (an alternative to `get(fieldName : String)`).
+  * `watch(fieldName : String) : any` — Watches a form field's value. Returns the current form field's value and re-renders the whole form whenever that value changes.
+
+  * `values : object?` — An object containing all form field values. Is `undefined` until the form has mounted.
+
+  <!-- * `values()` — Returns form field values (an alternative to `get(fieldName : String)`). -->
 
   * `reset()` — Resets all form field values.
 
@@ -154,6 +158,18 @@ Upon form submission, if any one of its fields is invalid, then that field will 
 The `<Form/>` can also accept `children` being a `function(parameters)` returning a `React.Element` that will be called on any form value change, so it can be used in cases when re-rendering the whole `<Form/>` is required on any form value change. Available `parameters`:
 
 * `values : Object` — Form values. Is `undefined` until the form is initialized (mounted) (`<Field/>` `value`s are `undefined` until those `<Feild/>`s are mounted).
+
+* `set(fieldName : String, value : any)` — Sets form field value.
+
+* `clear(fieldName : String)` — Clears field value.
+
+* `reset()` — Resets all form field values.
+
+* `watch(fieldName : String) : any` — Watches a form field's value. Returns the current form field's value and re-renders the whole form whenever that value changes. Returns `undefined` until the form is initialized (mounted) (`<Field/>` `defaultValue`s are not set until those `<Feild/>`s have mounted).
+
+* `focus(fieldName : String)` — Focuses on a field.
+
+* `scroll(fieldName : String)` — Scrolls to a field (if it's not visible on the screen).
 
 * `submitting : boolean` — Whether the form is currently being submitted.
 
