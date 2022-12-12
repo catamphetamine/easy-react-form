@@ -1,43 +1,15 @@
 {
-	"presets":
-	[
-		"react",
-		"env"
+	"presets": [
+		"@babel/env",
+		"@babel/react"
 	],
-
-	"plugins":
-	[
-		["transform-es2015-for-of", { loose: true }],
-		"transform-object-rest-spread",
-		"transform-decorators-legacy",
-		"transform-class-properties"
+	"plugins": [
+		["@babel/transform-for-of", { "loose": true }]
 	],
-
-	"env":
-	{
-		"es6":
-		{
-			"presets":
-			[
-				"react",
-				["env", { modules: false }]
-			],
-
-			"plugins":
-			[
-				["transform-es2015-for-of", { loose: true }],
-				"transform-object-rest-spread",
-				"transform-decorators-legacy",
-				"transform-class-properties"
-			]
-		},
-		"test":
-		{
-			"plugins": ["istanbul"],
-			"ignore": [
-				"bundle",
-				"modules",
-				"commonjs"
+	"env": {
+		"es6": {
+			"presets": [
+				["@babel/env", { "modules": false }]
 			]
 		}
 	}
