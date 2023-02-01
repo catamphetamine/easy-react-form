@@ -43,3 +43,7 @@ npm-debug.log
 
 # tests aren't needed for npm
 /test/
+
+# Don't include the "bundle" folder for now, because currently it's just for tests.
+/bundle/
+index.browser.js

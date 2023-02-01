@@ -1,16 +1,5 @@
-// With the current implementation, actions "mutate" the original `state` object
-// instead of creating a new one every time.
-//
-// One rationale is that this way it might theoretically be more performant
-// to reuse and "mutate" the existing `state` object instead of creating a new one
-// on each keystroke.
-//
-// The most significant rationale is that mutating the original `state` object directly
-// eliminates any potential "race condition" bugs where state changes would be lost.
-// Consider two consequtive action calls: one to set a field's value
-// and the other one to focus the field. If the original `state` object is mutated,
-// no changes are lost. But if a new state object would've been created by each
-// of those two actions, the second one would overwrite the changes made by the first one.
+// This file is not currently used.
+// See the comments in `actions.js` for more info on why.
 
 export const registerField = ({ field, value, validate, error }) => state =>
 {
@@ -26,21 +15,41 @@ export const registerField = ({ field, value, validate, error }) => state =>
 	// So this trick retains the field's state (including value).
 	if (state.fields[field] === undefined)
 	{
-		state.fields[field] = 1
-
 		const validationError = validate(value)
 
-		// Only initializes the field with its default `value`
-		// if it hasn't been seen before.
-		state.values[field] = value
-		state.validationErrors[field] = validationError
-
-		state.errors[field] = error
-		state.showErrors[field] = Boolean(error || validationError)
+		return {
+			...state,
+			fields: {
+				...state.fields,
+				[field]: 1
+			},
+			values: {
+				...state.values,
+				// Only initializes the field with its default `value`
+				// if it hasn't been seen before.
+				[field]: value
+			},
+			validationErrors: {
+				...state.validationErrors,
+				[field]: validationError
+			},
+			errors: {
+				...state.errors,
+				[field]: error
+			},
+			showErrors: {
+				...state.showErrors,
+				[field]: Boolean(validationError || error)
+			}
+		}
 	}
-	else
-	{
-		state.fields[field]++
+
+	return {
+		...state,
+		fields: {
+			...state.fields,
+			[field]: state.fields[field] + 1
+		}
 	}
 }
 
@@ -79,14 +88,26 @@ export const unregisterField = (field) => state =>
 	// So even if the registration counter for a field becomes equal to `0`,
 	// it's still not destroyed, because it could reappear at some other position in the form.
 	//
-	state.fields[field]--
+	return {
+		...state,
+		fields: {
+			...state.fields,
+			[field]: state.fields[field] - 1
+		}
+	}
 }
 
 // Sets field `value`.
 // (e.g. `this.form.set(field, value)`).
 export const setFieldValue = (field, value) => state =>
 {
-	state.values[field] = value
+	return {
+		...state,
+		values: {
+			...state.values,
+			[field]: value
+		}
+	}
 }
 
 // Sets field externally-set `error`.
@@ -94,8 +115,17 @@ export const setFieldError = (field, error) => state =>
 {
 	const validationError = state.validationErrors[field]
 
-	state.errors[field] = error
-	state.showErrors[field] = Boolean(validationError || error)
+	return {
+		...state,
+		errors: {
+			...state.errors,
+			[field]: error
+		},
+		showErrors: {
+			...state.showErrors,
+			[field]: Boolean(validationError || error)
+		}
+	}
 }
 
 // Sets field validation `error`.
@@ -103,32 +133,69 @@ export const setFieldValidationError = (field, validationError) => state =>
 {
 	const error = state.errors[field]
 
-	state.validationErrors[field] = validationError
-	state.showErrors[field] = Boolean(validationError || error)
+	return {
+		...state,
+		validationErrors: {
+			...state.validationErrors,
+			[field]: validationError
+		},
+		showErrors: {
+			...state.showErrors,
+			[field]: Boolean(validationError || error)
+		}
+	}
 }
 
 export const fieldFocused = (field) => state =>
 {
-	state.latestFocusedField = field
+	return {
+		...state,
+		latestFocusedField: field
+	}
 }
 
 export const setFormSubmitting = (submitting) => state =>
 {
-	state.submitting = submitting
+	return {
+		...state,
+		submitting
+	}
 }
 
 export const showFieldError = (field) => state =>
 {
-	state.showErrors[field] = true
+	return {
+		...state,
+		showErrors: {
+			...state.showErrors,
+			[field]: true
+		}
+	}
 }
 
 export const removeField = (field) => state => {
-	delete state.fields[field]
-	delete state.values[field]
-	delete state.errors[field]
-	delete state.validationErrors[field]
-	delete state.showErrors[field]
-	if (state.latestFocusedField === field) {
-		state.latestFocusedField = undefined
+	return {
+		...state,
+		fields: {
+			...state.fields,
+			[field]: undefined
+		},
+		values: {
+			...state.values,
+			[field]: undefined
+		},
+		errors: {
+			...state.errors,
+			[field]: undefined
+		},
+		validationErrors: {
+			...state.validationErrors,
+			[field]: undefined
+		},
+		showErrors: {
+			...state.showErrors,
+			[field]: undefined
+		},
+		latestFocusedField: state.latestFocusedField === field ? undefined : state.latestFocusedField
 	}
 }

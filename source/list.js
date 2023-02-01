@@ -1,6 +1,5 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import createContext from 'create-react-context'
 
 import { Context } from './form'
 import { getFieldName } from './plugins/ListPlugin.utility'
@@ -18,47 +17,65 @@ export default function List_(props) {
 class List extends React.Component {
 	constructor(props) {
 		super(props)
+
 		this.state = {
-			context: {
-				getFieldName: this.getFieldName,
-				onRegisterField: this.onRegisterField
+			listContext: {
+				getFieldNameInsideList: this.getFieldName,
+				onRegisterFieldInsideList: this.onRegisterField
 			},
-			...this.getInitialItemsState()
+			state: this.getInitialListState()
 		}
 	}
 
 	componentDidMount() {
 		const { name, context } = this.props
 		context.onRegisterList(name, {
-			onReset: this.onReset
+			onReset: this.reset,
+			state: this.getListState()
 		})
 	}
 
-	onReset = () => {
-		this.setState(this.getInitialItemsState())
+	componentWillUnmount() {
+		const { name, context } = this.props
+		context.onUnregisterList(name)
+	}
+
+	reset = () => {
+		this.setListState(this.getInitialListState())
 	}
 
 	getInitialItems() {
 		const { context, name, count } = this.props
-		if (context.initialValues[name]) {
-			return createIndexArray(context.initialValues[name].length)
+		// console.error(`[easy-react-form] \`initialState\` doesn't include the state for list "${name}"`)
+		const initialListValue = context.state.initialValues[name]
+		if (initialListValue) {
+			return createItemIdsArray(initialListValue.length)
 		}
-		return createIndexArray(count)
+		return createItemIdsArray(count)
 	}
 
-	getInitialItemsState() {
+	getInitialListState() {
+		// Get list initial state from the form's `initialState`.
+		const { context, name } = this.props
+		if (context.state.lists[name]) {
+			if (context.state.listInstanceCounters[name] > 0) {
+				return context.state.lists[name]
+			}
+		}
+
+		// Create list initial state.
 		const items = this.getInitialItems()
 		return {
 			items,
-			itemsCounter: items.length
+			maxItemId: items[items.length - 1]
 		}
 	}
 
-	getFieldName = (i, name) => {
-		if (typeof i !== 'number') {
-			throw new Error('Each `<Feild/>` in a `<List/>` must have an `i` property')
+	getFieldName = (itemId, name) => {
+		if (typeof itemId !== 'number') {
+			throw new Error('Each `<Feild/>` in a `<List/>` must have an `item` property')
 		}
-		return getFieldName(this.props.name, i, name)
+		return getFieldName(this.props.name, itemId, name)
 	}
 
 	onRegisterField = (name) => {
@@ -69,37 +86,51 @@ class List extends React.Component {
 
 	add = () => {
 		const { context } = this.props
-		const { items, itemsCounter } = this.state
-		this.setState({
-			itemsCounter: itemsCounter + 1,
-			items: items.concat([itemsCounter])
+		const { items, maxItemId } = this.getListState()
+		const itemId = maxItemId + 1
+		this.setListState({
+			maxItemId: itemId,
+			items: items.concat([itemId])
 		}, () => {
-			const { name } = this.props
 			if (this.firstFieldName) {
-				context.focus(`${name}:${itemsCounter}:${this.firstFieldName}`)
+				context.focus(this.getFieldName(itemId, this.firstFieldName))
 			}
 		})
 	}
 
-	remove = (i) => {
-		const { items } = this.state
-		this.setState({
-			items: items.filter(_ => _ !== i)
+	remove = (itemId) => {
+		const { items, maxItemId } = this.getListState()
+		this.setListState({
+			maxItemId,
+			items: items.filter(_ => _ !== itemId)
 		})
 	}
 
 	map = (func) => {
-		const { items } = this.state
-		return items.map(i => func(i))
+		const { items } = this.getListState()
+		return items.map(item => func(item))
+	}
+
+	getListState() {
+		return this.state.state
+	}
+
+	setListState(state, callback) {
+		const { context, name } = this.props
+		context.onListStateChange(name, state)
+		this.setState({ state }, callback)
+	}
+
+	getListContext() {
+		return this.state.listContext
 	}
 
 	render() {
 		const { children } = this.props
-		const { context: listContext } = this.state
 		return (
 			<Context.Consumer>
 				{context => (
-					<ListContext.Provider value={listContext}>
+					<ListContext.Provider value={this.getListContext()}>
 						{children({
 							map: this.map,
 							add: this.add,
@@ -123,9 +154,9 @@ List.defaultProps = {
 	count: 1
 }
 
-export const ListContext = createContext()
+export const ListContext = React.createContext()
 
-function createIndexArray(size) {
+function createItemIdsArray(size) {
 	const array = new Array(size)
 	let i = 0
 	while (i < size) {
@@ -136,6 +167,6 @@ function createIndexArray(size) {
 }
 
 export const listContextPropType = PropTypes.shape({
-	getFieldName: PropTypes.func.isRequired,
-	onRegisterField: PropTypes.func.isRequired
+	getFieldNameInsideList: PropTypes.func.isRequired,
+	onRegisterFieldInsideList: PropTypes.func.isRequired
 })

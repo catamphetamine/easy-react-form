@@ -1,7 +1,5 @@
 import React, { Component } from 'react'
-import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
-import createRef from 'react-create-ref'
 
 import { Context, contextPropType } from './form'
 import { ListContext, listContextPropType } from './list'
@@ -32,6 +30,8 @@ export default function Field(props) {
 	)
 }
 
+const itemType = PropTypes.number
+
 class FormField extends Component {
 	static propTypes = {
 		name      : PropTypes.string.isRequired,
@@ -44,22 +44,23 @@ class FormField extends Component {
 
 		context: contextPropType.isRequired,
 		listContext: listContextPropType,
-		i: PropTypes.number
+		item: itemType
 	}
 
-	field = createRef()
+	field = React.createRef()
 
 	constructor(props) {
 		super(props)
+
 		// The field could register itself inside `componentDidMount`
 		// but in that case initial `value` wouldn't yet be applied at mount time.
 		this.register()
 	}
 
 	getName(props = this.props) {
-		const { listContext, i, name } = props
+		const { listContext, item, name } = props
 		if (listContext) {
-			return listContext.getFieldName(i, name)
+			return listContext.getFieldNameInsideList(item, name)
 		}
 		return name
 	}
@@ -90,7 +91,7 @@ class FormField extends Component {
 		})
 
 		if (listContext) {
-			listContext.onRegisterField(name)
+			listContext.onRegisterFieldInsideList(name)
 		}
 	}
 
@@ -144,8 +145,8 @@ class FormField extends Component {
 	showOrHideExternallySetError(error) {
 		const { context } = this.props
 
-		const value = context.values[this.getName()]
-		const showError = context.showErrors[this.getName()]
+		const value = context.state.values[this.getName()]
+		const showError = context.state.showErrors[this.getName()]
 
 		// If the `error` is set then indicate this field as being invalid.
 		if (error) {
@@ -195,7 +196,7 @@ class FormField extends Component {
 
 	onBlur = (event) => {
 		const { context, onBlur } = this.props
-		const error = this.validate(context.values[this.getName()])
+		const error = this.validate(context.state.values[this.getName()])
 		if (error) {
 			context.dispatch(setFieldValidationError(this.getName(), error))
 		}
@@ -205,25 +206,7 @@ class FormField extends Component {
 	}
 
 	getNode() {
-		if (this.field.current) {
-			// Using `ReactDOM.findDOMNode` instead of `this.field.current`
-			// to supports non-functional components that don't use `React.forwardRef()`.
-			// For example, `<DropFileUpload/>` from `react-responsive-ui`.
-			//
-			// Using `useImperativeHandle()` would throw an error here:
-			// "Argument appears to not be a ReactComponent. Keys: focus".
-			//
-			try {
-				return ReactDOM.findDOMNode(this.field.current)
-			} catch (error) {
-				// A workaround for components that use `useImperativeHandle()`
-				// for adding `ref` suport.
-				if (this.field.current.getDOMNode) {
-					return this.field.current.getDOMNode()
-				}
-				console.warn(error)
-			}
-		}
+		return this.field.current
 	}
 
 	// Focuses on a field (can be called externally through a ref).
@@ -269,9 +252,9 @@ class FormField extends Component {
 			return typeof required === 'string' ? required : context.getRequiredMessage()
 		}
 		if (validate) {
-			// `context.values` could be replaced with
+			// `context.state.values` could be replaced with
 			// something else, like `context.getValues()`
-			// because `<List/>` values are prefixed in `context.values`.
+			// because `<List/>` values are prefixed in `context.state.values`.
 			// But running RegExps and re-creating the object
 			// on each `validate()` call seems like a not-the-best architecture.
 			// Instead `values` could be replaced with something like
@@ -290,9 +273,9 @@ class FormField extends Component {
 			component
 		} = this.props
 
-		const value = context.values[this.getName()]
-		const error = context.validationErrors[this.getName()] || context.errors[this.getName()]
-		const showError = context.showErrors[this.getName()]
+		const value = context.state.values[this.getName()]
+		const error = context.state.validationErrors[this.getName()] || context.state.errors[this.getName()]
+		const showError = context.state.showErrors[this.getName()]
 
 		return React.createElement(component, {
 			...getPassThroughProps(this.props, FormField.propTypes),
@@ -300,7 +283,7 @@ class FormField extends Component {
 			onChange : this.onChange,
 			onFocus  : this.onFocus,
 			onBlur   : this.onBlur,
-			disabled : disabled || context.submitting,
+			disabled : disabled || context.state.submitting,
 			error    : showError ? error : undefined,
 			required : required ? true : false,
 			value

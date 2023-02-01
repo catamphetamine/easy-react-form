@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import createContext from 'create-react-context'
 
 import OnAbandonPlugin from './plugins/OnAbandonPlugin'
 import ListPlugin from './plugins/ListPlugin'
@@ -15,14 +14,18 @@ import {
 	removeField
 } from './actions'
 
-export const Context = createContext()
+export const Context = React.createContext()
+
+const EMPTY_VALUE = null
 
 export default class Form extends Component {
 	static propTypes = {
 		onSubmit: PropTypes.func.isRequired,
 		onBeforeSubmit: PropTypes.func,
 		onAfterSubmit: PropTypes.func,
+		onStateChange: PropTypes.func,
 		onAbandon: PropTypes.func,
+		initialState: PropTypes.object,
 		values: PropTypes.object,
 		autoFocus: PropTypes.bool.isRequired,
 		trim: PropTypes.bool.isRequired,
@@ -60,25 +63,14 @@ export default class Form extends Component {
 
 	constructor(props) {
 		super(props)
-		const { values, requiredMessage, plugins, wait } = this.props
-		this.state = {
-			resetCounter: 0,
-			...generateInitialFormState(values, { submitting: wait }),
-			dispatch: this.dispatch,
-			onRegisterField: this.onRegisterField,
-			onUnregisterField: this.onUnregisterField,
-			getSubmittedValue: this.getSubmittedValue,
-			getRequiredMessage: () => requiredMessage,
-			// These're used by `<List/>`.
-			focus: this.focus,
-			getValues: this.values
-		}
-		this.plugins = plugins.map(Plugin => new Plugin(() => this.props, () => this.state))
-		for (const plugin of this.plugins) {
-			if (plugin.initContext) {
-				plugin.initContext(this.state)
-			}
-		}
+
+		const { plugins } = this.props
+		this.plugins = plugins.map((Plugin) => new Plugin(
+			() => this.props,
+			() => this.getState()
+		))
+
+		this.state = this.getInitialContext()
 	}
 
 	componentDidMount() {
@@ -107,10 +99,21 @@ export default class Form extends Component {
 
 	componentDidUpdate(prevProps) {
 		const { wait } = this.props
+
 		if (wait !== prevProps.wait) {
 			this.setFormSubmitting(wait)
 		}
+
 		this.cleanUpRemovedFields()
+
+		for (const plugin of this.plugins) {
+			if (plugin.onUpdate) {
+				plugin.onUpdate({
+					getState: this.getState,
+					dispatch: this.dispatch
+				})
+			}
+		}
 	}
 
 	componentWillUnmount() {
@@ -119,24 +122,123 @@ export default class Form extends Component {
 				plugin.onUnmount()
 			}
 		}
+
 		this.mounted = false
 	}
 
-	updateState(newState, callback) {
+	getInitialState() {
+		let initialState = this._getInitialState()
+		for (const plugin of this.plugins) {
+			if (plugin.getInitialState) {
+				initialState = plugin.getInitialState(initialState)
+			}
+		}
+		return initialState
+	}
+
+	_getInitialState() {
+		const { values, wait } = this.props
+		return generateInitialFormState(
+			this.state ? this.getState().initialValues : values,
+			{ submitting: wait }
+		)
+	}
+
+	getInitialContext() {
+		const initialContext = this._getInitialContext()
+
+		// Add `context` functions by plugins.
+		for (const plugin of this.plugins) {
+			if (plugin.getContextFunctions) {
+				const contextFunctions = plugin.getContextFunctions()
+				for (const name of Object.keys(contextFunctions)) {
+					initialContext[name] = contextFunctions[name]({
+						updateState: initialContext.updateState
+					})
+				}
+			}
+		}
+
+		return initialContext
+	}
+
+	_getInitialContext() {
+		const { requiredMessage, initialState } = this.props
+		return {
+			state: initialState || this.getInitialState(),
+			// initialState,
+			resetCounter: 0,
+			dispatch: this.dispatch,
+			updateState: this.updateState,
+			onRegisterField: this.onRegisterField,
+			onUnregisterField: this.onUnregisterField,
+			getSubmittedValue: this.getSubmittedValue,
+			getRequiredMessage: () => requiredMessage,
+			// These're used by `<List/>`.
+			focus: this.focus,
+			getValues: this.values
+		}
+	}
+
+	applyStateChanges(newState, callback, { resetForm } = {}) {
+		const prevContext = this.getContext()
+		const prevState = prevContext.state
+
+		// Call `onStateChange()` listener.
+		const { onStateChange } = this.props
+		if (onStateChange) {
+			onStateChange(newState)
+		}
+
+		// Run any field value watchers:
+		//
 		// See if any fields are watched.
 		// If they are, see if their values have changed.
 		// If they have, re-render the form after updating state.
+		//
+		// This piece of code currently doesn't do anything
+		// because `prevState` is always equal to `newState`.
+		// Maybe it could be used in some future if new state objects would be created
+		// instead of mutating the existing state object.
+		//
+		let shouldReRenderForm = false
 		for (const field of this.watchedFieldsList) {
-			const prevValue = this.state.values[field]
-			const newValue = newState.values[field]
-			if (newValue !== prevValue) {
+			if (newState.values[field] !== prevState.values[field]) {
 				// Re-render the form after updating state.
-				newState = { ...newState }
+				shouldReRenderForm = true
 				break
 			}
 		}
+
 		// Update state.
-		this.setState(newState, callback)
+		//
+		// A `React.Component` always re-renders on `this.setState()`,
+		// even if the `state` hasn't changed.
+		// The re-rendering of the `<Form/>` is used to re-render
+		// the `<Field/`>s with the updated `value`s.
+		// This could potentially result in slower performance
+		// on `<Form/>`s with a lots of `<Field/>`s
+		// (maybe hundreds or something like that?)
+		// but on regular `<Form/>`s I didn't notice any lag.
+		// A possible performance optimization could be
+		// not calling `this.setState()` for `<Form/>` re-rendering
+		// and instead calling something like `this.forceUpdate()`
+		// on just the exact `<Field/>` that called `context.dispatch(action)`.
+		//
+		// `this.setState()` is called on `this.state` rather than creating
+		// a new `state`, because `this.state` is used as the `context` property
+		// for `React.Context`, so if `state` reference changes, the whole form
+		// gets re-rendered, and that's not something that should be done
+		// unless any "field value watchers" have been triggered due to a changed field value.
+		//
+		const newContext = shouldReRenderForm ? { ...prevContext } : prevContext
+		newContext.state = newState
+		if (resetForm) {
+			// Changing the `resetCounter` property results in a complete re-mounting
+			// of the `<form/>`, including all of the `<Field/>`s.
+			newContext.resetCounter = getNext(newContext.resetCounter)
+		}
+		this.setState(newContext, callback)
 	}
 
 	// `value` parameter is an initial field value.
@@ -151,6 +253,12 @@ export default class Form extends Component {
 	}) => {
 		if (value === undefined) {
 			value = this.getInitialValue(field)
+		}
+
+		// React doesn't know how to properly handle `value === undefined`.
+		// https://stackoverflow.com/a/74229877/970769
+		if (value === undefined) {
+			value = EMPTY_VALUE
 		}
 
 		// The stored field info is used to `validate()` field `value`s
@@ -194,32 +302,27 @@ export default class Form extends Component {
 	 * @param  {function} callback
 	 */
 	dispatch = (action, callback) => {
-		action(this.state)
+		// const newState = action(this.getState())
+		// this.applyStateChanges(newState, callback)
 
-		// A `React.Component` always re-renders on `this.setState()`,
-		// even if the `state` hasn't changed.
-		// The re-rendering of the `<Form/>` is used to re-render
-		// the `<Field/`>s with the updated `value`s.
-		// This could potentially result in slower performance
-		// on `<Form/>`s with a lots of `<Field/>`s
-		// (maybe hundreds or something like that?)
-		// but on regular `<Form/>`s I didn't notice any lag.
-		// A possible performance optimization could be
-		// not calling `this.setState()` for `<Form/>` re-rendering
-		// and instead calling something like `this.forceUpdate()`
-		// on the `<Field/>` that called `context.dispatch()`.
-		//
-		// `this.setState()` is called on `this.state`
-		// rather than creating a new `state` because `this.state`
-		// is used as the `context` property for `React.Context`
-		// meaning that `state` reference shouldn't change.
-		//
-		this.updateState(this.state, callback)
+		// See the comments in `actions.js` for the rationale
+		// on why the original `state` gets mutated instead of
+		// creating a new `state` object.
+		action(this.getState())
+		this.applyStateChanges(this.getState(), callback)
+	}
 
-		// const { onStateChange } = this.props
-		// if (onStateChange) {
-		// 	onStateChange(this.state)
-		// }
+	// This function is called by plugins.
+	// They access it from the `context`.
+	updateState = (stateUpdater) => {
+		// const newState = stateUpdater(this.state)
+		// this.applyStateChanges(newState)
+
+		// See the comments in `actions.js` for the rationale
+		// on why the original `state` gets mutated instead of
+		// creating a new `state` object.
+		stateUpdater(this.getState())
+		this.applyStateChanges(this.getState())
 	}
 
 	getSubmittedValue = (value) => {
@@ -243,7 +346,7 @@ export default class Form extends Component {
 	}
 
 	getInitialValue = (name) => {
-		const { initialValues } = this.state
+		const { initialValues } = this.getState()
 		for (const plugin of this.plugins) {
 			if (plugin.getValue) {
 				const value = plugin.getValue(initialValues, name)
@@ -261,7 +364,7 @@ export default class Form extends Component {
 	 * @return {object}
 	 */
 	values = () => {
-		const { values, fields } = this.state
+		const { values, fields } = this.getState()
 		return this.applyPluginValueTransforms(getValues(values, fields))
 	}
 
@@ -289,8 +392,7 @@ export default class Form extends Component {
 			return this.resetField(field)
 		}
 
-		const { autoFocus, plugins, wait } = this.props
-		const { fields, initialValues, resetCounter } = this.state
+		const { plugins, wait } = this.props
 
 		for (const plugin of this.plugins) {
 			if (plugin.onReset) {
@@ -303,17 +405,10 @@ export default class Form extends Component {
 		// is used as the `context` property for `React.Context`
 		// meaning that `state` reference shouldn't change.
 
-		// Changing `resetCounter` results in a complete re-mounting of the `<form/>`,
-		// including all of the `<Field/>`s.
-		this.state.resetCounter = getNext(resetCounter)
-
 		// All `<Field/>`s will be re-mounted and re-registered.
-		const initialFormState = generateInitialFormState(initialValues, { submitting: wait })
-		for (const key of Object.keys(initialFormState)) {
-			this.state[key] = initialFormState[key]
-		}
+		const newState = this.getInitialState()
 
-		// `generateInitialFormState()` produces a state with zero `fields` counters.
+		// `this.getInitialState()` produces a state with zero `fields` counters.
 		// But, subsequently, the change to `resetCounter` results in  a complete
 		// re-mounting of the `<form/>`, including all of the `<Field/>`s, which
 		// decrements all `fields` counters.
@@ -321,29 +416,30 @@ export default class Form extends Component {
 		// would first be decremented to `-1` on unmount, and then incremented to `0`
 		// on re-mount, and the form would think that no fields are mounted.
 		// Preserving the current non-zero `fields` counters fixes that.
-		this.state.fields = fields
+		newState.fields = this.getState().fields
 
-		// Reset first focusable field since the form is gonna be reset.
+		// Reset the first focusable field since the form is gonna be reset.
 		this.firstField = undefined
 
-		this.updateState(this.state, () => {
+		this.applyStateChanges(newState, () => {
 			if (!this.mounted) {
 				return
 			}
 			// Autofocus the form (if not configured otherwise)
+			const { autoFocus } = this.props
 			if (autoFocus) {
 				// If `reset()` was called inside `onSubmit()`, then
 				// don't focus on a field here because it might be `disabled`.
 				// Instead, schedule the autofocus for later, when the fields
 				// are no longer disabled.
-				if (this.state.submitting) {
+				if (this.getState().submitting) {
 					this.focusableBeforeSubmit = this.getFocusable()
 				} else {
 					this.focus()
 				}
 			}
 			// Trigger each `<Field/>`'s `onChange()` handler.
-			for (const field of Object.keys(fields)) {
+			for (const field of Object.keys(this.getState().fields)) {
 				// If the field is still mounted.
 				if (this.fields[field]) {
 					const { onChange, initialValue } = this.fields[field]
@@ -352,6 +448,8 @@ export default class Form extends Component {
 					}
 				}
 			}
+		}, {
+			resetForm: true
 		})
 	}
 
@@ -384,7 +482,7 @@ export default class Form extends Component {
 	}
 
 	cleanUpRemovedFields = () => {
-		const { fields } = this.state
+		const { fields } = this.getState()
 		for (const field of Object.keys(fields)) {
 			// Remove unmounted `<Field/>`s.
 			if (fields[field] === 0) {
@@ -411,7 +509,7 @@ export default class Form extends Component {
 			fields,
 			values,
 			errors
-		} = this.state
+		} = this.getState()
 
 		// Re-run `validate()` for each field.
 		// Because `validate()` function takes two arguments:
@@ -439,7 +537,7 @@ export default class Form extends Component {
 
 	validate() {
 		const { scrollDuration } = this.props
-		const { fields, values } = this.state
+		const { fields, values } = this.getState()
 
 		// Are there any invalid fields.
 		// Returns the first one.
@@ -485,7 +583,7 @@ export default class Form extends Component {
 	 * @return {object} `values`
 	 */
 	getSubmittedValues() {
-		const { fields, values } = this.state
+		const { fields, values } = this.getState()
 		// Get only "registered" (non-removed) field values.
 		const fieldValues = getValues(values, fields)
 		for (const key of Object.keys(fieldValues)) {
@@ -601,7 +699,7 @@ export default class Form extends Component {
 
 		// Do nothing if the form is submitting
 		// (i.e. submit is in progress)
-		if (this.state.submitting) {
+		if (this.getState().submitting) {
 			return
 		}
 
@@ -645,10 +743,10 @@ export default class Form extends Component {
 
 	// Clears field value (public API).
 	// If this field hasn't been "registered" yet then ignore.
-	clear = (field) => this.set(field, undefined)
+	clear = (field) => this.set(field, EMPTY_VALUE)
 
 	// Gets field value (public API).
-	get = (field) => this.state.values[field]
+	get = (field) => this.getState().values[field]
 
 	// Sets field value (public API).
 	set = (field, value) => this._set(field, value, {})
@@ -678,19 +776,28 @@ export default class Form extends Component {
 		return this.get(field)
 	}
 
+	getContext() {
+		return this.state
+	}
+
+	getState = () => {
+		return this.state.state
+	}
+
 	setFormNode = (node) => this.form = node
 	getSubmitButtonNode = () => this.form.querySelector('button[type="submit"]')
 
 	render() {
 		const { children } = this.props
-		const { resetCounter, submitting } = this.state
+		const { resetCounter } = this.getContext
+		const { submitting } = this.getState()
 		return (
 			<form
 				key={resetCounter}
 				ref={this.setFormNode}
 				{...getPassThroughProps(this.props, Form.propTypes)}
 				onSubmit={this.onSubmit}>
-				<Context.Provider value={this.state}>
+				<Context.Provider value={this.getContext()}>
 					{typeof children === 'function' ?
 						<Children
 							values={this.mounted ? this.values() : undefined}
@@ -779,19 +886,26 @@ function generateInitialFormState(initialValues = {}, { submitting = false } = {
 }
 
 export const contextPropType = PropTypes.shape({
-	fields: PropTypes.object.isRequired,
-	values: PropTypes.object.isRequired,
-	initialValues: PropTypes.object.isRequired,
-	errors: PropTypes.object.isRequired,
-	validationErrors: PropTypes.object.isRequired,
-	showErrors: PropTypes.object.isRequired,
-	submitting: PropTypes.bool.isRequired,
+	state: PropTypes.shape({
+		fields: PropTypes.object.isRequired,
+		values: PropTypes.object.isRequired,
+		initialValues: PropTypes.object.isRequired,
+		errors: PropTypes.object.isRequired,
+		validationErrors: PropTypes.object.isRequired,
+		showErrors: PropTypes.object.isRequired,
+		latestFocusedField: PropTypes.string,
+		submitting: PropTypes.bool.isRequired
+	}).isRequired,
+	updateState: PropTypes.func.isRequired,
 	onRegisterField: PropTypes.func.isRequired,
 	onUnregisterField: PropTypes.func.isRequired,
-	onRegisterList: PropTypes.func.isRequired,
 	getSubmittedValue: PropTypes.func.isRequired,
 	focus: PropTypes.func.isRequired,
 	dispatch: PropTypes.func.isRequired,
 	getRequiredMessage: PropTypes.func.isRequired,
-	getValues: PropTypes.func.isRequired
+	getValues: PropTypes.func.isRequired,
+
+	// These get added by `ListPlugin`.
+	onRegisterList: PropTypes.func.isRequired,
+	onListStateChange: PropTypes.func.isRequired
 })

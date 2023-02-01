@@ -86,3 +86,8 @@ export function getListValue(values, key) {
 export function getFieldName(listName, i, name) {
 	return `${listName}:${i}:${name}`
 }
+
+export const removeListAction = (name) => state => {
+	delete state.lists[name]
+	delete state.listInstanceCounters[name]
+}

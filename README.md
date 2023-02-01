@@ -125,6 +125,10 @@ The `<Form/>` takes the following optional properties:
 
   * `autoFocus : Boolean` — Set to `true` to automatically focus on the first form field when the form is mounted. Defauls to `false`.
 
+  * `initialState : object` — One can pass a previously stored form state in order to restore the form to the state it was at that point in time.
+
+  * `onStateChange(newState : object)` — Will get called whenever a form's state changes.
+
   * `wait : Boolean` — The initial `wait` state of the submit button. Can be used when the form is "loading" on first render.
 
   * `onBeforeSubmit : Function`
@@ -340,22 +344,22 @@ export default function Page() {
       <List name="employees">
         {(items) => (
           <React.Fragment>
-            {items.map((i) => (
-              <React.Fragment>
+            {items.map((itemId) => (
+              <React.Fragment key={itemId}>
                 <Field
-                  i={i}
+                  item={itemId}
                   name="firstName"
                   .../>
                 <Field
-                  i={i}
+                  item={itemId}
                   name="lastName"
                   .../>
-                <button onClick={() => items.remove(i)}>
+                <button type="button" onClick={() => items.remove(itemId)}>
                   Remove
                 </button>
               </React.Fragment>
             ))}
-            <button onClick={items.add}>
+            <button type="button" onClick={() => items.add()}>
               Add
             </button>
           </React.Fragment>

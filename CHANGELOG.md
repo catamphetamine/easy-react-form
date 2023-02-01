@@ -1,5 +1,20 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
+2.0.0 / 31.01.2023
+==================
+
+* Refactored the code regarding form state. A new "major" version means that there might hypothetically be some unforeseen accidental bugs.
+
+* Changed the empty value from `undefined` to `null`.
+
+* Input Components now should use `React.forwardRef()` in order to be focusable.
+
+* Bumped React version to `18.2.0`.
+
+* Added properties: `initialState` and `onStateChange(newState)`.
+
+* List Plugin: renamed `<Field i/>` property to `<Field item/>`.
+
 1.2.0 / 09.08.2021
 ==================
 

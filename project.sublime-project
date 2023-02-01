@@ -4,7 +4,8 @@
 		{
 			"follow_symlinks": true,
 			"path": ".",
-			"folder_exclude_patterns": [".nyc_output", "node_modules", "coverage", "modules", "commonjs", "project.sublime-workspace"]
+			"folder_exclude_patterns": [".nyc_output", "node_modules", "coverage", "modules", "commonjs", "project.sublime-workspace"],
+			"file_exclude_patterns": ["bundle/easy-react-form.js", "bundle/easy-react-form.js.map"]
 		}
 	],
 	"settings":
