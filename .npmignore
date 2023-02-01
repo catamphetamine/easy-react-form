@@ -46,4 +46,3 @@ npm-debug.log
 
 # Don't include the "bundle" folder for now, because currently it's just for tests.
 /bundle/
-index.browser.js

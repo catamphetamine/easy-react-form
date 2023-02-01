@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('react'), require('prop-types')) :
-  typeof define === 'function' && define.amd ? define(['react', 'prop-types'], factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.EasyReactForm = factory(global.React, global.PropTypes));
-})(this, (function (React, PropTypes) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('react'), require('prop-types')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'react', 'prop-types'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.EasyReactForm = {}, global.React, global.PropTypes));
+})(this, (function (exports, React, PropTypes) { 'use strict';
 
   function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -2210,14 +2210,12 @@
     component: PropTypes__default["default"].elementType.isRequired
   };
 
-  var index_browser = {
-  	Form,
-  	Field,
-  	List: List_,
-  	Submit
-  };
+  exports.Field = Field;
+  exports.Form = Form;
+  exports.List = List_;
+  exports.Submit = Submit;
 
-  return index_browser;
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 //# sourceMappingURL=easy-react-form.js.map

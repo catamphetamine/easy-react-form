@@ -7,7 +7,7 @@ const resolveModules = resolve()
 
 export default [
   {
-    input: 'index.browser.js',
+    input: 'index.js',
     plugins: [
       resolveModules,
       commonjs(),
