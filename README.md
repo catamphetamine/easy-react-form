@@ -127,7 +127,7 @@ The `<Form/>` takes the following optional properties:
 
   * `initialState : object` — One can pass a previously stored form state in order to restore the form to the state it was at that point in time.
 
-  * `onStateChange(newState : object)` — Will get called whenever a form's state changes.
+  * `onStateDidChange(newState : object)` — Will get called whenever a form's state has changed.
 
   * `wait : Boolean` — The initial `wait` state of the submit button. Can be used when the form is "loading" on first render.
 

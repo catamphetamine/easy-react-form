@@ -23,7 +23,7 @@ export default class Form extends Component {
 		onSubmit: PropTypes.func.isRequired,
 		onBeforeSubmit: PropTypes.func,
 		onAfterSubmit: PropTypes.func,
-		onStateChange: PropTypes.func,
+		onStateDidChange: PropTypes.func,
 		onAbandon: PropTypes.func,
 		initialState: PropTypes.object,
 		values: PropTypes.object,
@@ -172,7 +172,7 @@ export default class Form extends Component {
 			updateState: this.updateState,
 			onRegisterField: this.onRegisterField,
 			onUnregisterField: this.onUnregisterField,
-			getSubmittedValue: this.getSubmittedValue,
+			transformValueForSubmit: this.transformValueForSubmit,
 			getRequiredMessage: () => requiredMessage,
 			// These're used by `<List/>`.
 			focus: this.focus,
@@ -185,12 +185,6 @@ export default class Form extends Component {
 		// because state changes mutate the state object itself.
 		const prevContext = this.getContext()
 		const prevState = prevContext.state
-
-		// Call `onStateChange()` listener.
-		const { onStateChange } = this.props
-		if (onStateChange) {
-			onStateChange(newState)
-		}
 
 		// Run any field value watchers:
 		//
@@ -240,7 +234,16 @@ export default class Form extends Component {
 			// of the `<form/>`, including all of the `<Field/>`s.
 			newContext.resetCounter = getNext(newContext.resetCounter)
 		}
-		this.setState(newContext, callback)
+		this.setState(newContext, () => {
+			// Call `onStateDidChange()` listener.
+			const { onStateDidChange } = this.props
+			if (onStateDidChange) {
+				onStateDidChange(this.getState())
+			}
+			if (callback) {
+				callback()
+			}
+		})
 	}
 
 	// `value` parameter is an initial field value.
@@ -327,7 +330,7 @@ export default class Form extends Component {
 		this.applyStateChanges(this.getState())
 	}
 
-	getSubmittedValue = (value) => {
+	transformValueForSubmit = (value) => {
 		const { trim } = this.props
 		if (trim && typeof value === 'string') {
 			value = value.trim()
@@ -465,15 +468,20 @@ export default class Form extends Component {
 			}
 		}
 		const initialValue = !this.fields[name] || this.fields[name].initialValue === undefined ? this.getInitialValue(name) : this.fields[name].initialValue
+		// If the field is still registered (mounted), then validate the value.
+		// Otherwise, assume the value is valid because there's no validation function available.
+		const validationError = this.fields[name] ? this.fields[name].validate(initialValue) : undefined
 		this.dispatch(setFieldValue(name, initialValue))
-		// A default value isn't supposed to generate an error.
-		this.dispatch(setFieldValidationError(name, undefined))
+		this.dispatch(setFieldValidationError(name, validationError))
 		// Trigger the `<Field/>`'s `onChange()` handler.
 		// If the field is still mounted.
 		if (this.fields[name]) {
-			const { onChange, initialValue } = this.fields[name]
+			const { onChange, onValidationError, initialValue } = this.fields[name]
 			if (onChange) {
 				onChange(initialValue)
+			}
+			if (onValidationError) {
+				onValidationError(validationError)
 			}
 		}
 	}
@@ -584,14 +592,14 @@ export default class Form extends Component {
 	 * Collects the currently "registered" fields' values.
 	 * @return {object} `values`
 	 */
-	getSubmittedValues() {
+	getValuesForSubmit() {
 		const { fields, values } = this.getState()
 		// Get only "registered" (non-removed) field values.
 		const fieldValues = getValues(values, fields)
 		for (const key of Object.keys(fieldValues)) {
 			// Trim strings (if `trim` option is set to `true`, which is the default setting).
 			// Convert empty strings to `null`s.
-			fieldValues[key] = this.getSubmittedValue(fieldValues[key])
+			fieldValues[key] = this.transformValueForSubmit(fieldValues[key])
 		}
 		// Apply plugins' value transformations.
 		return this.applyPluginValueTransforms(fieldValues)
@@ -717,7 +725,7 @@ export default class Form extends Component {
 		// Submit the form if it's valid.
 		// Otherwise highlight invalid fields.
 		if (this.validate()) {
-			this.executeFormAction(onSubmit, this.getSubmittedValues())
+			this.executeFormAction(onSubmit, this.getValuesForSubmit())
 		}
 	}
 
@@ -759,12 +767,16 @@ export default class Form extends Component {
 		// If the field is still mounted.
 		if (this.fields[field]) {
 			// Validate field value.
-			this.dispatch(setFieldValidationError(field, this.fields[field].validate(value)))
+			const validationError = this.fields[field].validate(value)
+			this.dispatch(setFieldValidationError(field, validationError))
 			// Trigger the `<Field/>`'s `onChange()` handler.
 			if (changed !== false) {
-				const { onChange } = this.fields[field]
+				const { onChange, onValidationError } = this.fields[field]
 				if (onChange) {
 					onChange(value)
+				}
+				if (onValidationError) {
+					onValidationError(validationError)
 				}
 			}
 		}
@@ -901,7 +913,7 @@ export const contextPropType = PropTypes.shape({
 	updateState: PropTypes.func.isRequired,
 	onRegisterField: PropTypes.func.isRequired,
 	onUnregisterField: PropTypes.func.isRequired,
-	getSubmittedValue: PropTypes.func.isRequired,
+	transformValueForSubmit: PropTypes.func.isRequired,
 	focus: PropTypes.func.isRequired,
 	dispatch: PropTypes.func.isRequired,
 	getRequiredMessage: PropTypes.func.isRequired,

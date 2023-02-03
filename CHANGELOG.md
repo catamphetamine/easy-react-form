@@ -7,11 +7,17 @@
 
 * Changed the empty value from `undefined` to `null`.
 
+* `<Field onChange/>` property is now always called with `value` argument. Previously it could be called with an `event` argument.
+
+* Added `onErrorChange()` function on `<Field/>`.
+
+* The `required` validation only runs when the form has been submitted. It doesn't run when the form hasn't been submitted yet.
+
 * Input Components now should use `React.forwardRef()` in order to be focusable.
 
 * Bumped React version to `18.2.0`.
 
-* Added properties: `initialState` and `onStateChange(newState)`.
+* Added properties: `initialState` and `onStateDidChange(newState)`.
 
 * List Plugin: renamed `<Field i/>` property to `<Field item/>`.
 

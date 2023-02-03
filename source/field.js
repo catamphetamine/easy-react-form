@@ -42,6 +42,26 @@ class FormField extends Component {
 		error    : PropTypes.string,
 		validate : PropTypes.func,
 
+		// This property is currently not used.
+		// Validation is currently only performed on `blur` event
+		// and any validation errors are cleared while the user is typing.
+		// Perhaps that results in a slightly less unneeded CPU load or something like that.
+		validateOnChange: PropTypes.bool,
+
+		// This property is currently not used.
+		// "Required" validation is currently only performed after a user has attempted
+		// to submit the form. The reason is that otherwise there'd be unnecessarily-shown
+		// "Required" error messages when the form has `autoFocus` feature enabled
+		// and the user clicks away (for example, on a "Close Form Modal" button).
+		// Or, for example, showing the "Required" error message on blur could result in
+		// a shift of content when the user attempts to click the "Submit" button
+		// resulting in the user clicking another button or empty space.
+		validateRequiredBeforeSubmit: PropTypes.bool,
+
+		onChange: PropTypes.func,
+		// onErrorChange: PropTypes.func,
+		// onValidationErrorChange: PropTypes.func,
+
 		context: contextPropType.isRequired,
 		listContext: listContextPropType,
 		item: itemType
@@ -85,6 +105,7 @@ class FormField extends Component {
 			value,
 			onChange,
 			error,
+			onValidationError: this.onValidationError,
 			validate: this.validate,
 			scroll: this.scroll,
 			focus: this.focus
@@ -126,9 +147,11 @@ class FormField extends Component {
 			// If the default value changed for this `<Field/>`
 			// and the field hasn't been edited yet
 			// then apply this new default value.
-			// A default value isn't supposed to generate an error.
 			if (value !== prevProps.value && !this.hasBeenEdited) {
+				const validationError = this.validate(value)
+				this.onValidationError(validationError)
 				context.dispatch(setFieldValue(this.getName(), value))
+				context.dispatch(setFieldValidationError(this.getName(), validationError))
 			}
 			// If an externally set `error` property is updated,
 			// then update invalid indication for this field accordingly.
@@ -148,6 +171,8 @@ class FormField extends Component {
 		const value = context.state.values[this.getName()]
 		const showError = context.state.showErrors[this.getName()]
 
+		this.onError(error)
+
 		// If the `error` is set then indicate this field as being invalid.
 		if (error) {
 			context.dispatch(setFieldError(this.getName(), error))
@@ -158,9 +183,9 @@ class FormField extends Component {
 		}
 		// If the `error` is reset and the field is valid
 		// then reset invalid indication.
-		// `!this.validate(value)` means "the value is valid".
-		else if (!error && !this.validate(value)) {
-			context.dispatch(setFieldError(this.getName(), undefined))
+		else {
+			const validationError = this.validate(value)
+			context.dispatch(setFieldError(this.getName(), validationError))
 		}
 	}
 
@@ -176,14 +201,22 @@ class FormField extends Component {
 		// This flag won't work with `form.reset()`.
 		this.hasBeenEdited = true
 
-		const { context, onChange } = this.props
+		const { context, validateOnChange, onChange } = this.props
 
-		context.dispatch(setFieldValue(this.getName(), value))
-		context.dispatch(setFieldValidationError(this.getName(), undefined))
+		// The `validateOnChange` feature is currently not used.
+		// Validation is currently only performed on `blur` event
+		// and any validation errors are cleared while the user is typing.
+		// Perhaps that results in a slightly less unneeded CPU load or something like that.
+		const validationError = validateOnChange ? this.validate(value) : undefined;
 
 		if (onChange) {
-			onChange(...args)
+			onChange(value)
 		}
+
+		this.onValidationError(validationError)
+
+		context.dispatch(setFieldValue(this.getName(), value))
+		context.dispatch(setFieldValidationError(this.getName(), validationError))
 	}
 
 	onFocus = (event) => {
@@ -196,14 +229,72 @@ class FormField extends Component {
 
 	onBlur = (event) => {
 		const { context, onBlur } = this.props
-		const error = this.validate(context.state.values[this.getName()])
-		if (error) {
-			context.dispatch(setFieldValidationError(this.getName(), error))
+		const validationError = this.validate(context.state.values[this.getName()])
+		if (validationError) {
+			this.onValidationError(validationError)
+			context.dispatch(setFieldValidationError(this.getName(), validationError))
 		}
 		if (onBlur) {
 			onBlur(event)
 		}
 	}
+
+	onError(error) {}
+	onValidationError = (validationError) => {}
+
+	// onError(newError) {
+	// 	const { context, onErrorChange } = this.props
+	// 	if (!onErrorChange) {
+	// 		return
+	// 	}
+	// 	const error = context.state.errors[this.getName()]
+	// 	const validationError = context.state.validationErrors[this.getName()]
+	// 	// const showError = context.state.showErrors[this.getName()]
+	// 	if (newError === error) {
+	// 		// No changes.
+	// 		// If the error is present and didn't change then no changes.
+	// 		// If the error wasn't present then the validation error should be shown,
+	// 		// if present, but since it didn't change either, there's no need to call
+	// 		// `onErrorChange()`.
+	// 		return
+	// 	}
+	// 	// If the external error is being reset.
+	// 	if (error && !newError) {
+	// 		// Then use the validaton error, if it's any different
+	// 		// from the argument of the previous call of `onErrorChange()`.
+	// 		if (error !== validationError) {
+	// 			 onErrorChange(validationError)
+	// 		} else {
+	// 			// Otherwise, no changes.
+	// 		}
+	// 		return
+	// 	}
+	// 	// `newError` is defined and `error` is not:
+	// 	// an external error is being set.
+	// 	onErrorChange(newError)
+	// }
+
+	// onValidationError(newValidationError) {
+	// 	const { context, onErrorChange } = this.props
+	// 	if (!onErrorChange) {
+	// 		return
+	// 	}
+	// 	const error = context.state.errors[this.getName()]
+	// 	const validationError = context.state.validationErrors[this.getName()]
+	// 	// const showError = context.state.showErrors[this.getName()]
+	// 	// An externally set error overrides a validation error.
+	// 	// And the externally set error hasn't been changed,
+	// 	// so no need to call `onErrorChange()`.
+	// 	if (error) {
+	// 		return
+	// 	}
+	// 	// If validation error is being reset and there's no external error
+	// 	// then show no error.
+	// 	// Otherwise, show new validation error, if it has changed.
+	// 	if (newValidationError !== validationError) {
+	// 		onErrorChange(newValidationError)
+	// 	}
+	// }
 
 	getNode() {
 		return this.field.current
@@ -245,10 +336,18 @@ class FormField extends Component {
 		}
 	}
 
+	shouldValidateRequired() {
+		const { context, validateRequiredBeforeSubmit } = this.props
+		if (validateRequiredBeforeSubmit) {
+			return true
+		}
+		return Boolean(context.state.submitted)
+	}
+
 	validate = (value) => {
 		const { context, validate, required } = this.props
-		value = context.getSubmittedValue(value)
-		if (required && isValueEmpty(value)) {
+		value = context.transformValueForSubmit(value)
+		if (required && isValueEmpty(value) && this.shouldValidateRequired()) {
 			return typeof required === 'string' ? required : context.getRequiredMessage()
 		}
 		if (validate) {

@@ -96,8 +96,8 @@
 				}
 				*/
 
-				const onStateChange = (newState) => {
-					// console.log('* On state change:', newState)
+				const onStateDidChange = (newState) => {
+					// console.log('* On state did change:', newState)
 					setState(JSON.stringify(newState, null, 2))
 				}
 
@@ -112,7 +112,7 @@
 
 						<EasyReactForm.Form
 							initialState={initialState}
-							onStateChange={onStateChange}
+							onStateDidChange={onStateDidChange}
 							onSubmit={onSubmit}>
 
 							{showNameField &&

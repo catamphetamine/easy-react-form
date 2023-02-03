@@ -859,7 +859,7 @@
         stateUpdater(_this.getState());
         _this.applyStateChanges(_this.getState());
       });
-      _defineProperty$3(_assertThisInitialized$2(_this), "getSubmittedValue", function (value) {
+      _defineProperty$3(_assertThisInitialized$2(_this), "transformValueForSubmit", function (value) {
         var trim = _this.props.trim;
         if (trim && typeof value === 'string') {
           value = value.trim();
@@ -980,17 +980,23 @@
           }
         }
         var initialValue = !_this.fields[name] || _this.fields[name].initialValue === undefined ? _this.getInitialValue(name) : _this.fields[name].initialValue;
+        // If the field is still registered (mounted), then validate the value.
+        // Otherwise, assume the value is valid because there's no validation function available.
+        var validationError = _this.fields[name] ? _this.fields[name].validate(initialValue) : undefined;
         _this.dispatch(setFieldValue(name, initialValue));
-        // A default value isn't supposed to generate an error.
-        _this.dispatch(setFieldValidationError(name, undefined));
+        _this.dispatch(setFieldValidationError(name, validationError));
         // Trigger the `<Field/>`'s `onChange()` handler.
         // If the field is still mounted.
         if (_this.fields[name]) {
           var _this$fields$name = _this.fields[name],
             onChange = _this$fields$name.onChange,
+            onValidationError = _this$fields$name.onValidationError,
             _initialValue = _this$fields$name.initialValue;
           if (onChange) {
             onChange(_initialValue);
+          }
+          if (onValidationError) {
+            onValidationError(validationError);
           }
         }
       });
@@ -1051,7 +1057,7 @@
         // Submit the form if it's valid.
         // Otherwise highlight invalid fields.
         if (_this.validate()) {
-          _this.executeFormAction(onSubmit, _this.getSubmittedValues());
+          _this.executeFormAction(onSubmit, _this.getValuesForSubmit());
         }
       });
       _defineProperty$3(_assertThisInitialized$2(_this), "focus", function (field) {
@@ -1078,12 +1084,18 @@
         // If the field is still mounted.
         if (_this.fields[field]) {
           // Validate field value.
-          _this.dispatch(setFieldValidationError(field, _this.fields[field].validate(value)));
+          var validationError = _this.fields[field].validate(value);
+          _this.dispatch(setFieldValidationError(field, validationError));
           // Trigger the `<Field/>`'s `onChange()` handler.
           if (changed !== false) {
-            var onChange = _this.fields[field].onChange;
+            var _this$fields$field = _this.fields[field],
+              onChange = _this$fields$field.onChange,
+              onValidationError = _this$fields$field.onValidationError;
             if (onChange) {
               onChange(value);
+            }
+            if (onValidationError) {
+              onValidationError(validationError);
             }
           }
         }
@@ -1225,7 +1237,7 @@
           updateState: this.updateState,
           onRegisterField: this.onRegisterField,
           onUnregisterField: this.onUnregisterField,
-          getSubmittedValue: this.getSubmittedValue,
+          transformValueForSubmit: this.transformValueForSubmit,
           getRequiredMessage: function getRequiredMessage() {
             return requiredMessage;
           },
@@ -1237,16 +1249,13 @@
     }, {
       key: "applyStateChanges",
       value: function applyStateChanges(newState, callback) {
+        var _this2 = this;
         var _ref3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
           resetForm = _ref3.resetForm;
+        // Currently, `prevState` is always equal to `newState`
+        // because state changes mutate the state object itself.
         var prevContext = this.getContext();
         var prevState = prevContext.state;
-
-        // Call `onStateChange()` listener.
-        var onStateChange = this.props.onStateChange;
-        if (onStateChange) {
-          onStateChange(newState);
-        }
 
         // Run any field value watchers:
         //
@@ -1297,7 +1306,16 @@
           // of the `<form/>`, including all of the `<Field/>`s.
           newContext.resetCounter = getNext(newContext.resetCounter);
         }
-        this.setState(newContext, callback);
+        this.setState(newContext, function () {
+          // Call `onStateDidChange()` listener.
+          var onStateDidChange = _this2.props.onStateDidChange;
+          if (onStateDidChange) {
+            onStateDidChange(_this2.getState());
+          }
+          if (callback) {
+            callback();
+          }
+        });
       }
 
       // `value` parameter is an initial field value.
@@ -1356,7 +1374,7 @@
     }, {
       key: "validate",
       value: function validate() {
-        var _this2 = this;
+        var _this3 = this;
         var scrollDuration = this.props.scrollDuration;
         var _this$getState5 = this.getState(),
           fields = _this$getState5.fields,
@@ -1395,9 +1413,9 @@
 
         // Focus the invalid field after it has been scrolled to.
         setTimeout(function () {
-          if (_this2.mounted) {
+          if (_this3.mounted) {
             // Focus the invalid field.
-            _this2.focus(field);
+            _this3.focus(field);
           }
         }, scrollDuration);
 
@@ -1410,8 +1428,8 @@
        * @return {object} `values`
        */
     }, {
-      key: "getSubmittedValues",
-      value: function getSubmittedValues() {
+      key: "getValuesForSubmit",
+      value: function getValuesForSubmit() {
         var _this$getState6 = this.getState(),
           fields = _this$getState6.fields,
           values = _this$getState6.values;
@@ -1421,7 +1439,7 @@
           var key = _Object$keys6[_i6];
           // Trim strings (if `trim` option is set to `true`, which is the default setting).
           // Convert empty strings to `null`s.
-          fieldValues[key] = this.getSubmittedValue(fieldValues[key]);
+          fieldValues[key] = this.transformValueForSubmit(fieldValues[key]);
         }
         // Apply plugins' value transformations.
         return this.applyPluginValueTransforms(fieldValues);
@@ -1478,10 +1496,10 @@
     }, {
       key: "setFormSubmitting",
       value: function setFormSubmitting$1(submitting, callback, forceRestoreFocus) {
-        var _this3 = this;
+        var _this4 = this;
         this.dispatch(setFormSubmitting(submitting), function () {
           if (!submitting) {
-            _this3.restoreFocus(forceRestoreFocus);
+            _this4.restoreFocus(forceRestoreFocus);
           }
           if (callback) {
             callback();
@@ -1491,11 +1509,11 @@
     }, {
       key: "resetFormSubmittingState",
       value: function resetFormSubmittingState(forceRestoreFocus) {
-        var _this4 = this;
+        var _this5 = this;
         return new Promise(function (resolve) {
-          if (_this4.mounted) {
-            var wait = _this4.props.wait;
-            _this4.setFormSubmitting(wait, resolve, forceRestoreFocus);
+          if (_this5.mounted) {
+            var wait = _this5.props.wait;
+            _this5.setFormSubmitting(wait, resolve, forceRestoreFocus);
           } else {
             resolve();
           }
@@ -1506,7 +1524,7 @@
     }, {
       key: "onSubmitPromise",
       value: function onSubmitPromise(promise) {
-        var _this5 = this;
+        var _this6 = this;
         // When `submitting` flag is set to `true`
         // all fields and the submit button will become disabled.
         // This results in focus being lost.
@@ -1517,10 +1535,10 @@
         this.snapshotFocus();
         this.setFormSubmitting(true);
         return promise.then(function () {
-          return _this5.resetFormSubmittingState();
+          return _this6.resetFormSubmittingState();
         }, function (error) {
-          return _this5.resetFormSubmittingState(true).then(function () {
-            var onError = _this5.props.onError;
+          return _this6.resetFormSubmittingState(true).then(function () {
+            var onError = _this6.props.onError;
             if (onError(error) === false) {
               throw error;
             }
@@ -1580,7 +1598,7 @@
     onSubmit: PropTypes__default["default"].func.isRequired,
     onBeforeSubmit: PropTypes__default["default"].func,
     onAfterSubmit: PropTypes__default["default"].func,
-    onStateChange: PropTypes__default["default"].func,
+    onStateDidChange: PropTypes__default["default"].func,
     onAbandon: PropTypes__default["default"].func,
     initialState: PropTypes__default["default"].object,
     values: PropTypes__default["default"].object,
@@ -1676,7 +1694,7 @@
     updateState: PropTypes__default["default"].func.isRequired,
     onRegisterField: PropTypes__default["default"].func.isRequired,
     onUnregisterField: PropTypes__default["default"].func.isRequired,
-    getSubmittedValue: PropTypes__default["default"].func.isRequired,
+    transformValueForSubmit: PropTypes__default["default"].func.isRequired,
     focus: PropTypes__default["default"].func.isRequired,
     dispatch: PropTypes__default["default"].func.isRequired,
     getRequiredMessage: PropTypes__default["default"].func.isRequired,
@@ -1942,12 +1960,21 @@
         _this.hasBeenEdited = true;
         var _this$props = _this.props,
           context = _this$props.context,
+          validateOnChange = _this$props.validateOnChange,
           onChange = _this$props.onChange;
-        context.dispatch(setFieldValue(_this.getName(), value));
-        context.dispatch(setFieldValidationError(_this.getName(), undefined));
+          _this$props.onErrorChange;
+
+        // The `validateOnChange` feature is currently not used.
+        // Validation is currently only performed on `blur` event
+        // and any validation errors are cleared while the user is typing.
+        // Perhaps that results in a slightly less unneeded CPU load or something like that.
+        var validationError = validateOnChange ? _this.validate(value) : undefined;
         if (onChange) {
-          onChange.apply(void 0, args);
+          onChange(value);
         }
+        _this.onValidationError(validationError);
+        context.dispatch(setFieldValue(_this.getName(), value));
+        context.dispatch(setFieldValidationError(_this.getName(), validationError));
       });
       _defineProperty$1(_assertThisInitialized(_this), "onFocus", function (event) {
         var _this$props2 = _this.props,
@@ -1960,11 +1987,13 @@
       });
       _defineProperty$1(_assertThisInitialized(_this), "onBlur", function (event) {
         var _this$props3 = _this.props,
-          context = _this$props3.context,
-          onBlur = _this$props3.onBlur;
-        var error = _this.validate(context.state.values[_this.getName()]);
-        if (error) {
-          context.dispatch(setFieldValidationError(_this.getName(), error));
+          context = _this$props3.context;
+          _this$props3.onErrorChange;
+          var onBlur = _this$props3.onBlur;
+        var validationError = _this.validate(context.state.values[_this.getName()]);
+        if (validationError) {
+          _this.onValidationError(validationError);
+          context.dispatch(setFieldValidationError(_this.getName(), validationError));
         }
         if (onBlur) {
           onBlur(event);
@@ -2008,8 +2037,8 @@
           context = _this$props4.context,
           validate = _this$props4.validate,
           required = _this$props4.required;
-        value = context.getSubmittedValue(value);
-        if (required && isValueEmpty(value)) {
+        value = context.transformValueForSubmit(value);
+        if (required && isValueEmpty(value) && _this.shouldValidateRequired()) {
           return typeof required === 'string' ? required : context.getRequiredMessage();
         }
         if (validate) {
@@ -2050,6 +2079,7 @@
           name = _this$props5.name,
           value = _this$props5.value,
           onChange = _this$props5.onChange;
+          _this$props5.onErrorChange;
 
         // "Register" the field and initialize it with the default value.
         //
@@ -2061,6 +2091,7 @@
           value: value,
           onChange: onChange,
           error: error,
+          onValidationError: this.onValidationError,
           validate: this.validate,
           scroll: this.scroll,
           focus: this.focus
@@ -2108,9 +2139,11 @@
           // If the default value changed for this `<Field/>`
           // and the field hasn't been edited yet
           // then apply this new default value.
-          // A default value isn't supposed to generate an error.
           if (value !== prevProps.value && !this.hasBeenEdited) {
+            var validationError = this.validate(value);
+            this.onValidationError(validationError);
             context.dispatch(setFieldValue(this.getName(), value));
+            context.dispatch(setFieldValidationError(this.getName(), validationError));
           }
           // If an externally set `error` property is updated,
           // then update invalid indication for this field accordingly.
@@ -2126,9 +2159,12 @@
     }, {
       key: "showOrHideExternallySetError",
       value: function showOrHideExternallySetError(error) {
-        var context = this.props.context;
-        var value = context.state.values[this.getName()];
+        var _this$props7 = this.props,
+          context = _this$props7.context;
+          _this$props7.onErrorChange;
+        context.state.values[this.getName()];
         context.state.showErrors[this.getName()];
+        this.onError(error);
 
         // If the `error` is set then indicate this field as being invalid.
         if (error) {
@@ -2141,8 +2177,77 @@
         // If the `error` is reset and the field is valid
         // then reset invalid indication.
         // `!this.validate(value)` means "the value is valid".
-        else if (!error && !this.validate(value)) {
+        else if (!error) {
           context.dispatch(setFieldError(this.getName(), undefined));
+        }
+      }
+    }, {
+      key: "onError",
+      value: function onError(newError) {
+        var _this$props8 = this.props,
+          context = _this$props8.context,
+          onErrorChange = _this$props8.onErrorChange;
+        if (!onErrorChange) {
+          return;
+        }
+        var error = context.state.errors[this.getName()];
+        var validationError = context.state.validationErrors[this.getName()];
+        // const showError = context.state.showErrors[this.getName()]
+        if (newError === error) {
+          // No changes.
+          // If the error is present and didn't change then no changes.
+          // If the error wasn't present then the validation error should be shown,
+          // if present, but since it didn't change either, there's no need to call
+          // `onErrorChange()`.
+          return;
+        }
+        // If the external error is being reset.
+        if (error && !newError) {
+          // Then use the validaton error, if it's any different
+          // from the argument of the previous call of `onErrorChange()`.
+          if (error !== validationError) {
+            onErrorChange(validationError);
+          }
+          return;
+        }
+        // `newError` is defined and `error` is not:
+        // an external error is being set.
+        onErrorChange(newError);
+      }
+    }, {
+      key: "onValidationError",
+      value: function onValidationError(newValidationError) {
+        var _this$props9 = this.props,
+          context = _this$props9.context,
+          onErrorChange = _this$props9.onErrorChange;
+        if (!onErrorChange) {
+          return;
+        }
+        var error = context.state.errors[this.getName()];
+        var validationError = context.state.validationErrors[this.getName()];
+        // const showError = context.state.showErrors[this.getName()]
+        // An externally set error overrides a validation error.
+        // And the externally set error hasn't been changed,
+        // so no need to call `onErrorChange()`.
+        if (error) {
+          return;
+        }
+        // If validation error is being reset and there's no external error
+        // then show no error.
+        // Otherwise, show new validation error, if it has changed.
+        if (newValidationError !== validationError) {
+          onErrorChange(newValidationError);
+        }
+      }
+    }, {
+      key: "getCurrentlyShownError",
+      value: function getCurrentlyShownError() {
+        var context = this.props.context;
+        var error = context.state.errors[this.getName()];
+        var validationError = context.state.validationErrors[this.getName()];
+        var showError = context.state.showErrors[this.getName()];
+        if (showError) {
+          return error || validationError;
         }
       }
     }, {
@@ -2153,13 +2258,24 @@
 
       // Focuses on a field (can be called externally through a ref).
     }, {
+      key: "shouldValidateRequired",
+      value: function shouldValidateRequired() {
+        var _this$props10 = this.props,
+          context = _this$props10.context,
+          validateRequiredBeforeSubmit = _this$props10.validateRequiredBeforeSubmit;
+        if (validateRequiredBeforeSubmit) {
+          return true;
+        }
+        return Boolean(context.state.submitted);
+      }
+    }, {
       key: "render",
       value: function render() {
-        var _this$props7 = this.props,
-          context = _this$props7.context,
-          required = _this$props7.required,
-          disabled = _this$props7.disabled,
-          component = _this$props7.component;
+        var _this$props11 = this.props,
+          context = _this$props11.context,
+          required = _this$props11.required,
+          disabled = _this$props11.disabled,
+          component = _this$props11.component;
         var value = context.state.values[this.getName()];
         var error = context.state.validationErrors[this.getName()] || context.state.errors[this.getName()];
         var showError = context.state.showErrors[this.getName()];
@@ -2184,6 +2300,22 @@
     value: PropTypes__default["default"].any,
     error: PropTypes__default["default"].string,
     validate: PropTypes__default["default"].func,
+    // This property is currently not used.
+    // Validation is currently only performed on `blur` event
+    // and any validation errors are cleared while the user is typing.
+    // Perhaps that results in a slightly less unneeded CPU load or something like that.
+    validateOnChange: PropTypes__default["default"].bool,
+    // This property is currently not used.
+    // "Required" validation is currently only performed after a user has attempted
+    // to submit the form. The reason is that otherwise there'd be unnecessarily-shown
+    // "Required" error messages when the form has `autoFocus` feature enabled
+    // and the user clicks away (for example, on a "Close Form Modal" button).
+    // Or, for example, showing the "Required" error message on blur could result in
+    // a shift of content when the user attempts to click the "Submit" button
+    // resulting in the user clicking another button or empty space.
+    validateRequiredBeforeSubmit: PropTypes__default["default"].bool,
+    onChange: PropTypes__default["default"].func,
+    onErrorChange: PropTypes__default["default"].func,
     context: contextPropType.isRequired,
     listContext: listContextPropType,
     item: itemType
