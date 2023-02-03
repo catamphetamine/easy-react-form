@@ -162,6 +162,14 @@ export const setFormSubmitting = (submitting) => state =>
 	}
 }
 
+export const setFormSubmitAttempted = (submitAttempted) => state =>
+{
+	return {
+		...state,
+		submitAttempted
+	}
+}
+
 export const showFieldError = (field) => state =>
 {
 	return {

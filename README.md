@@ -129,8 +129,6 @@ The `<Form/>` takes the following optional properties:
 
   * `onStateDidChange(newState : object)` — Will get called whenever a form's state has changed.
 
-  * `wait : Boolean` — The initial `wait` state of the submit button. Can be used when the form is "loading" on first render.
-
   * `onBeforeSubmit : Function`
 
   * `onAfterSubmit : Function`

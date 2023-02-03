@@ -21,6 +21,8 @@
 
 * List Plugin: renamed `<Field i/>` property to `<Field item/>`.
 
+* Removed `<Form wait/>` property.
+
 1.2.0 / 09.08.2021
 ==================
 

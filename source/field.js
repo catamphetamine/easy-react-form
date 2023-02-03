@@ -341,7 +341,9 @@ class FormField extends Component {
 		if (validateRequiredBeforeSubmit) {
 			return true
 		}
-		return Boolean(context.state.submitted)
+		// If the user has attempted to submit the form
+		// then start showing "required" errors.
+		return context.state.submitAttempted
 	}
 
 	validate = (value) => {

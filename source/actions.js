@@ -117,6 +117,11 @@ export const setFormSubmitting = (submitting) => state =>
 	state.submitting = submitting
 }
 
+export const setFormSubmitAttempted = (submitAttempted) => state =>
+{
+	state.submitAttempted = submitAttempted
+}
+
 export const showFieldError = (field) => state =>
 {
 	state.showErrors[field] = true

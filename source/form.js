@@ -1,11 +1,14 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
+import getInitialState from './getInitialState'
+
 import OnAbandonPlugin from './plugins/OnAbandonPlugin'
 import ListPlugin from './plugins/ListPlugin'
 import { getPassThroughProps, getValues, getValue, getNext, NOT_FOUND } from './utility'
 
 import {
+	setFormSubmitAttempted,
 	setFormSubmitting,
 	setFieldValue,
 	setFieldValidationError,
@@ -30,7 +33,6 @@ export default class Form extends Component {
 		autoFocus: PropTypes.bool.isRequired,
 		trim: PropTypes.bool.isRequired,
 		requiredMessage: PropTypes.string.isRequired,
-		wait: PropTypes.bool.isRequired,
 		onError: PropTypes.func.isRequired,
 		scrollDuration: PropTypes.number.isRequired,
 		plugins: PropTypes.arrayOf(PropTypes.func).isRequired,
@@ -44,7 +46,6 @@ export default class Form extends Component {
 		autoFocus: false,
 		trim: true,
 		requiredMessage: 'Required',
-		wait: false,
 		onError: (error) => false,
 		scrollDuration: 300,
 		plugins: [
@@ -98,12 +99,6 @@ export default class Form extends Component {
 	}
 
 	componentDidUpdate(prevProps) {
-		const { wait } = this.props
-
-		if (wait !== prevProps.wait) {
-			this.setFormSubmitting(wait)
-		}
-
 		this.cleanUpRemovedFields()
 
 		for (const plugin of this.plugins) {
@@ -137,10 +132,9 @@ export default class Form extends Component {
 	}
 
 	_getInitialState() {
-		const { values, wait } = this.props
-		return generateInitialFormState(
-			this.state ? this.getState().initialValues : values,
-			{ submitting: wait }
+		const { values } = this.props
+		return getInitialState(
+			this.state ? this.getState().initialValues : values
 		)
 	}
 
@@ -397,7 +391,7 @@ export default class Form extends Component {
 			return this.resetField(field)
 		}
 
-		const { plugins, wait } = this.props
+		const { plugins } = this.props
 
 		for (const plugin of this.plugins) {
 			if (plugin.onReset) {
@@ -621,6 +615,7 @@ export default class Form extends Component {
 		if (result && typeof result.then === 'function') {
 			this.onSubmitPromise(result).then(this.onAfterSubmit)
 		} else {
+			this.setFormSubmitting(false)
 			this.onAfterSubmit()
 		}
 	}
@@ -667,8 +662,7 @@ export default class Form extends Component {
 	resetFormSubmittingState(forceRestoreFocus) {
 		return new Promise((resolve) => {
 			if (this.mounted) {
-				const { wait } = this.props
-				this.setFormSubmitting(wait, resolve, forceRestoreFocus)
+				this.setFormSubmitting(false, resolve, forceRestoreFocus)
 			} else {
 				resolve()
 			}
@@ -699,6 +693,9 @@ export default class Form extends Component {
 
 	onSubmit = (event) => {
 		const { onSubmit, onBeforeSubmit } = this.props
+		const { submitAttempted } = this.getState()
+
+		this.dispatch(setFormSubmitAttempted(true))
 
 		// If it's an event handler then `.preventDefault()` it
 		// (which is the case for the intended
@@ -865,38 +862,8 @@ Children.propTypes = {
 	scroll: PropTypes.func.isRequired,
 	focus: PropTypes.func.isRequired,
 	watch: PropTypes.func.isRequired,
-	submitting: PropTypes.bool,
+	submitting: PropTypes.bool.isRequired,
 	children: PropTypes.func.isRequired
-}
-
-function generateInitialFormState(initialValues = {}, { submitting = false } = {}) {
-	return {
-		// `mounted`/`unmounted` counters for each form field.
-		fields : {},
-
-		// Current form field values.
-		values : {},
-
-		// Initial form field values.
-		initialValues,
-
-		// Externally set `error`s on form fields.
-		errors : {},
-
-		// The results of `validate()` functions called on
-		// the corresponding form field `value`s.
-		validationErrors : {},
-
-		// Whether should show field errors.
-		showErrors : {},
-
-		// Is used for tracking abandoned forms for Google Analytics.
-		latestFocusedField : undefined,
-
-		// If `onSubmit` returns a `Promise` (or is `async/await`)
-		// then `submitting` will be `true` until `onSubmit` finishes.
-		submitting
-	}
 }
 
 export const contextPropType = PropTypes.shape({
@@ -908,7 +875,8 @@ export const contextPropType = PropTypes.shape({
 		validationErrors: PropTypes.object.isRequired,
 		showErrors: PropTypes.object.isRequired,
 		latestFocusedField: PropTypes.string,
-		submitting: PropTypes.bool.isRequired
+		submitting: PropTypes.bool.isRequired,
+		submitAttempted: PropTypes.bool.isRequired
 	}).isRequired,
 	updateState: PropTypes.func.isRequired,
 	onRegisterField: PropTypes.func.isRequired,

@@ -9,6 +9,32 @@
   var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
   var PropTypes__default = /*#__PURE__*/_interopDefaultLegacy(PropTypes);
 
+  function getInitialState() {
+    var initialValues = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    return {
+      // `mounted`/`unmounted` counters for each form field.
+      fields: {},
+      // Current form field values.
+      values: {},
+      // Initial form field values.
+      initialValues: initialValues,
+      // Externally set `error`s on form fields.
+      errors: {},
+      // The results of `validate()` functions called on
+      // the corresponding form field `value`s.
+      validationErrors: {},
+      // Whether should show field errors.
+      showErrors: {},
+      // Is used for tracking abandoned forms for Google Analytics.
+      latestFocusedField: undefined,
+      // If `onSubmit` returns a `Promise` (or is `async/await`)
+      // then `submitting` will be `true` until `onSubmit` finishes.
+      submitting: false,
+      // Once the user clicks the "Submit" button, this flag becomes `true`.
+      submitAttempted: false
+    };
+  }
+
   function _typeof$5(obj) { "@babel/helpers - typeof"; return _typeof$5 = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof$5(obj); }
   function _classCallCheck$4(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
   function _defineProperties$4(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey$5(descriptor.key), descriptor); } }
@@ -741,6 +767,11 @@
       state.submitting = submitting;
     };
   };
+  var setFormSubmitAttempted = function setFormSubmitAttempted(submitAttempted) {
+    return function (state) {
+      state.submitAttempted = submitAttempted;
+    };
+  };
   var removeField = function removeField(field) {
     return function (state) {
       delete state.fields[field];
@@ -906,9 +937,7 @@
         if (typeof field === 'string') {
           return _this.resetField(field);
         }
-        var _this$props = _this.props;
-          _this$props.plugins;
-          _this$props.wait;
+        _this.props.plugins;
         for (var _iterator2 = _createForOfIteratorHelperLoose(_this.plugins), _step2; !(_step2 = _iterator2()).done;) {
           var plugin = _step2.value;
           if (plugin.onReset) {
@@ -1028,9 +1057,12 @@
         }
       });
       _defineProperty$3(_assertThisInitialized$2(_this), "onSubmit", function (event) {
-        var _this$props2 = _this.props,
-          onSubmit = _this$props2.onSubmit,
-          onBeforeSubmit = _this$props2.onBeforeSubmit;
+        var _this$props = _this.props,
+          onSubmit = _this$props.onSubmit,
+          onBeforeSubmit = _this$props.onBeforeSubmit;
+        var _this$getState4 = _this.getState();
+          _this$getState4.submitAttempted;
+        _this.dispatch(setFormSubmitAttempted(true));
 
         // If it's an event handler then `.preventDefault()` it
         // (which is the case for the intended
@@ -1155,10 +1187,6 @@
     }, {
       key: "componentDidUpdate",
       value: function componentDidUpdate(prevProps) {
-        var wait = this.props.wait;
-        if (wait !== prevProps.wait) {
-          this.setFormSubmitting(wait);
-        }
         this.cleanUpRemovedFields();
         for (var _iterator6 = _createForOfIteratorHelperLoose(this.plugins), _step6; !(_step6 = _iterator6()).done;) {
           var plugin = _step6.value;
@@ -1196,12 +1224,8 @@
     }, {
       key: "_getInitialState",
       value: function _getInitialState() {
-        var _this$props3 = this.props,
-          values = _this$props3.values,
-          wait = _this$props3.wait;
-        return generateInitialFormState(this.state ? this.getState().initialValues : values, {
-          submitting: wait
-        });
+        var values = this.props.values;
+        return getInitialState(this.state ? this.getState().initialValues : values);
       }
     }, {
       key: "getInitialContext",
@@ -1226,9 +1250,9 @@
     }, {
       key: "_getInitialContext",
       value: function _getInitialContext() {
-        var _this$props4 = this.props,
-          requiredMessage = _this$props4.requiredMessage,
-          initialState = _this$props4.initialState;
+        var _this$props2 = this.props,
+          requiredMessage = _this$props2.requiredMessage,
+          initialState = _this$props2.initialState;
         return {
           state: initialState || this.getInitialState(),
           // initialState,
@@ -1342,10 +1366,10 @@
     }, {
       key: "searchForInvalidField",
       value: function searchForInvalidField() {
-        var _this$getState4 = this.getState(),
-          fields = _this$getState4.fields,
-          values = _this$getState4.values,
-          errors = _this$getState4.errors;
+        var _this$getState5 = this.getState(),
+          fields = _this$getState5.fields,
+          values = _this$getState5.values,
+          errors = _this$getState5.errors;
 
         // Re-run `validate()` for each field.
         // Because `validate()` function takes two arguments:
@@ -1376,9 +1400,9 @@
       value: function validate() {
         var _this3 = this;
         var scrollDuration = this.props.scrollDuration;
-        var _this$getState5 = this.getState(),
-          fields = _this$getState5.fields,
-          values = _this$getState5.values;
+        var _this$getState6 = this.getState(),
+          fields = _this$getState6.fields,
+          values = _this$getState6.values;
 
         // Are there any invalid fields.
         // Returns the first one.
@@ -1430,9 +1454,9 @@
     }, {
       key: "getValuesForSubmit",
       value: function getValuesForSubmit() {
-        var _this$getState6 = this.getState(),
-          fields = _this$getState6.fields,
-          values = _this$getState6.values;
+        var _this$getState7 = this.getState(),
+          fields = _this$getState7.fields,
+          values = _this$getState7.values;
         // Get only "registered" (non-removed) field values.
         var fieldValues = getValues(values, fields);
         for (var _i6 = 0, _Object$keys6 = Object.keys(fieldValues); _i6 < _Object$keys6.length; _i6++) {
@@ -1463,6 +1487,7 @@
         if (result && typeof result.then === 'function') {
           this.onSubmitPromise(result).then(this.onAfterSubmit);
         } else {
+          this.setFormSubmitting(false);
           this.onAfterSubmit();
         }
       }
@@ -1512,8 +1537,7 @@
         var _this5 = this;
         return new Promise(function (resolve) {
           if (_this5.mounted) {
-            var wait = _this5.props.wait;
-            _this5.setFormSubmitting(wait, resolve, forceRestoreFocus);
+            _this5.setFormSubmitting(false, resolve, forceRestoreFocus);
           } else {
             resolve();
           }
@@ -1570,8 +1594,8 @@
       value: function render() {
         var children = this.props.children;
         var resetCounter = this.getContext.resetCounter;
-        var _this$getState7 = this.getState(),
-          submitting = _this$getState7.submitting;
+        var _this$getState8 = this.getState(),
+          submitting = _this$getState8.submitting;
         return /*#__PURE__*/React__default["default"].createElement("form", _extends$2({
           key: resetCounter,
           ref: this.setFormNode
@@ -1605,7 +1629,6 @@
     autoFocus: PropTypes__default["default"].bool.isRequired,
     trim: PropTypes__default["default"].bool.isRequired,
     requiredMessage: PropTypes__default["default"].string.isRequired,
-    wait: PropTypes__default["default"].bool.isRequired,
     onError: PropTypes__default["default"].func.isRequired,
     scrollDuration: PropTypes__default["default"].number.isRequired,
     plugins: PropTypes__default["default"].arrayOf(PropTypes__default["default"].func).isRequired,
@@ -1615,7 +1638,6 @@
     autoFocus: false,
     trim: true,
     requiredMessage: 'Required',
-    wait: false,
     onError: function onError(error) {
       return false;
     },
@@ -1651,35 +1673,9 @@
     scroll: PropTypes__default["default"].func.isRequired,
     focus: PropTypes__default["default"].func.isRequired,
     watch: PropTypes__default["default"].func.isRequired,
-    submitting: PropTypes__default["default"].bool,
+    submitting: PropTypes__default["default"].bool.isRequired,
     children: PropTypes__default["default"].func.isRequired
   };
-  function generateInitialFormState() {
-    var initialValues = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var _ref5 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-      _ref5$submitting = _ref5.submitting,
-      submitting = _ref5$submitting === void 0 ? false : _ref5$submitting;
-    return {
-      // `mounted`/`unmounted` counters for each form field.
-      fields: {},
-      // Current form field values.
-      values: {},
-      // Initial form field values.
-      initialValues: initialValues,
-      // Externally set `error`s on form fields.
-      errors: {},
-      // The results of `validate()` functions called on
-      // the corresponding form field `value`s.
-      validationErrors: {},
-      // Whether should show field errors.
-      showErrors: {},
-      // Is used for tracking abandoned forms for Google Analytics.
-      latestFocusedField: undefined,
-      // If `onSubmit` returns a `Promise` (or is `async/await`)
-      // then `submitting` will be `true` until `onSubmit` finishes.
-      submitting: submitting
-    };
-  }
   var contextPropType = PropTypes__default["default"].shape({
     state: PropTypes__default["default"].shape({
       fields: PropTypes__default["default"].object.isRequired,
@@ -1689,7 +1685,8 @@
       validationErrors: PropTypes__default["default"].object.isRequired,
       showErrors: PropTypes__default["default"].object.isRequired,
       latestFocusedField: PropTypes__default["default"].string,
-      submitting: PropTypes__default["default"].bool.isRequired
+      submitting: PropTypes__default["default"].bool.isRequired,
+      submitAttempted: PropTypes__default["default"].bool.isRequired
     }).isRequired,
     updateState: PropTypes__default["default"].func.isRequired,
     onRegisterField: PropTypes__default["default"].func.isRequired,
@@ -1962,7 +1959,6 @@
           context = _this$props.context,
           validateOnChange = _this$props.validateOnChange,
           onChange = _this$props.onChange;
-          _this$props.onErrorChange;
 
         // The `validateOnChange` feature is currently not used.
         // Validation is currently only performed on `blur` event
@@ -1987,9 +1983,8 @@
       });
       _defineProperty$1(_assertThisInitialized(_this), "onBlur", function (event) {
         var _this$props3 = _this.props,
-          context = _this$props3.context;
-          _this$props3.onErrorChange;
-          var onBlur = _this$props3.onBlur;
+          context = _this$props3.context,
+          onBlur = _this$props3.onBlur;
         var validationError = _this.validate(context.state.values[_this.getName()]);
         if (validationError) {
           _this.onValidationError(validationError);
@@ -1999,6 +1994,7 @@
           onBlur(event);
         }
       });
+      _defineProperty$1(_assertThisInitialized(_this), "onValidationError", function (validationError) {});
       _defineProperty$1(_assertThisInitialized(_this), "focus", function () {
         // `.focus()` could theoretically maybe potentially be called in a timeout,
         // so check if the component is still mounted.
@@ -2079,7 +2075,6 @@
           name = _this$props5.name,
           value = _this$props5.value,
           onChange = _this$props5.onChange;
-          _this$props5.onErrorChange;
 
         // "Register" the field and initialize it with the default value.
         //
@@ -2159,10 +2154,8 @@
     }, {
       key: "showOrHideExternallySetError",
       value: function showOrHideExternallySetError(error) {
-        var _this$props7 = this.props,
-          context = _this$props7.context;
-          _this$props7.onErrorChange;
-        context.state.values[this.getName()];
+        var context = this.props.context;
+        var value = context.state.values[this.getName()];
         context.state.showErrors[this.getName()];
         this.onError(error);
 
@@ -2176,83 +2169,72 @@
         }
         // If the `error` is reset and the field is valid
         // then reset invalid indication.
-        // `!this.validate(value)` means "the value is valid".
-        else if (!error) {
-          context.dispatch(setFieldError(this.getName(), undefined));
+        else {
+          var validationError = this.validate(value);
+          context.dispatch(setFieldError(this.getName(), validationError));
         }
       }
     }, {
       key: "onError",
-      value: function onError(newError) {
-        var _this$props8 = this.props,
-          context = _this$props8.context,
-          onErrorChange = _this$props8.onErrorChange;
-        if (!onErrorChange) {
-          return;
-        }
-        var error = context.state.errors[this.getName()];
-        var validationError = context.state.validationErrors[this.getName()];
-        // const showError = context.state.showErrors[this.getName()]
-        if (newError === error) {
-          // No changes.
-          // If the error is present and didn't change then no changes.
-          // If the error wasn't present then the validation error should be shown,
-          // if present, but since it didn't change either, there's no need to call
-          // `onErrorChange()`.
-          return;
-        }
-        // If the external error is being reset.
-        if (error && !newError) {
-          // Then use the validaton error, if it's any different
-          // from the argument of the previous call of `onErrorChange()`.
-          if (error !== validationError) {
-            onErrorChange(validationError);
-          }
-          return;
-        }
-        // `newError` is defined and `error` is not:
-        // an external error is being set.
-        onErrorChange(newError);
-      }
-    }, {
-      key: "onValidationError",
-      value: function onValidationError(newValidationError) {
-        var _this$props9 = this.props,
-          context = _this$props9.context,
-          onErrorChange = _this$props9.onErrorChange;
-        if (!onErrorChange) {
-          return;
-        }
-        var error = context.state.errors[this.getName()];
-        var validationError = context.state.validationErrors[this.getName()];
-        // const showError = context.state.showErrors[this.getName()]
-        // An externally set error overrides a validation error.
-        // And the externally set error hasn't been changed,
-        // so no need to call `onErrorChange()`.
-        if (error) {
-          return;
-        }
-        // If validation error is being reset and there's no external error
-        // then show no error.
-        // Otherwise, show new validation error, if it has changed.
-        if (newValidationError !== validationError) {
-          onErrorChange(newValidationError);
-        }
-      }
-    }, {
-      key: "getCurrentlyShownError",
-      value: function getCurrentlyShownError() {
-        var context = this.props.context;
-        var error = context.state.errors[this.getName()];
-        var validationError = context.state.validationErrors[this.getName()];
-        var showError = context.state.showErrors[this.getName()];
-        if (showError) {
-          return error || validationError;
-        }
-      }
+      value: function onError(error) {}
     }, {
       key: "getNode",
-      value: function getNode() {
+      value:
+      // onError(newError) {
+      // 	const { context, onErrorChange } = this.props
+      // 	if (!onErrorChange) {
+      // 		return
+      // 	}
+      // 	const error = context.state.errors[this.getName()]
+      // 	const validationError = context.state.validationErrors[this.getName()]
+      // 	// const showError = context.state.showErrors[this.getName()]
+      // 	if (newError === error) {
+      // 		// No changes.
+      // 		// If the error is present and didn't change then no changes.
+      // 		// If the error wasn't present then the validation error should be shown,
+      // 		// if present, but since it didn't change either, there's no need to call
+      // 		// `onErrorChange()`.
+      // 		return
+      // 	}
+      // 	// If the external error is being reset.
+      // 	if (error && !newError) {
+      // 		// Then use the validaton error, if it's any different
+      // 		// from the argument of the previous call of `onErrorChange()`.
+      // 		if (error !== validationError) {
+      // 			 onErrorChange(validationError)
+      // 		} else {
+      // 			// Otherwise, no changes.
+      // 		}
+      // 		return
+      // 	}
+      // 	// `newError` is defined and `error` is not:
+      // 	// an external error is being set.
+      // 	onErrorChange(newError)
+      // }
+
+      // onValidationError(newValidationError) {
+      // 	const { context, onErrorChange } = this.props
+      // 	if (!onErrorChange) {
+      // 		return
+      // 	}
+      // 	const error = context.state.errors[this.getName()]
+      // 	const validationError = context.state.validationErrors[this.getName()]
+      // 	// const showError = context.state.showErrors[this.getName()]
+      // 	// An externally set error overrides a validation error.
+      // 	// And the externally set error hasn't been changed,
+      // 	// so no need to call `onErrorChange()`.
+      // 	if (error) {
+      // 		return
+      // 	}
+      // 	// If validation error is being reset and there's no external error
+      // 	// then show no error.
+      // 	// Otherwise, show new validation error, if it has changed.
+      // 	if (newValidationError !== validationError) {
+      // 		onErrorChange(newValidationError)
+      // 	}
+      // }
+
+      function getNode() {
         return this.field.current;
       }
 
@@ -2260,22 +2242,24 @@
     }, {
       key: "shouldValidateRequired",
       value: function shouldValidateRequired() {
-        var _this$props10 = this.props,
-          context = _this$props10.context,
-          validateRequiredBeforeSubmit = _this$props10.validateRequiredBeforeSubmit;
+        var _this$props7 = this.props,
+          context = _this$props7.context,
+          validateRequiredBeforeSubmit = _this$props7.validateRequiredBeforeSubmit;
         if (validateRequiredBeforeSubmit) {
           return true;
         }
-        return Boolean(context.state.submitted);
+        // If the user has attempted to submit the form
+        // then start showing "required" errors.
+        return context.state.submitAttempted;
       }
     }, {
       key: "render",
       value: function render() {
-        var _this$props11 = this.props,
-          context = _this$props11.context,
-          required = _this$props11.required,
-          disabled = _this$props11.disabled,
-          component = _this$props11.component;
+        var _this$props8 = this.props,
+          context = _this$props8.context,
+          required = _this$props8.required,
+          disabled = _this$props8.disabled,
+          component = _this$props8.component;
         var value = context.state.values[this.getName()];
         var error = context.state.validationErrors[this.getName()] || context.state.errors[this.getName()];
         var showError = context.state.showErrors[this.getName()];
@@ -2315,7 +2299,9 @@
     // resulting in the user clicking another button or empty space.
     validateRequiredBeforeSubmit: PropTypes__default["default"].bool,
     onChange: PropTypes__default["default"].func,
-    onErrorChange: PropTypes__default["default"].func,
+    // onErrorChange: PropTypes.func,
+    // onValidationErrorChange: PropTypes.func,
+
     context: contextPropType.isRequired,
     listContext: listContextPropType,
     item: itemType

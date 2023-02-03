@@ -222,7 +222,7 @@
 
 			function SubmitButton({ wait, ...rest }) {
 				return (
-					<button type="submit" className="SubmitButton" {...rest}/>
+					<button type="submit" disabled={wait} className="SubmitButton" {...rest}/>
 				)
 			}
 
