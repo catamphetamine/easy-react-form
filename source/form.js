@@ -181,6 +181,8 @@ export default class Form extends Component {
 	}
 
 	applyStateChanges(newState, callback, { resetForm } = {}) {
+		// Currently, `prevState` is always equal to `newState`
+		// because state changes mutate the state object itself.
 		const prevContext = this.getContext()
 		const prevState = prevContext.state
 
