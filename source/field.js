@@ -370,7 +370,6 @@ class FormField extends Component {
 		const {
 			context,
 			required,
-			disabled,
 			component
 		} = this.props
 
@@ -384,7 +383,7 @@ class FormField extends Component {
 			onChange : this.onChange,
 			onFocus  : this.onFocus,
 			onBlur   : this.onBlur,
-			disabled : disabled || context.state.submitting,
+			wait     : context.state.submitting,
 			error    : showError ? error : undefined,
 			required : required ? true : false,
 			value

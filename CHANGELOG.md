@@ -23,6 +23,8 @@
 
 * Removed `<Form wait/>` property.
 
+* `<Field/>` now receives property `wait={true}` rather than `disabled={true}` during form submit.
+
 1.2.0 / 09.08.2021
 ==================
 

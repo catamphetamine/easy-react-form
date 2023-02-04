@@ -203,7 +203,7 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 
   * `onBlur`
 
-  * `disabled : Boolean` — is `true` when form is submitting.
+  * `wait : Boolean` — is `true` when form is submitting.
 
   * `required : Boolean` — is `true` when the `<Field/>` is `required` and the value is missing.
 
