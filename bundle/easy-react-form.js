@@ -2258,7 +2258,6 @@
         var _this$props8 = this.props,
           context = _this$props8.context,
           required = _this$props8.required,
-          disabled = _this$props8.disabled,
           component = _this$props8.component;
         var value = context.state.values[this.getName()];
         var error = context.state.validationErrors[this.getName()] || context.state.errors[this.getName()];
@@ -2268,7 +2267,7 @@
           onChange: this.onChange,
           onFocus: this.onFocus,
           onBlur: this.onBlur,
-          disabled: disabled || context.state.submitting,
+          wait: context.state.submitting,
           error: showError ? error : undefined,
           required: required ? true : false,
           value: value
