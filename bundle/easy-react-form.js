@@ -814,6 +814,11 @@
     // when calling `set(field, value)` and `clear(field)`.
     // Also stores fields' `scroll()` and `focus()` functions.
 
+    // The `unmounting` flag is checked in `<Field/>`s so that
+    // they don't unregister themseles on form unmount: there'd be
+    // no point in unregistering those fields if the form is going to be
+    // unmounted anyway.
+
     function Form(props) {
       var _this;
       _classCallCheck$2(this, Form);
@@ -821,6 +826,7 @@
       _defineProperty$3(_assertThisInitialized$2(_this), "fields", {});
       _defineProperty$3(_assertThisInitialized$2(_this), "watchedFields", {});
       _defineProperty$3(_assertThisInitialized$2(_this), "watchedFieldsList", []);
+      _defineProperty$3(_assertThisInitialized$2(_this), "unmounting", false);
       _defineProperty$3(_assertThisInitialized$2(_this), "onRegisterField", function (field, _ref) {
         var value = _ref.value,
           onChange = _ref.onChange,
@@ -1207,6 +1213,7 @@
             plugin.onUnmount();
           }
         }
+        this.unmounting = true;
         this.mounted = false;
       }
     }, {
@@ -1250,12 +1257,16 @@
     }, {
       key: "_getInitialContext",
       value: function _getInitialContext() {
+        var _this2 = this;
         var _this$props2 = this.props,
           requiredMessage = _this$props2.requiredMessage,
           initialState = _this$props2.initialState;
         return {
           state: initialState || this.getInitialState(),
           // initialState,
+          isUnmounting: function isUnmounting() {
+            return _this2.unmounting;
+          },
           resetCounter: 0,
           dispatch: this.dispatch,
           updateState: this.updateState,
@@ -1273,7 +1284,7 @@
     }, {
       key: "applyStateChanges",
       value: function applyStateChanges(newState, callback) {
-        var _this2 = this;
+        var _this3 = this;
         var _ref3 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
           resetForm = _ref3.resetForm;
         // Currently, `prevState` is always equal to `newState`
@@ -1332,9 +1343,19 @@
         }
         this.setState(newContext, function () {
           // Call `onStateDidChange()` listener.
-          var onStateDidChange = _this2.props.onStateDidChange;
+          var onStateDidChange = _this3.props.onStateDidChange;
           if (onStateDidChange) {
-            onStateDidChange(_this2.getState());
+            onStateDidChange(_this3.getState(), undefined, {
+              getValidationError: function getValidationError(fieldName) {
+                return _this3.getState().validationErrors[fieldName];
+              },
+              getError: function getError(fieldName) {
+                return _this3.getState().errors[fieldName];
+              },
+              getValue: function getValue(fieldName) {
+                return _this3.getState().values[fieldName];
+              }
+            });
           }
           if (callback) {
             callback();
@@ -1398,7 +1419,7 @@
     }, {
       key: "validate",
       value: function validate() {
-        var _this3 = this;
+        var _this4 = this;
         var scrollDuration = this.props.scrollDuration;
         var _this$getState6 = this.getState(),
           fields = _this$getState6.fields,
@@ -1437,9 +1458,9 @@
 
         // Focus the invalid field after it has been scrolled to.
         setTimeout(function () {
-          if (_this3.mounted) {
+          if (_this4.mounted) {
             // Focus the invalid field.
-            _this3.focus(field);
+            _this4.focus(field);
           }
         }, scrollDuration);
 
@@ -1521,10 +1542,10 @@
     }, {
       key: "setFormSubmitting",
       value: function setFormSubmitting$1(submitting, callback, forceRestoreFocus) {
-        var _this4 = this;
+        var _this5 = this;
         this.dispatch(setFormSubmitting(submitting), function () {
           if (!submitting) {
-            _this4.restoreFocus(forceRestoreFocus);
+            _this5.restoreFocus(forceRestoreFocus);
           }
           if (callback) {
             callback();
@@ -1534,10 +1555,10 @@
     }, {
       key: "resetFormSubmittingState",
       value: function resetFormSubmittingState(forceRestoreFocus) {
-        var _this5 = this;
+        var _this6 = this;
         return new Promise(function (resolve) {
-          if (_this5.mounted) {
-            _this5.setFormSubmitting(false, resolve, forceRestoreFocus);
+          if (_this6.mounted) {
+            _this6.setFormSubmitting(false, resolve, forceRestoreFocus);
           } else {
             resolve();
           }
@@ -1548,7 +1569,7 @@
     }, {
       key: "onSubmitPromise",
       value: function onSubmitPromise(promise) {
-        var _this6 = this;
+        var _this7 = this;
         // When `submitting` flag is set to `true`
         // all fields and the submit button will become disabled.
         // This results in focus being lost.
@@ -1559,10 +1580,10 @@
         this.snapshotFocus();
         this.setFormSubmitting(true);
         return promise.then(function () {
-          return _this6.resetFormSubmittingState();
+          return _this7.resetFormSubmittingState();
         }, function (error) {
-          return _this6.resetFormSubmittingState(true).then(function () {
-            var onError = _this6.props.onError;
+          return _this7.resetFormSubmittingState(true).then(function () {
+            var onError = _this7.props.onError;
             if (onError(error) === false) {
               throw error;
             }
@@ -1689,6 +1710,7 @@
       submitAttempted: PropTypes__default["default"].bool.isRequired
     }).isRequired,
     updateState: PropTypes__default["default"].func.isRequired,
+    isUnmounting: PropTypes__default["default"].func.isRequired,
     onRegisterField: PropTypes__default["default"].func.isRequired,
     onUnregisterField: PropTypes__default["default"].func.isRequired,
     transformValueForSubmit: PropTypes__default["default"].func.isRequired,
@@ -2109,8 +2131,11 @@
     }, {
       key: "componentWillUnmount",
       value: function componentWillUnmount() {
-        // "Unregister" field.
-        this.unregister();
+        var context = this.props.context;
+        if (!context.isUnmounting()) {
+          // "Unregister" field.
+          this.unregister();
+        }
         this.mounted = false;
       }
     }, {
@@ -2298,8 +2323,10 @@
     // resulting in the user clicking another button or empty space.
     validateRequiredBeforeSubmit: PropTypes__default["default"].bool,
     onChange: PropTypes__default["default"].func,
+    // `onErrorChange()` property wasn't added because it would be called
+    // at the time when the error has changed in form state but that form state
+    // hasn't already been rendered.
     // onErrorChange: PropTypes.func,
-    // onValidationErrorChange: PropTypes.func,
 
     context: contextPropType.isRequired,
     listContext: listContextPropType,

@@ -127,7 +127,12 @@ The `<Form/>` takes the following optional properties:
 
   * `initialState : object` — One can pass a previously stored form state in order to restore the form to the state it was at that point in time.
 
-  * `onStateDidChange(newState : object)` — Will get called whenever a form's state has changed.
+  * `onStateDidChange(newState : object, undefined, helpers : object)` — Will get called whenever a form's state has changed.
+    * There's no `prevState : object?` argument currently because the state object is mutated "in place" instead of creating an "immutable" copy of it every time it changes. Instead, the second argument is always `undefined`.
+    * The `helpers` object provides functions:
+      * `getValidationError: (fieldName : string) => string?` — Returns validation error for a field.
+      * `getError: (fieldName : string) => string?` — Returns an externally set `error` property value for a field.
+      * `getValue: (fieldName : string) => any?` — Returns field value.
 
   * `onBeforeSubmit : Function`
 

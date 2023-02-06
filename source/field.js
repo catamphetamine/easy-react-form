@@ -59,8 +59,11 @@ class FormField extends Component {
 		validateRequiredBeforeSubmit: PropTypes.bool,
 
 		onChange: PropTypes.func,
+
+		// `onErrorChange()` property wasn't added because it would be called
+		// at the time when the error has changed in form state but that form state
+		// hasn't already been rendered.
 		// onErrorChange: PropTypes.func,
-		// onValidationErrorChange: PropTypes.func,
 
 		context: contextPropType.isRequired,
 		listContext: listContextPropType,
@@ -126,8 +129,12 @@ class FormField extends Component {
 	}
 
 	componentWillUnmount() {
-		// "Unregister" field.
-		this.unregister()
+		const { context } = this.props
+		if (!context.isUnmounting()) {
+			// "Unregister" field.
+			this.unregister()
+		}
+
 		this.mounted = false
 	}
 

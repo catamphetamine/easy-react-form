@@ -62,6 +62,12 @@ export default class Form extends Component {
 	watchedFields = {}
 	watchedFieldsList = []
 
+	// The `unmounting` flag is checked in `<Field/>`s so that
+	// they don't unregister themseles on form unmount: there'd be
+	// no point in unregistering those fields if the form is going to be
+	// unmounted anyway.
+	unmounting = false
+
 	constructor(props) {
 		super(props)
 
@@ -118,6 +124,8 @@ export default class Form extends Component {
 			}
 		}
 
+		this.unmounting = true
+
 		this.mounted = false
 	}
 
@@ -161,6 +169,7 @@ export default class Form extends Component {
 		return {
 			state: initialState || this.getInitialState(),
 			// initialState,
+			isUnmounting: () => this.unmounting,
 			resetCounter: 0,
 			dispatch: this.dispatch,
 			updateState: this.updateState,
@@ -232,7 +241,17 @@ export default class Form extends Component {
 			// Call `onStateDidChange()` listener.
 			const { onStateDidChange } = this.props
 			if (onStateDidChange) {
-				onStateDidChange(this.getState())
+				onStateDidChange(this.getState(), undefined, {
+					getValidationError: (fieldName) => {
+						return this.getState().validationErrors[fieldName]
+					},
+					getError: (fieldName) => {
+						return this.getState().errors[fieldName]
+					},
+					getValue: (fieldName) => {
+						return this.getState().values[fieldName]
+					}
+				})
 			}
 			if (callback) {
 				callback()
@@ -879,6 +898,7 @@ export const contextPropType = PropTypes.shape({
 		submitAttempted: PropTypes.bool.isRequired
 	}).isRequired,
 	updateState: PropTypes.func.isRequired,
+	isUnmounting: PropTypes.func.isRequired,
 	onRegisterField: PropTypes.func.isRequired,
 	onUnregisterField: PropTypes.func.isRequired,
 	transformValueForSubmit: PropTypes.func.isRequired,
