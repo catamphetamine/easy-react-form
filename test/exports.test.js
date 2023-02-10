@@ -2,8 +2,9 @@ import {
 	Form,
 	Field,
 	List,
-	Submit
-} from '../index'
+	Submit,
+	useFormState
+} from '../index.js'
 
 describe(`exports`, function() {
 	it(`should export ES6`, function() {
@@ -11,6 +12,7 @@ describe(`exports`, function() {
 		expect(Field).to.be.a('function')
 		expect(List).to.be.a('function')
 		expect(Submit).to.be.a('function')
+		expect(useFormState).to.be.a('function')
 	})
 
 	it(`should export CommonJS`, function() {
@@ -19,5 +21,6 @@ describe(`exports`, function() {
 		expect(Library.Field).to.be.a('function')
 		expect(Library.List).to.be.a('function')
 		expect(Library.Submit).to.be.a('function')
+		expect(Library.useFormState).to.be.a('function')
 	})
 })

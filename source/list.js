@@ -1,8 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { Context } from './form'
-import { getFieldName } from './plugins/ListPlugin.utility'
+import { Context } from './form.js'
+import { getFieldName } from './plugins/ListPlugin.utility.js'
 
 export default function List_(props) {
 	return (

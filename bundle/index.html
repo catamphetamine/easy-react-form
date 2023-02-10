@@ -70,7 +70,6 @@
 				  },
 				  "initialValues": {},
 				  "errors": {},
-				  "validationErrors": {},
 				  "showErrors": {
 				    "title": false,
 				    "employees:0:firstName": false,
@@ -204,7 +203,7 @@
 				)
 			}
 
-			const TextInput = React.forwardRef(({ label, value, onChange, ...rest }, ref) => {
+			const TextInput = React.forwardRef(({ label, value, wait, readOnly, onChange, ...rest }, ref) => {
 				return (
 					<label className="TextInput">
 						{label}
@@ -213,6 +212,7 @@
 							type="text"
 							value={value === null ? '' : value}
 							onChange={onChange}
+							readOnly={readOnly || wait}
 							{...rest}
 							className="TextInput-input"
 						/>

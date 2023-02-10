@@ -1,21 +1,21 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
-import getInitialState from './getInitialState'
+import getInitialState from './getInitialState.js'
 
-import OnAbandonPlugin from './plugins/OnAbandonPlugin'
-import ListPlugin from './plugins/ListPlugin'
-import { getPassThroughProps, getValues, getValue, getNext, NOT_FOUND } from './utility'
+import OnAbandonPlugin from './plugins/OnAbandonPlugin.js'
+import ListPlugin from './plugins/ListPlugin.js'
+import { getPassThroughProps, getValues, getValue, getNext, NOT_FOUND } from './utility.js'
 
 import {
 	setFormSubmitAttempted,
 	setFormSubmitting,
 	setFieldValue,
-	setFieldValidationError,
+	setFieldError,
 	registerField,
 	unregisterField,
 	removeField
-} from './actions'
+} from './actions.js'
 
 export const Context = React.createContext()
 
@@ -241,17 +241,7 @@ export default class Form extends Component {
 			// Call `onStateDidChange()` listener.
 			const { onStateDidChange } = this.props
 			if (onStateDidChange) {
-				onStateDidChange(this.getState(), undefined, {
-					getValidationError: (fieldName) => {
-						return this.getState().validationErrors[fieldName]
-					},
-					getError: (fieldName) => {
-						return this.getState().errors[fieldName]
-					},
-					getValue: (fieldName) => {
-						return this.getState().values[fieldName]
-					}
-				})
+				onStateDidChange(this.getState())
 			}
 			if (callback) {
 				callback()
@@ -265,7 +255,6 @@ export default class Form extends Component {
 		value,
 		onChange,
 		validate,
-		error,
 		scroll,
 		focus
 	}) => {
@@ -301,8 +290,7 @@ export default class Form extends Component {
 		this.dispatch(registerField({
 			field,
 			value,
-			validate,
-			error
+			validate
 		}))
 	}
 
@@ -483,18 +471,18 @@ export default class Form extends Component {
 		const initialValue = !this.fields[name] || this.fields[name].initialValue === undefined ? this.getInitialValue(name) : this.fields[name].initialValue
 		// If the field is still registered (mounted), then validate the value.
 		// Otherwise, assume the value is valid because there's no validation function available.
-		const validationError = this.fields[name] ? this.fields[name].validate(initialValue) : undefined
+		const error = this.fields[name] ? this.fields[name].validate(initialValue) : undefined
 		this.dispatch(setFieldValue(name, initialValue))
-		this.dispatch(setFieldValidationError(name, validationError))
+		this.dispatch(setFieldError(name, error))
 		// Trigger the `<Field/>`'s `onChange()` handler.
 		// If the field is still mounted.
 		if (this.fields[name]) {
-			const { onChange, onValidationError, initialValue } = this.fields[name]
+			const { onChange, onError, initialValue } = this.fields[name]
 			if (onChange) {
 				onChange(initialValue)
 			}
-			if (onValidationError) {
-				onValidationError(validationError)
+			if (onError) {
+				onError(error)
 			}
 		}
 	}
@@ -530,8 +518,7 @@ export default class Form extends Component {
 	searchForInvalidField() {
 		const {
 			fields,
-			values,
-			errors
+			values
 		} = this.getState()
 
 		// Re-run `validate()` for each field.
@@ -545,10 +532,6 @@ export default class Form extends Component {
 			// If the field is not mounted then ignore it.
 			if (!fields[field]) {
 				continue
-			}
-			// Check for an externally set `error`.
-			if (errors[field] !== undefined) {
-				return field
 			}
 			// If the field's `value` is not valid,
 			// `validate(value)` returns a validation error message (or `true`).
@@ -783,16 +766,16 @@ export default class Form extends Component {
 		// If the field is still mounted.
 		if (this.fields[field]) {
 			// Validate field value.
-			const validationError = this.fields[field].validate(value)
-			this.dispatch(setFieldValidationError(field, validationError))
+			const error = this.fields[field].validate(value)
+			this.dispatch(setFieldError(field, error))
 			// Trigger the `<Field/>`'s `onChange()` handler.
 			if (changed !== false) {
-				const { onChange, onValidationError } = this.fields[field]
+				const { onChange, onError } = this.fields[field]
 				if (onChange) {
 					onChange(value)
 				}
-				if (onValidationError) {
-					onValidationError(validationError)
+				if (onError) {
+					onError(error)
 				}
 			}
 		}
@@ -891,7 +874,6 @@ export const contextPropType = PropTypes.shape({
 		values: PropTypes.object.isRequired,
 		initialValues: PropTypes.object.isRequired,
 		errors: PropTypes.object.isRequired,
-		validationErrors: PropTypes.object.isRequired,
 		showErrors: PropTypes.object.isRequired,
 		latestFocusedField: PropTypes.string,
 		submitting: PropTypes.bool.isRequired,

@@ -1,5 +1,12 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
+2.0.6 / 10.02.2023
+==================
+
+* Removed `<Field error/>` property. "Validation error"s are now called just "error"s.
+
+* Added `useFormState()` hook.
+
 2.0.0 / 31.01.2023
 ==================
 

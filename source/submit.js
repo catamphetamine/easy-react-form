@@ -1,8 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { Context } from './form'
-import { getPassThroughProps } from './utility'
+import { Context } from './form.js'
+import { getPassThroughProps } from './utility.js'
 
 export default function Submit(props) {
 	return (

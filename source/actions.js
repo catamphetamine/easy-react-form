@@ -12,7 +12,7 @@
 // no changes are lost. But if a new state object would've been created by each
 // of those two actions, the second one would overwrite the changes made by the first one.
 
-export const registerField = ({ field, value, validate, error }) => state =>
+export const registerField = ({ field, value, validate }) => state =>
 {
 	// Uses a numerical counter instead of a boolean.
 	// https://github.com/erikras/redux-form/issues/1705
@@ -28,15 +28,13 @@ export const registerField = ({ field, value, validate, error }) => state =>
 	{
 		state.fields[field] = 1
 
-		const validationError = validate(value)
-
 		// Only initializes the field with its default `value`
 		// if it hasn't been seen before.
 		state.values[field] = value
-		state.validationErrors[field] = validationError
 
+		const error = validate(value)
 		state.errors[field] = error
-		state.showErrors[field] = Boolean(error || validationError)
+		state.showErrors[field] = Boolean(error)
 	}
 	else
 	{
@@ -89,22 +87,11 @@ export const setFieldValue = (field, value) => state =>
 	state.values[field] = value
 }
 
-// Sets field externally-set `error`.
+// Sets field `error`.
 export const setFieldError = (field, error) => state =>
 {
-	const validationError = state.validationErrors[field]
-
 	state.errors[field] = error
-	state.showErrors[field] = Boolean(validationError || error)
-}
-
-// Sets field validation `error`.
-export const setFieldValidationError = (field, validationError) => state =>
-{
-	const error = state.errors[field]
-
-	state.validationErrors[field] = validationError
-	state.showErrors[field] = Boolean(validationError || error)
+	state.showErrors[field] = Boolean(error)
 }
 
 export const fieldFocused = (field) => state =>
@@ -131,7 +118,6 @@ export const removeField = (field) => state => {
 	delete state.fields[field]
 	delete state.values[field]
 	delete state.errors[field]
-	delete state.validationErrors[field]
 	delete state.showErrors[field]
 	if (state.latestFocusedField === field) {
 		state.latestFocusedField = undefined

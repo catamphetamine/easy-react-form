@@ -1,7 +1,7 @@
 // This file is not currently used.
 // See the comments in `actions.js` for more info on why.
 
-export const registerField = ({ field, value, validate, error }) => state =>
+export const registerField = ({ field, value, validate }) => state =>
 {
 	// Uses a numerical counter instead of a boolean.
 	// https://github.com/erikras/redux-form/issues/1705
@@ -15,7 +15,7 @@ export const registerField = ({ field, value, validate, error }) => state =>
 	// So this trick retains the field's state (including value).
 	if (state.fields[field] === undefined)
 	{
-		const validationError = validate(value)
+		const error = validate(value)
 
 		return {
 			...state,
@@ -29,17 +29,13 @@ export const registerField = ({ field, value, validate, error }) => state =>
 				// if it hasn't been seen before.
 				[field]: value
 			},
-			validationErrors: {
-				...state.validationErrors,
-				[field]: validationError
-			},
 			errors: {
 				...state.errors,
 				[field]: error
 			},
 			showErrors: {
 				...state.showErrors,
-				[field]: Boolean(validationError || error)
+				[field]: Boolean(error)
 			}
 		}
 	}
@@ -110,11 +106,9 @@ export const setFieldValue = (field, value) => state =>
 	}
 }
 
-// Sets field externally-set `error`.
+// Sets field `error`.
 export const setFieldError = (field, error) => state =>
 {
-	const validationError = state.validationErrors[field]
-
 	return {
 		...state,
 		errors: {
@@ -123,25 +117,7 @@ export const setFieldError = (field, error) => state =>
 		},
 		showErrors: {
 			...state.showErrors,
-			[field]: Boolean(validationError || error)
-		}
-	}
-}
-
-// Sets field validation `error`.
-export const setFieldValidationError = (field, validationError) => state =>
-{
-	const error = state.errors[field]
-
-	return {
-		...state,
-		validationErrors: {
-			...state.validationErrors,
-			[field]: validationError
-		},
-		showErrors: {
-			...state.showErrors,
-			[field]: Boolean(validationError || error)
+			[field]: Boolean(error)
 		}
 	}
 }
@@ -194,10 +170,6 @@ export const removeField = (field) => state => {
 		},
 		errors: {
 			...state.errors,
-			[field]: undefined
-		},
-		validationErrors: {
-			...state.validationErrors,
 			[field]: undefined
 		},
 		showErrors: {

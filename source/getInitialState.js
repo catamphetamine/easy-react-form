@@ -9,12 +9,9 @@ export default function getInitialState(initialValues = {}) {
 		// Initial form field values.
 		initialValues,
 
-		// Externally set `error`s on form fields.
-		errors : {},
-
 		// The results of `validate()` functions called on
 		// the corresponding form field `value`s.
-		validationErrors : {},
+		errors : {},
 
 		// Whether should show field errors.
 		showErrors : {},

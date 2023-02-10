@@ -89,8 +89,10 @@ class AdvancedExample extends React.Component {
 function TextInput({ error, ...rest }) {
   return (
     <div>
-      <input type="text" { ...rest }/>
-      { error && <div className="error">{ error }</div> }
+      <input type="text" {...rest}/>
+      {error &&
+        <div className="error">{error}</div>
+      }
     </div>
   )
 }
@@ -127,12 +129,8 @@ The `<Form/>` takes the following optional properties:
 
   * `initialState : object` — One can pass a previously stored form state in order to restore the form to the state it was at that point in time.
 
-  * `onStateDidChange(newState : object, undefined, helpers : object)` — Will get called whenever a form's state has changed.
-    * There's no `prevState : object?` argument currently because the state object is mutated "in place" instead of creating an "immutable" copy of it every time it changes. Instead, the second argument is always `undefined`.
-    * The `helpers` object provides functions:
-      * `getValidationError: (fieldName : string) => string?` — Returns validation error for a field.
-      * `getError: (fieldName : string) => string?` — Returns an externally set `error` property value for a field.
-      * `getValue: (fieldName : string) => any?` — Returns field value.
+  * `onStateDidChange(newState : object)` — Will get called whenever a form's state has changed.
+    * There's no `prevState : object?` argument currently because the state object is mutated "in place" instead of creating an "immutable" copy of it every time it changes.
 
   * `onBeforeSubmit : Function`
 
@@ -194,8 +192,6 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 
   * `validate(value, allFormValues) : String` — form field value validation function returning an error message if the field value is invalid.
 
-  * `error : String` - an error message which can be set outside of the `validate()` function. Can be used for some hypothetical advanced use cases.
-
   * `required : String or Boolean` — adds "this field is required" validation for the `<Field/>` with the `error` message equal to `required` property value if it's a `String` defaulting to `"Required"` otherwise. Note that `value={false}` is valid in case of `required` because `false` is a non-empty value (e.g. "Yes"/"No" dropdown), therefore use `validate` function instead of `required` for checkboxes that are required to be checked, otherwise an unchecked checkbox will have `value={false}` and will pass the `required` check.
 
 `<Field/>` passes the following properties to the field `component`:
@@ -216,9 +212,9 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 
   * All other properties are passed through.
 
-The `error` display algorythm is as follows:
+The `error` display algorithm is as follows:
 
-  * Initially `error` for a field is not passed.
+  * Initially, if `validate()` returns an error for a field's default `value`, that `error` is shown.
 
   * Whenever the user submits the form, `error`s are displayed for all invalid form fields.
 
@@ -226,7 +222,7 @@ The `error` display algorythm is as follows:
 
   * Whenever the user focuses out of a field it is re-validated and `error` is passed if it's invalid.
 
-  * Whenever a new `error` property is manually set on the `<Field/>` component that `error` is displayed.
+  * By default, `required` errors are only displayed after the user has attempted submitting the form.
 
 Therefore, the `error` message is only shown when the user is not editing the field. For example, while the user is typing a phone number that phone number is invalid until the used inputs it fully, but it wouldn't make sense to show the "Invalid phone number" error to the user while he is in the process of inputting the phone number (it would just be an annoying distraction).
 
@@ -261,71 +257,6 @@ function SubmitButton({ wait, children }) {
       { wait && <Spinner/> }
       { children }
     </button>
-  )
-}
-```
-
-## Field errors
-
-An `error` property can be set on a `<Field/>` if this field was the reason form submission failed on the server side.
-
-This must not be a simple client-side validation error because for validation errors there already is `validate` property. Everything that can be validated up-front (i.e. before sending form data to the server) should be validated inside `validate` function. All other validity checks which can not be performed without submitting form data to the server are performed on the server side and if an error occurs then this error goes to the `error` property of the relevant `<Field/>`.
-
-For example, consider a login form. Username and password `<Field/>`s both have `validate` properties set to the corresponding basic validation functions (e.g. checking that the values aren't empty). That's as much as can be validated before sending form data to the server. When the form data is sent to the server, server-side validation takes place: the server checks if the username exists and that the password matches. If the username doesn't exist then an error is returned from the HTTP POST request and the `error` property of the username `<Field/>` should be set to `"User not found"` error message. Otherwise, if the username does exist, but, say, the password doesn't match, then the `error` property of the password `<Field/>` should be set to `"Wrong password"` error message.
-
-One thing to note about `<Field/>` `error`s is that they must be reset before form data is sent to the server: otherwise it would always say `"Wrong password"` even if the password is correct this time. Another case is when the `error` is set to the same value again (e.g. the entered password is wrong once again) which will not trigger showing that error because the `error` is shown only when its value changes: `nextProps.error !== this.props.error`. This is easily solved too by simply resetting `error`s before form data is sent to the server.
-
-```js
-import { connect } from 'react-redux'
-import { Form, Field, Submit } from 'easy-react-form'
-
-@connect(state => ({ loginError: state.loginForm.error }))
-class LoginForm extends Component {
-  validateNotEmpty(value) {
-    if (!value) {
-      return 'Required'
-    }
-  }
-
-  submit(values) {
-    // Clears `state.loginForm.error`
-    dispatch({ type: 'LOGIN_FORM_CLEAR_ERROR' })
-
-    // Sends form data to the server
-    return dispatch(sendHTTPLoginRequest(values))
-  }
-
-  render() {
-    const { loginError } = this.props
-
-    return (
-      <Form onSubmit={this.submit}>
-        <Field
-          name="username"
-          component={Input}
-          validate={this.validateNotEmpty}
-          error={loginError === 'User not found' ? loginError : undefined} />
-
-        <Field
-          name="password"
-          component={Input}
-          validate={this.validateNotEmpty}
-          error={loginError === 'Wrong password' ? loginError : undefined} />
-
-        <Submit component={SubmitButton}>
-          Log In
-        </Submit>
-      </Form>
-    )
-  }
-}
-
-function Input({ error, ...rest }) {
-  return (
-    <div>
-      <input {...rest}/>
-      { error && <div className="error">{ error }</div> }
-    </div>
   )
 }
 ```
