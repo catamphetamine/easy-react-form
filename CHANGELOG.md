@@ -1,5 +1,10 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
+2.0.7 / 12.02.2023
+==================
+
+* Form field value doesn't get `validate()`-d when it's "empty": `null` / `undefined` / `""` / `[]`.
+
 2.0.6 / 10.02.2023
 ==================
 

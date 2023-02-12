@@ -277,20 +277,25 @@ class FormField extends Component {
 	validate = (value) => {
 		const { context, validate, required } = this.props
 		value = context.transformValueForSubmit(value)
-		if (required && isValueEmpty(value) && this.shouldValidateRequired()) {
-			return typeof required === 'string' ? required : context.getRequiredMessage()
+		if (required && isValueEmpty(value)) {
+			if (this.shouldValidateRequired()) {
+				return typeof required === 'string' ? required : context.getRequiredMessage()
+			}
+			return
 		}
-		if (validate) {
-			// `context.state.values` could be replaced with
-			// something else, like `context.getValues()`
-			// because `<List/>` values are prefixed in `context.state.values`.
-			// But running RegExps and re-creating the object
-			// on each `validate()` call seems like a not-the-best architecture.
-			// Instead `values` could be replaced with something like
-			// `context.getValues()` but that would be a "breaking change" in the API.
-			// On a modern CPU a single `context.getValues()` run is about 0.005 ms.
-			// So I guess it's acceptable, since the API already exists.
-			return validate(value, context.getValues())
+		if (!isValueEmpty(value)) {
+			if (validate) {
+				// `context.state.values` could be replaced with
+				// something else, like `context.getValues()`
+				// because `<List/>` values are prefixed in `context.state.values`.
+				// But running RegExps and re-creating the object
+				// on each `validate()` call seems like a not-the-best architecture.
+				// Instead `values` could be replaced with something like
+				// `context.getValues()` but that would be a "breaking change" in the API.
+				// On a modern CPU a single `context.getValues()` run is about 0.005 ms.
+				// So I guess it's acceptable, since the API already exists.
+				return validate(value, context.getValues())
+			}
 		}
 	}
 
