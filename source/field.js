@@ -199,7 +199,8 @@ class FormField extends Component {
 
 	onBlur = (event) => {
 		const { context, onBlur } = this.props
-		const error = this.validate(context.state.values[this.getName()])
+		const value = context.state.values[this.getName()]
+		const error = this.validate(value)
 		// The `error` was `undefined` while the field was focused.
 		if (error) {
 			this.onError(error)
@@ -285,16 +286,19 @@ class FormField extends Component {
 		}
 		if (!isValueEmpty(value)) {
 			if (validate) {
-				// `context.state.values` could be replaced with
-				// something else, like `context.getValues()`
-				// because `<List/>` values are prefixed in `context.state.values`.
-				// But running RegExps and re-creating the object
-				// on each `validate()` call seems like a not-the-best architecture.
-				// Instead `values` could be replaced with something like
-				// `context.getValues()` but that would be a "breaking change" in the API.
-				// On a modern CPU a single `context.getValues()` run is about 0.005 ms.
-				// So I guess it's acceptable, since the API already exists.
-				return validate(value, context.getValues())
+				// // `context.state.values` could be replaced with
+				// // something else, like `context.getValues()`
+				// // because `<List/>` values are prefixed in `context.state.values`.
+				// // But running RegExps and re-creating the object
+				// // on each `validate()` call seems like a not-the-best architecture.
+				// // Instead `values` could be replaced with something like
+				// // `context.getValues()` but that would be a "breaking change" in the API.
+				// // On a modern CPU a single `context.getValues()` run is about 0.005 ms.
+				// // So I guess it's acceptable, since the API already exists.
+				// const allValues = context.getValues()
+				// return validate(value, allValues)
+
+				return validate(value)
 			}
 		}
 	}

@@ -190,7 +190,7 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 
   * `value` - the initial value of the field.
 
-  * `validate(value, allFormValues) : String` — Form field value validation function. Is only called when `value` is not "empty": `null` / `undefined` / `""` / `[]`. Should return an error message if the field value is invalid.
+  * `validate(value) : String?` — Form field value validation function. Is only called when `value` is not "empty": `null` / `undefined` / `""` / `[]`. Should return an error message if the field value is invalid.
 
   * `required : String or Boolean` — adds "this field is required" validation for the `<Field/>` with the `error` message equal to `required` property value if it's a `String` defaulting to `"Required"` otherwise. Note that `value={false}` is valid in case of `required` because `false` is a non-empty value (e.g. "Yes"/"No" dropdown), therefore use `validate` function instead of `required` for checkboxes that are required to be checked, otherwise an unchecked checkbox will have `value={false}` and will pass the `required` check.
 

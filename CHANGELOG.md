@@ -1,5 +1,10 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
+2.0.8 / 17.02.2023
+==================
+
+* Removed the second argument of the `validate()` function — the argument that contained all form values.
+
 2.0.7 / 12.02.2023
 ==================
 
