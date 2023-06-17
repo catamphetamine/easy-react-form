@@ -179,7 +179,8 @@ export default class Form extends Component {
 			getRequiredMessage: () => requiredMessage,
 			// These're used by `<List/>`.
 			focus: this.focus,
-			getValues: this.values
+			getValues: this.values,
+			watch: this.watch
 		}
 	}
 
@@ -870,11 +871,17 @@ Children.propTypes = {
 
 export const contextPropType = PropTypes.shape({
 	state: PropTypes.shape({
+		// An object containing field "counters" (integers).
+		// When a field is no longer rendered in a form, its counter becomes `0`.
+		// Until a field is mounted for the first time, its counter value is `undefined`.
 		fields: PropTypes.object.isRequired,
+		// An object containing field values.
 		values: PropTypes.object.isRequired,
+		// An object containing field initial values.
 		initialValues: PropTypes.object.isRequired,
+		// An object containing field error messages.
 		errors: PropTypes.object.isRequired,
-		showErrors: PropTypes.object.isRequired,
+		// The `name` of the latest focused field.
 		latestFocusedField: PropTypes.string,
 		submitting: PropTypes.bool.isRequired,
 		submitAttempted: PropTypes.bool.isRequired
@@ -885,6 +892,7 @@ export const contextPropType = PropTypes.shape({
 	onUnregisterField: PropTypes.func.isRequired,
 	transformValueForSubmit: PropTypes.func.isRequired,
 	focus: PropTypes.func.isRequired,
+	watch: PropTypes.func.isRequired,
 	dispatch: PropTypes.func.isRequired,
 	getRequiredMessage: PropTypes.func.isRequired,
 	getValues: PropTypes.func.isRequired,

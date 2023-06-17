@@ -8,7 +8,6 @@ import { getPassThroughProps, scrollTo } from './utility.js'
 import {
 	setFieldValue,
 	setFieldError,
-	// showFieldError,
 	fieldFocused
 } from './actions.js'
 
@@ -29,16 +28,16 @@ export default function Field(props) {
 	)
 }
 
-const itemType = PropTypes.number
-
 class FormField extends Component {
 	static propTypes = {
-		name      : PropTypes.string.isRequired,
-		component : PropTypes.elementType.isRequired,
-		required  : PropTypes.oneOfType([ PropTypes.bool, PropTypes.string ]),
-
-		value    : PropTypes.any,
-		validate : PropTypes.func,
+		component: PropTypes.elementType.isRequired,
+		name: PropTypes.string.isRequired,
+		required: PropTypes.bool,
+		requiredMessage: PropTypes.string,
+		wait: PropTypes.bool,
+		error: PropTypes.string,
+		value: PropTypes.any,
+		validate: PropTypes.func,
 
 		// This property is currently not used.
 		// Validation is currently only performed on `blur` event
@@ -65,7 +64,7 @@ class FormField extends Component {
 
 		context: contextPropType.isRequired,
 		listContext: listContextPropType,
-		item: itemType
+		item: PropTypes.number
 	}
 
 	field = React.createRef()
@@ -276,11 +275,11 @@ class FormField extends Component {
 	}
 
 	validate = (value) => {
-		const { context, validate, required } = this.props
+		const { context, validate, required, requiredMessage } = this.props
 		value = context.transformValueForSubmit(value)
 		if (required && isValueEmpty(value)) {
 			if (this.shouldValidateRequired()) {
-				return typeof required === 'string' ? required : context.getRequiredMessage()
+				return requiredMessage || context.getRequiredMessage()
 			}
 			return
 		}
@@ -305,25 +304,26 @@ class FormField extends Component {
 
 	render() {
 		const {
+			name,
 			context,
 			required,
-			component
+			component,
+			error: errorProperty,
+			wait: waitProperty
 		} = this.props
-
-		const value = context.state.values[this.getName()]
-		const error = context.state.errors[this.getName()]
-		const showError = context.state.showErrors[this.getName()]
 
 		return React.createElement(component, {
 			...getPassThroughProps(this.props, FormField.propTypes),
-			ref      : this.field,
-			onChange : this.onChange,
-			onFocus  : this.onFocus,
-			onBlur   : this.onBlur,
-			wait     : context.state.submitting,
-			error    : showError ? error : undefined,
-			required : required ? true : false,
-			value
+			ref: this.field,
+			onChange: this.onChange,
+			onFocus: this.onFocus,
+			onBlur: this.onBlur,
+			name,
+			wait: Boolean(waitProperty) || context.state.submitting,
+			// `Boolean()` converts `undefined` to `false`.
+			required: Boolean(required),
+			error: errorProperty || context.state.errors[this.getName()],
+			value: context.state.values[this.getName()]
 		})
 	}
 }

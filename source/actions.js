@@ -34,7 +34,6 @@ export const registerField = ({ field, value, validate }) => state =>
 
 		const error = validate(value)
 		state.errors[field] = error
-		state.showErrors[field] = Boolean(error)
 	}
 	else
 	{
@@ -91,7 +90,6 @@ export const setFieldValue = (field, value) => state =>
 export const setFieldError = (field, error) => state =>
 {
 	state.errors[field] = error
-	state.showErrors[field] = Boolean(error)
 }
 
 export const fieldFocused = (field) => state =>
@@ -109,16 +107,10 @@ export const setFormSubmitAttempted = (submitAttempted) => state =>
 	state.submitAttempted = submitAttempted
 }
 
-export const showFieldError = (field) => state =>
-{
-	state.showErrors[field] = true
-}
-
 export const removeField = (field) => state => {
 	delete state.fields[field]
 	delete state.values[field]
 	delete state.errors[field]
-	delete state.showErrors[field]
 	if (state.latestFocusedField === field) {
 		state.latestFocusedField = undefined
 	}

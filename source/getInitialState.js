@@ -13,9 +13,6 @@ export default function getInitialState(initialValues = {}) {
 		// the corresponding form field `value`s.
 		errors : {},
 
-		// Whether should show field errors.
-		showErrors : {},
-
 		// Is used for tracking abandoned forms for Google Analytics.
 		latestFocusedField : undefined,
 

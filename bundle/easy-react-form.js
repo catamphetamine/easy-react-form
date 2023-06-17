@@ -21,8 +21,6 @@
       // The results of `validate()` functions called on
       // the corresponding form field `value`s.
       errors: {},
-      // Whether should show field errors.
-      showErrors: {},
       // Is used for tracking abandoned forms for Google Analytics.
       latestFocusedField: undefined,
       // If `onSubmit` returns a `Promise` (or is `async/await`)
@@ -683,7 +681,6 @@
         state.values[field] = value;
         var error = validate(value);
         state.errors[field] = error;
-        state.showErrors[field] = Boolean(error);
       } else {
         state.fields[field]++;
       }
@@ -740,7 +737,6 @@
   var setFieldError = function setFieldError(field, error) {
     return function (state) {
       state.errors[field] = error;
-      state.showErrors[field] = Boolean(error);
     };
   };
   var fieldFocused = function fieldFocused(field) {
@@ -763,7 +759,6 @@
       delete state.fields[field];
       delete state.values[field];
       delete state.errors[field];
-      delete state.showErrors[field];
       if (state.latestFocusedField === field) {
         state.latestFocusedField = undefined;
       }
@@ -1261,7 +1256,8 @@
           },
           // These're used by `<List/>`.
           focus: this.focus,
-          getValues: this.values
+          getValues: this.values,
+          watch: this.watch
         };
       }
     }, {
@@ -1667,11 +1663,17 @@
   };
   var contextPropType = PropTypes__default["default"].shape({
     state: PropTypes__default["default"].shape({
+      // An object containing field "counters" (integers).
+      // When a field is no longer rendered in a form, its counter becomes `0`.
+      // Until a field is mounted for the first time, its counter value is `undefined`.
       fields: PropTypes__default["default"].object.isRequired,
+      // An object containing field values.
       values: PropTypes__default["default"].object.isRequired,
+      // An object containing field initial values.
       initialValues: PropTypes__default["default"].object.isRequired,
+      // An object containing field error messages.
       errors: PropTypes__default["default"].object.isRequired,
-      showErrors: PropTypes__default["default"].object.isRequired,
+      // The `name` of the latest focused field.
       latestFocusedField: PropTypes__default["default"].string,
       submitting: PropTypes__default["default"].bool.isRequired,
       submitAttempted: PropTypes__default["default"].bool.isRequired
@@ -1682,6 +1684,7 @@
     onUnregisterField: PropTypes__default["default"].func.isRequired,
     transformValueForSubmit: PropTypes__default["default"].func.isRequired,
     focus: PropTypes__default["default"].func.isRequired,
+    watch: PropTypes__default["default"].func.isRequired,
     dispatch: PropTypes__default["default"].func.isRequired,
     getRequiredMessage: PropTypes__default["default"].func.isRequired,
     getValues: PropTypes__default["default"].func.isRequired,
@@ -1762,8 +1765,8 @@
       _defineProperty$2(_assertThisInitialized$1(_this), "map", function (func) {
         var _this$getListState3 = _this.getListState(),
           items = _this$getListState3.items;
-        return items.map(function (item) {
-          return func(item);
+        return items.map(function (item, i) {
+          return func(item, i);
         });
       });
       _this.state = {
@@ -1918,7 +1921,6 @@
       });
     });
   }
-  var itemType = PropTypes__default["default"].number;
   var FormField = /*#__PURE__*/function (_Component) {
     _inherits(FormField, _Component);
     var _super = _createSuper(FormField);
@@ -2022,11 +2024,12 @@
         var _this$props4 = _this.props,
           context = _this$props4.context,
           validate = _this$props4.validate,
-          required = _this$props4.required;
+          required = _this$props4.required,
+          requiredMessage = _this$props4.requiredMessage;
         value = context.transformValueForSubmit(value);
         if (required && isValueEmpty(value)) {
           if (_this.shouldValidateRequired()) {
-            return typeof required === 'string' ? required : context.getRequiredMessage();
+            return requiredMessage || context.getRequiredMessage();
           }
           return;
         }
@@ -2179,30 +2182,35 @@
       key: "render",
       value: function render() {
         var _this$props8 = this.props,
+          name = _this$props8.name,
           context = _this$props8.context,
           required = _this$props8.required,
-          component = _this$props8.component;
-        var value = context.state.values[this.getName()];
-        var error = context.state.errors[this.getName()];
-        var showError = context.state.showErrors[this.getName()];
+          component = _this$props8.component,
+          errorProperty = _this$props8.error,
+          waitProperty = _this$props8.wait;
         return /*#__PURE__*/React__default["default"].createElement(component, _objectSpread$1(_objectSpread$1({}, getPassThroughProps(this.props, FormField.propTypes)), {}, {
           ref: this.field,
           onChange: this.onChange,
           onFocus: this.onFocus,
           onBlur: this.onBlur,
-          wait: context.state.submitting,
-          error: showError ? error : undefined,
-          required: required ? true : false,
-          value: value
+          name: name,
+          wait: Boolean(waitProperty) || context.state.submitting,
+          // `Boolean()` converts `undefined` to `false`.
+          required: Boolean(required),
+          error: errorProperty || context.state.errors[this.getName()],
+          value: context.state.values[this.getName()]
         }));
       }
     }]);
     return FormField;
   }(React.Component);
   _defineProperty$1(FormField, "propTypes", {
-    name: PropTypes__default["default"].string.isRequired,
     component: PropTypes__default["default"].elementType.isRequired,
-    required: PropTypes__default["default"].oneOfType([PropTypes__default["default"].bool, PropTypes__default["default"].string]),
+    name: PropTypes__default["default"].string.isRequired,
+    required: PropTypes__default["default"].bool,
+    requiredMessage: PropTypes__default["default"].string,
+    wait: PropTypes__default["default"].bool,
+    error: PropTypes__default["default"].string,
     value: PropTypes__default["default"].any,
     validate: PropTypes__default["default"].func,
     // This property is currently not used.
@@ -2227,7 +2235,7 @@
 
     context: contextPropType.isRequired,
     listContext: listContextPropType,
-    item: itemType
+    item: PropTypes__default["default"].number
   });
   function isValueEmpty(_) {
     return _ === undefined || _ === null || Array.isArray(_) && _.length === 0;
@@ -2256,11 +2264,17 @@
     return context.state;
   }
 
+  function useWatch(fieldName) {
+    var context = React.useContext(Context);
+    return context.watch;
+  }
+
   exports.Field = Field;
   exports.Form = Form;
   exports.List = List_;
   exports.Submit = Submit;
   exports.useFormState = useFormState;
+  exports.useWatch = useWatch;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

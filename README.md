@@ -27,7 +27,7 @@ Simplest example:
 ```js
 import { Form, Field } from 'easy-react-form'
 
-<Form onSubmit={ values => console.log(values) }>
+<Form onSubmit={ async (values) => console.log(values) }>
   <Field
     name="phone"
     component="input"
@@ -43,12 +43,12 @@ Advanced example:
 ```js
 import { Form, Field, Submit } from 'easy-react-form'
 
-class AdvancedExample extends React.Component {
+function AdvancedExample({ user }) {
   // Form field validation example.
   // If `validate` returns a string
   // then it becomes the `error` of the `<Field/>`.
-  validatePhone = (value) => {
-    if (value && !isValidPhoneNumber(value)) {
+  const validatePhone = (value) => {
+    if (!isValidPhoneNumber(value)) {
       return 'Invalid phone number'
     }
   }
@@ -56,33 +56,28 @@ class AdvancedExample extends React.Component {
   // Form submit function.
   // Can be `async/await`.
   // Can return a `Promise`.
-  submit = (values) => {
+  const onSubmit = async (values) => {
     console.log(values)
-    return new Promise(resolve => setTimeout(resolve, 3000))
+    await new Promise(resolve => setTimeout(resolve, 3000))
   }
 
-  render() {
-    // Initial form field value example.
-    const { user } = this.props
+  return (
+    <Form onSubmit={ onSubmit }>
+      <Field
+        required
+        name="phone"
+        component={ TextInput }
+        type="tel"
+        placeholder="Enter phone number"
+        // Initial value for this field.
+        value={ user.phone }
+        validate={ validatePhone } />
 
-    return (
-      <Form onSubmit={ this.submit }>
-        <Field
-          required
-          name="phone"
-          component={ TextInput }
-          type="tel"
-          placeholder="Enter phone number"
-          // Initial value for this field.
-          value={ user.phone }
-          validate={ this.validatePhone } />
-
-        <Submit component={ SubmitButton }>
-          Save
-        </Submit>
-      </Form>
-    )
-  }
+      <Submit component={ SubmitButton }>
+        Save
+      </Submit>
+    </Form>
+  )
 }
 
 // `error` is passed if the field is invalid.
@@ -111,11 +106,11 @@ function SubmitButton({ wait, children }) {
 
 ### Form
 
-The `<Form/>` takes the following required properties:
+The `<Form/>` accepts the following required properties:
 
   * `onSubmit : Function(values)` — Can be `async` or return a `Promise`.
 
-The `<Form/>` takes the following optional properties:
+The `<Form/>` accepts the following optional properties:
 
   * `values : object` — The initial values for this form's fields.
 
@@ -137,6 +132,8 @@ The `<Form/>` takes the following optional properties:
   * `onAfterSubmit : Function`
 
   * `onAbandon : Function(fieldName, fieldValue)` — If a form field was focused but then the form wasn't submitted and was unmounted then this function is called meaning that the user possibly tried to fill out the form but then decided to move on for some reason (e.g. didn't know what to enter in a particular form field).
+
+#### `ref`
 
 The `<Form/>` component instance (`ref`) provides the following methods:
 
@@ -160,6 +157,8 @@ The `<Form/>` component instance (`ref`) provides the following methods:
 
 Upon form submission, if any one of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.
 
+#### `children`
+
 The `<Form/>` can also accept `children` being a `function(parameters)` returning a `React.Element` that will be called on any form value change, so it can be used in cases when re-rendering the whole `<Form/>` is required on any form value change. Available `parameters`:
 
 * `values : Object` — Form values. Is `undefined` until the form is initialized (mounted) (`<Field/>` `value`s are `undefined` until those `<Feild/>`s are mounted).
@@ -178,21 +177,58 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 
 * `submitting : boolean` — Whether the form is currently being submitted.
 
+```js
+<Form ...>
+  {({ values }) => {
+    const validateOne = (oneValue) => {
+      if (oneValue !== values.two) {
+        return 'The input values must be identical'
+      }
+    }
+    const validateTwo = (twoValue) => {
+      if (values.one !== twoValue) {
+        return 'The input values must be identical'
+      }
+    }
+    return (
+      <Field name="one" validate={validateOne} />
+      <Field name="two" validate={validateTwo} />
+    )
+  }}
+</Form>
+```
+
+#### `useWatch()`
+
+`useWatch()` hook returns the [`watch()`](#children) function.
+
+#### `useFormState()`
+
+`useFormState()` hook returns the entire state of the `<Form/>`:
+
+* `fields: object<number?>` — An object containing field "counters" (integers). When a field is no longer rendered in a form, its counter becomes `0`. Until a field is mounted, its counter value is `undefined`.
+* `values: object<any?>` — An object containing field values. Field `name`s are keys. Until a field is mounted, its value is `undefined`.
+* `initialValues: object<any?>` — An object containing field initial values. Field `name`s are keys.
+* `errors: object<string?>` — An object containing field error messages. Field `name`s are keys. Until a field is mounted, its error is `undefined`.
+* `latestFocusedField?: string` — The `name` of the latest focused field.
+* `submitting: boolean` — Whether the form is being submitted.
+* `submitAttempted: boolean` — Whether the form submission has been attempted by the user.
+
 ### Field
 
-`<Field/>` takes the following required properties:
+`<Field/>` accepts the following required properties:
 
   * `name : String`
 
   * `component : (React.Component|Function|String)` — React component (can also be a string like `input`). Must accept a `ref` for calling `ref.current.focus()` and also must provide the means of obtaining the DOM Element for calling `element.scrollIntoView()`. Therefore, `component` must be either a `string`, or a `React.Component`, or a "functional" component wrapped in `React.forwardRef()`, or a "functional" component using `useImperativeRef()` "hook" providing `.focus()` and `.getDOMNode()` methods.
 
-`<Field/>` takes the following optional properties:
+`<Field/>` accepts the following optional properties:
 
   * `value` - the initial value of the field.
 
   * `validate(value) : String?` — Form field value validation function. Is only called when `value` is not "empty": `null` / `undefined` / `""` / `[]`. Should return an error message if the field value is invalid.
 
-  * `required : String or Boolean` — adds "this field is required" validation for the `<Field/>` with the `error` message equal to `required` property value if it's a `String` defaulting to `"Required"` otherwise. Note that `value={false}` is valid in case of `required` because `false` is a non-empty value (e.g. "Yes"/"No" dropdown), therefore use `validate` function instead of `required` for checkboxes that are required to be checked, otherwise an unchecked checkbox will have `value={false}` and will pass the `required` check.
+  * `required : String or Boolean` — adds "this field is required" validation for the `<Field/>` with the `error` message equal to `required` property value if it's a `String` defaulting to `"Required"` otherwise. Note that `value: false` is considered a valid value even in case of `required: true` because `false` is not an "empty" value (for example, consider a "Yes"/"No" dropdown). For that reason, if `false` should be considered an invalid value (e.g. for a checkbox) then use `validate` function instead of `required: true` for such validation.
 
 `<Field/>` passes the following properties to the field `component`:
 
@@ -228,7 +264,7 @@ Therefore, the `error` message is only shown when the user is not editing the fi
 
 ### Submit
 
-`<Submit/>` takes the following required properties:
+`<Submit/>` accepts the following required properties:
 
   * `component : (React.Component|Function|String)` — React component (can also be a string like `button`).
 
@@ -277,26 +313,26 @@ export default function Page() {
       </h1>
       <List name="employees">
         {(items) => (
-          <React.Fragment>
-            {items.map((itemId) => (
-              <React.Fragment key={itemId}>
+          <div>
+            {items.map((item, i) => (
+              <div key={item}>
                 <Field
-                  item={itemId}
+                  item={item}
                   name="firstName"
                   .../>
                 <Field
-                  item={itemId}
+                  item={item}
                   name="lastName"
                   .../>
-                <button type="button" onClick={() => items.remove(itemId)}>
+                <button type="button" onClick={() => items.remove(item)}>
                   Remove
                 </button>
-              </React.Fragment>
+              </div>
             ))}
             <button type="button" onClick={() => items.add()}>
               Add
             </button>
-          </React.Fragment>
+          </div>
         )}
       </List>
       <Submit component="button">
@@ -309,8 +345,13 @@ export default function Page() {
 
 `<List/>` accepts properties:
 
-* `name: String` — (required) The name of the list property in form `values`.
-* `count: Number` — The initial items count. Is `1` by default.
+* `name: String` — (required) The name of the array property in form `values`.
+* `count: Number` — The initial size of the list. Is `1` by default, meaning that initially there will be `1` item in the list.
+* `children: Function` — (required) A function that receives an `items` object and returns a `React.Element`. The `items` object provides functions:
+  * `map(Function)` — Maps each item to a `React.Element`. The argument should be a mapping function: `(item: any, i: number) => React.Element`.
+  * `add()` — Appends a new item.
+  * `remove(item: any)` — Removes a given item.
+  * `reset()` — Resets the whole list.
 
 Nested `<List/>`s are not supported.
 

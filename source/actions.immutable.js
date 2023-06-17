@@ -32,10 +32,6 @@ export const registerField = ({ field, value, validate }) => state =>
 			errors: {
 				...state.errors,
 				[field]: error
-			},
-			showErrors: {
-				...state.showErrors,
-				[field]: Boolean(error)
 			}
 		}
 	}
@@ -114,10 +110,6 @@ export const setFieldError = (field, error) => state =>
 		errors: {
 			...state.errors,
 			[field]: error
-		},
-		showErrors: {
-			...state.showErrors,
-			[field]: Boolean(error)
 		}
 	}
 }
@@ -146,17 +138,6 @@ export const setFormSubmitAttempted = (submitAttempted) => state =>
 	}
 }
 
-export const showFieldError = (field) => state =>
-{
-	return {
-		...state,
-		showErrors: {
-			...state.showErrors,
-			[field]: true
-		}
-	}
-}
-
 export const removeField = (field) => state => {
 	return {
 		...state,
@@ -170,10 +151,6 @@ export const removeField = (field) => state => {
 		},
 		errors: {
 			...state.errors,
-			[field]: undefined
-		},
-		showErrors: {
-			...state.showErrors,
 			[field]: undefined
 		},
 		latestFocusedField: state.latestFocusedField === field ? undefined : state.latestFocusedField

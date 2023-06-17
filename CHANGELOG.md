@@ -1,46 +1,110 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
-2.0.8 / 17.02.2023
-==================
-
-* Removed the second argument of the `validate()` function — the argument that contained all form values.
-
-2.0.7 / 12.02.2023
-==================
-
-* Form field value doesn't get `validate()`-d when it's "empty": `null` / `undefined` / `""` / `[]`.
-
-2.0.6 / 10.02.2023
-==================
-
-* Removed `<Field error/>` property. "Validation error"s are now called just "error"s.
-
-* Added `useFormState()` hook.
-
-2.0.0 / 31.01.2023
-==================
+2.0.0 — 2.0.9 / 31.01.2023 — 17.06.2023
+=======================================
 
 * Refactored the code regarding form state. A new "major" version means that there might hypothetically be some unforeseen accidental bugs.
 
-* Changed the empty value from `undefined` to `null`.
+* Added `useFormState()` hook. Added `useWatch()` hook.
 
-* `<Field onChange/>` property is now always called with `value` argument. Previously it could be called with an `event` argument.
+* Added property `onErrorChange(newError?: string)` on `<Field/>`.
 
-* Added `onErrorChange()` function on `<Field/>`.
+* Added properties `initialState` and `onStateDidChange(newState)` on `<Form/>`.
 
-* The `required` validation only runs when the form has been submitted. It doesn't run when the form hasn't been submitted yet.
+Breaking changes:
+
+* Changed the "empty" value from being `undefined` to being `null`.
+
+* Previously, `<Field/>` accepted a `required: string` property which was the "required" error message. Now, `required` property can only be a boolean and for passing the "required" error message there's now a separate property on a `<Field/>` called `requiredMessage: string`.
+
+* Previously, when `onChange` property was passed to a `<Field/>` — `<Field onChange={onChange} component={Component}/>` - it was called as if it was "passed through" directly to the `Component`, i.e. it was up to the `Component` to determine what the arguments of that function would be (for example, it could be an `event`). Now the `onChange` function is always called with the current `value` as the only argument.
+
+* The `required` validation now only runs when the form has been submitted at least once. It doesn't run when the form hasn't been submitted yet. This results in less confusion when prevously it was showing "required" errors before the user even started filling out the form.
 
 * Input Components now should use `React.forwardRef()` in order to be focusable.
 
 * Bumped React version to `18.2.0`.
 
-* Added properties: `initialState` and `onStateDidChange(newState)`.
+* `<List/>`s: renamed `<Field i/>` property to `<Field item/>` property. Also added a second argument called `i` to the `.map()` function. Migration:
 
-* List Plugin: renamed `<Field i/>` property to `<Field item/>`.
+```js
+// Old code.
+<List name="list">
+  {(items) => (
+    <div>
+      {items.map((item, i) => (
+        <div key={item}>
+          <Field
+            i={item}
+            name="field"
+            .../>
+        </div>
+      ))}
+    </div>
+  )}
+</List>
 
-* Removed `<Form wait/>` property.
+// New code.
+<List name="list">
+  {(items) => (
+    <div>
+      {items.map((item, i) => (
+        <div key={item}>
+          <Field
+            item={item}
+            name="field"
+            .../>
+        </div>
+      ))}
+    </div>
+  )}
+</List>
+```
 
-* `<Field/>` now receives property `wait={true}` rather than `disabled={true}` during form submit.
+* Removed `<Form wait/>` property. Previously it could be passed to mark all `<Field/>`s of the form as `disabled`, along with the `<SubmitButton/>`. The rationale for removing that property is that it might've been used to disable the form initially while it's loading by some developers, but in reality the styles for "wait while the form is submitting" and "wait while the form is loading" should be visually different in order to not result in a slightly confusing UI.
+
+* When the form is submitting, every `component` of every `<Field/>` now receives `wait={true}` property rather than `disabled={true}` property. The rationale is that `disabled` is not always the most-fitting candidate for showing a "submitting" status. For example, `disabled` property loses the focus, while `readOnly` property doesn't, etc.
+
+* Removed the second argument of the `validate()` function — the argument that contained all form values. Migration:
+
+```js
+<Form ...>
+  {({ values }) => {
+    const validateOne = (oneValue) => {
+      if (oneValue !== values.two) {
+        return 'The input values must be identical'
+      }
+    }
+    const validateTwo = (twoValue) => {
+      if (values.one !== twoValue) {
+        return 'The input values must be identical'
+      }
+    }
+    return (
+      <Field name="one" validate={validateOne} />
+      <Field name="two" validate={validateTwo} />
+    )
+  }}
+</Form>
+```
+
+* The `validate()` function for a `<Field/>` doesn't get called for an "empty" `value`: `null` / `undefined` / `""` / `[]`. Migration:
+
+```js
+// Old code.
+const validatePhone = (value) => {
+  if (value && !isValidPhoneNumber(value)) {
+    return 'Invalid phone number'
+  }
+}
+
+// New code.
+const validatePhone = (value) => {
+  if (!isValidPhoneNumber(value)) {
+    return 'Invalid phone number'
+  }
+}
+```
 
 1.2.0 / 09.08.2021
 ==================

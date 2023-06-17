@@ -108,7 +108,7 @@ class List extends React.Component {
 
 	map = (func) => {
 		const { items } = this.getListState()
-		return items.map(item => func(item))
+		return items.map((item, i) => func(item, i))
 	}
 
 	getListState() {

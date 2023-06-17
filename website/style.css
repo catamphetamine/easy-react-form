@@ -1,0 +1,85 @@
+body {
+	margin: 0;
+	font-family: sans-serif;
+	font-size: 20px;
+	color: rgb(20, 23, 26);
+	background-color: rgb(230, 236, 240);
+}
+
+h1 {
+	display: flex;
+	align-items: center;
+	margin-left: 40px;
+	margin-right: 40px;
+	font-weight: normal;
+}
+
+p {
+	line-height: 1.35;
+}
+
+.container {
+	width: 100%;
+	max-width: 720px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+footer {
+	margin-top: 40px;
+	margin-bottom: 30px;
+	text-align: center;
+	color: #a0a0a0;
+}
+
+.twitter-logo {
+	width: 28px;
+	height: 28px;
+	margin-right: 0.5em;
+}
+
+.TextInput {
+	display: block;
+	margin-top: 1rem;
+	font-size: 1rem;
+}
+
+.TextInput-input {
+	margin-left: 0.5rem;
+}
+
+.SubmitButton {
+	display: block;
+	margin-top: 1rem;
+}
+
+main {
+	margin: 2rem;
+}
+
+h2 {
+	font-size: 1.2rem;
+}
+
+pre {
+	font-family: Consolas, sans-serif;
+}
+
+.List {
+	margin-top: 2rem;
+	padding: 1rem;
+	background-color: #fafafa;
+}
+
+.ListItem {
+	margin-top: 2rem;
+}
+
+.ListItem:first-child {
+	margin-top: 0;
+}
+
+.List h5 {
+	margin-top: 0;
+	font-size: 1rem;
+}
