@@ -9,12 +9,13 @@ export default function Submit(props) {
 		<Context.Consumer>
 			{context => React.createElement(props.component, {
 				...getPassThroughProps(props, Submit.propTypes),
-				wait: context.state.submitting
+				wait: props.wait || context.state.submitting
 			})}
 		</Context.Consumer>
 	)
 }
 
 Submit.propTypes = {
-	component: PropTypes.elementType.isRequired
+	component: PropTypes.elementType.isRequired,
+	wait: PropTypes.bool
 }

@@ -2251,12 +2251,13 @@
   function Submit(props) {
     return /*#__PURE__*/React__default["default"].createElement(Context.Consumer, null, function (context) {
       return /*#__PURE__*/React__default["default"].createElement(props.component, _objectSpread(_objectSpread({}, getPassThroughProps(props, Submit.propTypes)), {}, {
-        wait: context.state.submitting
+        wait: props.wait || context.state.submitting
       }));
     });
   }
   Submit.propTypes = {
-    component: PropTypes__default["default"].elementType.isRequired
+    component: PropTypes__default["default"].elementType.isRequired,
+    wait: PropTypes__default["default"].bool
   };
 
   function useFormState() {
