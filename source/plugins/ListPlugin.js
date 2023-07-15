@@ -2,7 +2,7 @@ import {
 	getListValue,
 	convertListValues,
 	removeListAction
-} from './ListPlugin.utility'
+} from './ListPlugin.utility.js'
 
 export default class ListPlugin {
 	// Tracks `<List/>`s.

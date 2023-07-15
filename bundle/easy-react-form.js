@@ -4,11 +4,6 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.EasyReactForm = {}, global.React, global.PropTypes));
 })(this, (function (exports, React, PropTypes) { 'use strict';
 
-  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-  var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
-  var PropTypes__default = /*#__PURE__*/_interopDefaultLegacy(PropTypes);
-
   function getInitialState() {
     var initialValues = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     return {
@@ -103,260 +98,9 @@
     return OnAbandonPlugin;
   }();
 
-  function isElement(el) {
-    return el != null && typeof el === 'object' && el.nodeType === 1;
-  }
+  const t$1=t=>"object"==typeof t&&null!=t&&1===t.nodeType,e=(t,e)=>(!e||"hidden"!==t)&&("visible"!==t&&"clip"!==t),n=(t,n)=>{if(t.clientHeight<t.scrollHeight||t.clientWidth<t.scrollWidth){const o=getComputedStyle(t,null);return e(o.overflowY,n)||e(o.overflowX,n)||(t=>{const e=(t=>{if(!t.ownerDocument||!t.ownerDocument.defaultView)return null;try{return t.ownerDocument.defaultView.frameElement}catch(t){return null}})(t);return !!e&&(e.clientHeight<t.scrollHeight||e.clientWidth<t.scrollWidth)})(t)}return !1},o$1=(t,e,n,o,i,l,r,d)=>l<t&&r>e||l>t&&r<e?0:l<=t&&d<=n||r>=e&&d>=n?l-t-o:r>e&&d<n||l<t&&d>n?r-e+i:0,i=t=>{const e=t.parentElement;return null==e?t.getRootNode().host||null:e},l=(e,l)=>{var r,d,s,h;if("undefined"==typeof document)return [];const{scrollMode:c,block:f,inline:u,boundary:a,skipOverflowHiddenElements:g}=l,m="function"==typeof a?a:t=>t!==a;if(!t$1(e))throw new TypeError("Invalid target");const p=document.scrollingElement||document.documentElement,w=[];let W=e;for(;t$1(W)&&m(W);){if(W=i(W),W===p){w.push(W);break}null!=W&&W===document.body&&n(W)&&!n(document.documentElement)||null!=W&&n(W,g)&&w.push(W);}const H=null!=(d=null==(r=window.visualViewport)?void 0:r.width)?d:innerWidth,b=null!=(h=null==(s=window.visualViewport)?void 0:s.height)?h:innerHeight,{scrollX:v,scrollY:y}=window,{height:E,width:M,top:x,right:I,bottom:C,left:R}=e.getBoundingClientRect();let T="start"===f||"nearest"===f?x:"end"===f?C:x+E/2,V="center"===u?R+M/2:"end"===u?I:R;const k=[];for(let t=0;t<w.length;t++){const e=w[t],{height:n,width:i,top:l,right:r,bottom:d,left:s}=e.getBoundingClientRect();if("if-needed"===c&&x>=0&&R>=0&&C<=b&&I<=H&&x>=l&&C<=d&&R>=s&&I<=r)return k;const h=getComputedStyle(e),a=parseInt(h.borderLeftWidth,10),g=parseInt(h.borderTopWidth,10),m=parseInt(h.borderRightWidth,10),W=parseInt(h.borderBottomWidth,10);let B=0,D=0;const L="offsetWidth"in e?e.offsetWidth-e.clientWidth-a-m:0,S="offsetHeight"in e?e.offsetHeight-e.clientHeight-g-W:0,X="offsetWidth"in e?0===e.offsetWidth?0:i/e.offsetWidth:0,Y="offsetHeight"in e?0===e.offsetHeight?0:n/e.offsetHeight:0;if(p===e)B="start"===f?T:"end"===f?T-b:"nearest"===f?o$1(y,y+b,b,g,W,y+T,y+T+E,E):T-b/2,D="start"===u?V:"center"===u?V-H/2:"end"===u?V-H:o$1(v,v+H,H,a,m,v+V,v+V+M,M),B=Math.max(0,B+y),D=Math.max(0,D+v);else {B="start"===f?T-l-g:"end"===f?T-d+W+S:"nearest"===f?o$1(l,d,n,g,W+S,T,T+E,E):T-(l+n/2)+S/2,D="start"===u?V-s-a:"center"===u?V-(s+i/2)+L/2:"end"===u?V-r+m+L:o$1(s,r,i,a,m+L,V,V+M,M);const{scrollLeft:t,scrollTop:h}=e;B=Math.max(0,Math.min(h+B/Y,e.scrollHeight-n/Y+S)),D=Math.max(0,Math.min(t+D/X,e.scrollWidth-i/X+L)),T+=h-B,V+=t-D;}k.push({el:e,top:B,left:D});}return k};
 
-  function canOverflow(overflow, skipOverflowHiddenElements) {
-    if (skipOverflowHiddenElements && overflow === 'hidden') {
-      return false;
-    }
-
-    return overflow !== 'visible' && overflow !== 'clip';
-  }
-
-  function getFrameElement(el) {
-    if (!el.ownerDocument || !el.ownerDocument.defaultView) {
-      return null;
-    }
-
-    return el.ownerDocument.defaultView.frameElement;
-  }
-
-  function isHiddenByFrame(el) {
-    var frame = getFrameElement(el);
-
-    if (!frame) {
-      return false;
-    }
-
-    return frame.clientHeight < el.scrollHeight || frame.clientWidth < el.scrollWidth;
-  }
-
-  function isScrollable(el, skipOverflowHiddenElements) {
-    if (el.clientHeight < el.scrollHeight || el.clientWidth < el.scrollWidth) {
-      var style = getComputedStyle(el, null);
-      return canOverflow(style.overflowY, skipOverflowHiddenElements) || canOverflow(style.overflowX, skipOverflowHiddenElements) || isHiddenByFrame(el);
-    }
-
-    return false;
-  }
-
-  function alignNearest(scrollingEdgeStart, scrollingEdgeEnd, scrollingSize, scrollingBorderStart, scrollingBorderEnd, elementEdgeStart, elementEdgeEnd, elementSize) {
-    if (elementEdgeStart < scrollingEdgeStart && elementEdgeEnd > scrollingEdgeEnd || elementEdgeStart > scrollingEdgeStart && elementEdgeEnd < scrollingEdgeEnd) {
-      return 0;
-    }
-
-    if (elementEdgeStart <= scrollingEdgeStart && elementSize <= scrollingSize || elementEdgeEnd >= scrollingEdgeEnd && elementSize >= scrollingSize) {
-      return elementEdgeStart - scrollingEdgeStart - scrollingBorderStart;
-    }
-
-    if (elementEdgeEnd > scrollingEdgeEnd && elementSize < scrollingSize || elementEdgeStart < scrollingEdgeStart && elementSize > scrollingSize) {
-      return elementEdgeEnd - scrollingEdgeEnd + scrollingBorderEnd;
-    }
-
-    return 0;
-  }
-
-  var compute = (function (target, options) {
-    var scrollMode = options.scrollMode,
-        block = options.block,
-        inline = options.inline,
-        boundary = options.boundary,
-        skipOverflowHiddenElements = options.skipOverflowHiddenElements;
-    var checkBoundary = typeof boundary === 'function' ? boundary : function (node) {
-      return node !== boundary;
-    };
-
-    if (!isElement(target)) {
-      throw new TypeError('Invalid target');
-    }
-
-    var scrollingElement = document.scrollingElement || document.documentElement;
-    var frames = [];
-    var cursor = target;
-
-    while (isElement(cursor) && checkBoundary(cursor)) {
-      cursor = cursor.parentNode;
-
-      if (cursor === scrollingElement) {
-        frames.push(cursor);
-        break;
-      }
-
-      if (cursor === document.body && isScrollable(cursor) && !isScrollable(document.documentElement)) {
-        continue;
-      }
-
-      if (isScrollable(cursor, skipOverflowHiddenElements)) {
-        frames.push(cursor);
-      }
-    }
-
-    var viewportWidth = window.visualViewport ? visualViewport.width : innerWidth;
-    var viewportHeight = window.visualViewport ? visualViewport.height : innerHeight;
-    var viewportX = window.scrollX || pageXOffset;
-    var viewportY = window.scrollY || pageYOffset;
-
-    var _target$getBoundingCl = target.getBoundingClientRect(),
-        targetHeight = _target$getBoundingCl.height,
-        targetWidth = _target$getBoundingCl.width,
-        targetTop = _target$getBoundingCl.top,
-        targetRight = _target$getBoundingCl.right,
-        targetBottom = _target$getBoundingCl.bottom,
-        targetLeft = _target$getBoundingCl.left;
-
-    var targetBlock = block === 'start' || block === 'nearest' ? targetTop : block === 'end' ? targetBottom : targetTop + targetHeight / 2;
-    var targetInline = inline === 'center' ? targetLeft + targetWidth / 2 : inline === 'end' ? targetRight : targetLeft;
-    var computations = [];
-
-    for (var index = 0; index < frames.length; index++) {
-      var frame = frames[index];
-
-      var _frame$getBoundingCli = frame.getBoundingClientRect(),
-          height = _frame$getBoundingCli.height,
-          width = _frame$getBoundingCli.width,
-          top = _frame$getBoundingCli.top,
-          right = _frame$getBoundingCli.right,
-          bottom = _frame$getBoundingCli.bottom,
-          left = _frame$getBoundingCli.left;
-
-      if (scrollMode === 'if-needed' && targetTop >= 0 && targetLeft >= 0 && targetBottom <= viewportHeight && targetRight <= viewportWidth && targetTop >= top && targetBottom <= bottom && targetLeft >= left && targetRight <= right) {
-        return computations;
-      }
-
-      var frameStyle = getComputedStyle(frame);
-      var borderLeft = parseInt(frameStyle.borderLeftWidth, 10);
-      var borderTop = parseInt(frameStyle.borderTopWidth, 10);
-      var borderRight = parseInt(frameStyle.borderRightWidth, 10);
-      var borderBottom = parseInt(frameStyle.borderBottomWidth, 10);
-      var blockScroll = 0;
-      var inlineScroll = 0;
-      var scrollbarWidth = 'offsetWidth' in frame ? frame.offsetWidth - frame.clientWidth - borderLeft - borderRight : 0;
-      var scrollbarHeight = 'offsetHeight' in frame ? frame.offsetHeight - frame.clientHeight - borderTop - borderBottom : 0;
-
-      if (scrollingElement === frame) {
-        if (block === 'start') {
-          blockScroll = targetBlock;
-        } else if (block === 'end') {
-          blockScroll = targetBlock - viewportHeight;
-        } else if (block === 'nearest') {
-          blockScroll = alignNearest(viewportY, viewportY + viewportHeight, viewportHeight, borderTop, borderBottom, viewportY + targetBlock, viewportY + targetBlock + targetHeight, targetHeight);
-        } else {
-          blockScroll = targetBlock - viewportHeight / 2;
-        }
-
-        if (inline === 'start') {
-          inlineScroll = targetInline;
-        } else if (inline === 'center') {
-          inlineScroll = targetInline - viewportWidth / 2;
-        } else if (inline === 'end') {
-          inlineScroll = targetInline - viewportWidth;
-        } else {
-          inlineScroll = alignNearest(viewportX, viewportX + viewportWidth, viewportWidth, borderLeft, borderRight, viewportX + targetInline, viewportX + targetInline + targetWidth, targetWidth);
-        }
-
-        blockScroll = Math.max(0, blockScroll + viewportY);
-        inlineScroll = Math.max(0, inlineScroll + viewportX);
-      } else {
-        if (block === 'start') {
-          blockScroll = targetBlock - top - borderTop;
-        } else if (block === 'end') {
-          blockScroll = targetBlock - bottom + borderBottom + scrollbarHeight;
-        } else if (block === 'nearest') {
-          blockScroll = alignNearest(top, bottom, height, borderTop, borderBottom + scrollbarHeight, targetBlock, targetBlock + targetHeight, targetHeight);
-        } else {
-          blockScroll = targetBlock - (top + height / 2) + scrollbarHeight / 2;
-        }
-
-        if (inline === 'start') {
-          inlineScroll = targetInline - left - borderLeft;
-        } else if (inline === 'center') {
-          inlineScroll = targetInline - (left + width / 2) + scrollbarWidth / 2;
-        } else if (inline === 'end') {
-          inlineScroll = targetInline - right + borderRight + scrollbarWidth;
-        } else {
-          inlineScroll = alignNearest(left, right, width, borderLeft, borderRight + scrollbarWidth, targetInline, targetInline + targetWidth, targetWidth);
-        }
-
-        var scrollLeft = frame.scrollLeft,
-            scrollTop = frame.scrollTop;
-        blockScroll = Math.max(0, Math.min(scrollTop + blockScroll, frame.scrollHeight - height + scrollbarHeight));
-        inlineScroll = Math.max(0, Math.min(scrollLeft + inlineScroll, frame.scrollWidth - width + scrollbarWidth));
-        targetBlock += scrollTop - blockScroll;
-        targetInline += scrollLeft - inlineScroll;
-      }
-
-      computations.push({
-        el: frame,
-        top: blockScroll,
-        left: inlineScroll
-      });
-    }
-
-    return computations;
-  });
-
-  function isOptionsObject(options) {
-    return options === Object(options) && Object.keys(options).length !== 0;
-  }
-
-  function defaultBehavior(actions, behavior) {
-    if (behavior === void 0) {
-      behavior = 'auto';
-    }
-
-    var canSmoothScroll = 'scrollBehavior' in document.body.style;
-    actions.forEach(function (_ref) {
-      var el = _ref.el,
-          top = _ref.top,
-          left = _ref.left;
-
-      if (el.scroll && canSmoothScroll) {
-        el.scroll({
-          top: top,
-          left: left,
-          behavior: behavior
-        });
-      } else {
-        el.scrollTop = top;
-        el.scrollLeft = left;
-      }
-    });
-  }
-
-  function getOptions(options) {
-    if (options === false) {
-      return {
-        block: 'end',
-        inline: 'nearest'
-      };
-    }
-
-    if (isOptionsObject(options)) {
-      return options;
-    }
-
-    return {
-      block: 'start',
-      inline: 'nearest'
-    };
-  }
-
-  function scrollIntoView(target, options) {
-    var targetIsDetached = !target.ownerDocument.documentElement.contains(target);
-
-    if (isOptionsObject(options) && typeof options.behavior === 'function') {
-      return options.behavior(targetIsDetached ? [] : compute(target, options));
-    }
-
-    if (targetIsDetached) {
-      return;
-    }
-
-    var computeOptions = getOptions(options);
-    return defaultBehavior(compute(target, computeOptions), computeOptions.behavior);
-  }
+  const o=e=>!1===e?{block:"end",inline:"nearest"}:(e=>e===Object(e)&&0!==Object.keys(e).length)(e)?e:{block:"start",inline:"nearest"};function t(t,n){if(!t.isConnected||!(e=>{let o=e;for(;o&&o.parentNode;){if(o.parentNode===document)return !0;o=o.parentNode instanceof ShadowRoot?o.parentNode.host:o.parentNode;}return !1})(t))return;if((e=>"object"==typeof e&&"function"==typeof e.behavior)(n))return n.behavior(l(t,n));const r="boolean"==typeof n||null==n?void 0:n.behavior;for(const{el:i,top:a,left:l$1}of l(t,o(n)))i.scroll({top:a,left:l$1,behavior:r});}
 
   var NOT_FOUND = {};
   function getPassThroughProps(props, excludeProps) {
@@ -375,7 +119,7 @@
     // Using `block: "center"` instead of `block: "nearest"`
     // because otherwise the `node` might be obstructed by a "floating" header.
     // https://github.com/stipsan/scroll-into-view-if-needed/issues/126#issuecomment-533089870
-    scrollIntoView(node, {
+    t(node, {
       scrollMode: 'if-needed',
       behavior: 'smooth',
       block: 'center',
@@ -427,8 +171,8 @@
   function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray$1(arr, i) || _nonIterableRest(); }
   function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
   function _unsupportedIterableToArray$1(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray$1(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$1(o, minLen); }
-  function _arrayLikeToArray$1(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-  function _iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0) { ; } } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i["return"] && (_r = _i["return"](), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
+  function _arrayLikeToArray$1(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+  function _iterableToArrayLimit(arr, i) { var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"]; if (null != _i) { var _s, _e, _x, _r, _arr = [], _n = !0, _d = !1; try { if (_x = (_i = _i.call(arr)).next, 0 === i) { if (Object(_i) !== _i) return; _n = !1; } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0); } catch (err) { _d = !0, _e = err; } finally { try { if (!_n && null != _i["return"] && (_r = _i["return"](), Object(_r) !== _r)) return; } finally { if (_d) throw _e; } } return _arr; } }
   function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
   var LIST_ITEM_KEY_REGEXP = /^([^:]+):(\d+):([^:]+)$/;
 
@@ -536,6 +280,7 @@
   var ListPlugin = /*#__PURE__*/function () {
     function ListPlugin() {
       _classCallCheck$3(this, ListPlugin);
+      // Tracks `<List/>`s.
       _defineProperty$4(this, "lists", {});
     }
     _createClass$3(ListPlugin, [{
@@ -771,7 +516,7 @@
   function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$2(Object(source), !0).forEach(function (key) { _defineProperty$3(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
   function _createForOfIteratorHelperLoose(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (it) return (it = it.call(o)).next.bind(it); if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; return function () { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
   function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-  function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+  function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
   function _classCallCheck$2(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
   function _defineProperties$2(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey$3(descriptor.key), descriptor); } }
   function _createClass$2(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties$2(Constructor.prototype, protoProps); if (staticProps) _defineProperties$2(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
@@ -785,28 +530,28 @@
   function _defineProperty$3(obj, key, value) { key = _toPropertyKey$3(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
   function _toPropertyKey$3(arg) { var key = _toPrimitive$3(arg, "string"); return _typeof$3(key) === "symbol" ? key : String(key); }
   function _toPrimitive$3(input, hint) { if (_typeof$3(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof$3(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-  var Context = /*#__PURE__*/React__default["default"].createContext();
+  var Context = /*#__PURE__*/React.createContext();
   var EMPTY_VALUE = null;
   var Form = /*#__PURE__*/function (_Component) {
     _inherits$2(Form, _Component);
     var _super = _createSuper$2(Form);
-    // Stores fields' `validate()` functions which are used
-    // when calling `set(field, value)` and `clear(field)`.
-    // Also stores fields' `scroll()` and `focus()` functions.
-
-    // The `unmounting` flag is checked in `<Field/>`s so that
-    // they don't unregister themseles on form unmount: there'd be
-    // no point in unregistering those fields if the form is going to be
-    // unmounted anyway.
-
     function Form(props) {
       var _this;
       _classCallCheck$2(this, Form);
       _this = _super.call(this, props);
+      // Stores fields' `validate()` functions which are used
+      // when calling `set(field, value)` and `clear(field)`.
+      // Also stores fields' `scroll()` and `focus()` functions.
       _defineProperty$3(_assertThisInitialized$2(_this), "fields", {});
       _defineProperty$3(_assertThisInitialized$2(_this), "watchedFields", {});
       _defineProperty$3(_assertThisInitialized$2(_this), "watchedFieldsList", []);
+      // The `unmounting` flag is checked in `<Field/>`s so that
+      // they don't unregister themseles on form unmount: there'd be
+      // no point in unregistering those fields if the form is going to be
+      // unmounted anyway.
       _defineProperty$3(_assertThisInitialized$2(_this), "unmounting", false);
+      // `value` parameter is an initial field value.
+      // It is used later in case of a form or field reset.
       _defineProperty$3(_assertThisInitialized$2(_this), "onRegisterField", function (field, _ref) {
         var value = _ref.value,
           onChange = _ref.onChange,
@@ -854,6 +599,12 @@
         // removed if it's no longer mounted.
         _this.forceUpdate();
       });
+      /**
+       * `callback` is currently only used when calling
+       * `context.dispatch(setFormSubmitting(false))`.
+       * @param  {function}   action — A function of `state`.
+       * @param  {function} callback
+       */
       _defineProperty$3(_assertThisInitialized$2(_this), "dispatch", function (action, callback) {
         // const newState = action(this.getState())
         // this.applyStateChanges(newState, callback)
@@ -864,6 +615,8 @@
         action(_this.getState());
         _this.applyStateChanges(_this.getState(), callback);
       });
+      // This function is called by plugins.
+      // They access it from the `context`.
       _defineProperty$3(_assertThisInitialized$2(_this), "updateState", function (stateUpdater) {
         // const newState = stateUpdater(this.state)
         // this.applyStateChanges(newState)
@@ -907,12 +660,18 @@
         }
         return getValue(initialValues, name);
       });
+      // Public API
+      /**
+       * Returns form field values.
+       * @return {object}
+       */
       _defineProperty$3(_assertThisInitialized$2(_this), "values", function () {
         var _this$getState2 = _this.getState(),
           values = _this$getState2.values,
           fields = _this$getState2.fields;
         return _this.applyPluginValueTransforms(getValues(values, fields));
       });
+      // Public API
       _defineProperty$3(_assertThisInitialized$2(_this), "reset", function (field) {
         // `<Form/>` `.reset()` instance method no longer accepts `fieldName: string` argument.
         // It still works the old way, but the `fieldName: string` arugment is considered deprecated.
@@ -983,6 +742,7 @@
           resetForm: true
         });
       });
+      // Not tested.
       _defineProperty$3(_assertThisInitialized$2(_this), "resetField", function (name) {
         for (var _iterator3 = _createForOfIteratorHelperLoose(_this.plugins), _step3; !(_step3 = _iterator3()).done;) {
           var plugin = _step3.value;
@@ -1028,6 +788,7 @@
           }
         }
       });
+      // Is called when the form has been submitted.
       _defineProperty$3(_assertThisInitialized$2(_this), "onAfterSubmit", function () {
         var onAfterSubmit = _this.props.onAfterSubmit;
         for (var _iterator4 = _createForOfIteratorHelperLoose(_this.plugins), _step4; !(_step4 = _iterator4()).done;) {
@@ -1076,24 +837,31 @@
           _this.executeFormAction(onSubmit, _this.getValuesForSubmit());
         }
       });
+      // Focuses on a given form field (is used internally + public API).
       _defineProperty$3(_assertThisInitialized$2(_this), "focus", function (field) {
         if (field) {
           return _this.fields[field].focus();
         }
         _this.getFocusable().focus();
       });
+      // Scrolls to a form field (is used internally + public API).
       _defineProperty$3(_assertThisInitialized$2(_this), "scroll", function (field, options) {
         return _this.fields[field].scroll(options);
       });
+      // Clears field value (public API).
+      // If this field hasn't been "registered" yet then ignore.
       _defineProperty$3(_assertThisInitialized$2(_this), "clear", function (field) {
         return _this.set(field, EMPTY_VALUE);
       });
+      // Gets field value (public API).
       _defineProperty$3(_assertThisInitialized$2(_this), "get", function (field) {
         return _this.getState().values[field];
       });
+      // Sets field value (public API).
       _defineProperty$3(_assertThisInitialized$2(_this), "set", function (field, value) {
         return _this._set(field, value, {});
       });
+      // Sets field value.
       _defineProperty$3(_assertThisInitialized$2(_this), "_set", function (field, value, _ref2) {
         var changed = _ref2.changed;
         _this.dispatch(setFieldValue(field, value));
@@ -1331,9 +1099,6 @@
           }
         });
       }
-
-      // `value` parameter is an initial field value.
-      // It is used later in case of a form or field reset.
     }, {
       key: "applyPluginValueTransforms",
       value:
@@ -1351,8 +1116,6 @@
         }
         return values;
       }
-
-      // Public API
     }, {
       key: "searchForInvalidField",
       value: function searchForInvalidField() {
@@ -1567,8 +1330,6 @@
         }
         return this.getSubmitButtonNode();
       }
-
-      // Scrolls to a form field (is used internally + public API).
     }, {
       key: "getContext",
       value: function getContext() {
@@ -1581,14 +1342,14 @@
         var resetCounter = this.getContext.resetCounter;
         var _this$getState8 = this.getState(),
           submitting = _this$getState8.submitting;
-        return /*#__PURE__*/React__default["default"].createElement("form", _extends$2({
+        return /*#__PURE__*/React.createElement("form", _extends$2({
           key: resetCounter,
           ref: this.setFormNode
         }, getPassThroughProps(this.props, Form.propTypes), {
           onSubmit: this.onSubmit
-        }), /*#__PURE__*/React__default["default"].createElement(Context.Provider, {
+        }), /*#__PURE__*/React.createElement(Context.Provider, {
           value: this.getContext()
-        }, typeof children === 'function' ? /*#__PURE__*/React__default["default"].createElement(Children, {
+        }, typeof children === 'function' ? /*#__PURE__*/React.createElement(Children, {
           values: this.mounted ? this.values() : undefined,
           reset: this.reset,
           set: this.set,
@@ -1604,20 +1365,20 @@
   }(React.Component); // Added a functional `Children` component to work around a React warning:
   // "Invalid hook call. Hooks can only be called inside of the body of a function component".
   _defineProperty$3(Form, "propTypes", {
-    onSubmit: PropTypes__default["default"].func.isRequired,
-    onBeforeSubmit: PropTypes__default["default"].func,
-    onAfterSubmit: PropTypes__default["default"].func,
-    onStateDidChange: PropTypes__default["default"].func,
-    onAbandon: PropTypes__default["default"].func,
-    initialState: PropTypes__default["default"].object,
-    values: PropTypes__default["default"].object,
-    autoFocus: PropTypes__default["default"].bool.isRequired,
-    trim: PropTypes__default["default"].bool.isRequired,
-    requiredMessage: PropTypes__default["default"].string.isRequired,
-    onError: PropTypes__default["default"].func.isRequired,
-    scrollDuration: PropTypes__default["default"].number.isRequired,
-    plugins: PropTypes__default["default"].arrayOf(PropTypes__default["default"].func).isRequired,
-    children: PropTypes__default["default"].oneOfType([PropTypes__default["default"].func, PropTypes__default["default"].node]).isRequired
+    onSubmit: PropTypes.func.isRequired,
+    onBeforeSubmit: PropTypes.func,
+    onAfterSubmit: PropTypes.func,
+    onStateDidChange: PropTypes.func,
+    onAbandon: PropTypes.func,
+    initialState: PropTypes.object,
+    values: PropTypes.object,
+    autoFocus: PropTypes.bool.isRequired,
+    trim: PropTypes.bool.isRequired,
+    requiredMessage: PropTypes.string.isRequired,
+    onError: PropTypes.func.isRequired,
+    scrollDuration: PropTypes.number.isRequired,
+    plugins: PropTypes.arrayOf(PropTypes.func).isRequired,
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired
   });
   _defineProperty$3(Form, "defaultProps", {
     autoFocus: false,
@@ -1651,46 +1412,46 @@
     });
   }
   Children.propTypes = {
-    values: PropTypes__default["default"].object,
-    reset: PropTypes__default["default"].func.isRequired,
-    set: PropTypes__default["default"].func.isRequired,
-    clear: PropTypes__default["default"].func.isRequired,
-    scroll: PropTypes__default["default"].func.isRequired,
-    focus: PropTypes__default["default"].func.isRequired,
-    watch: PropTypes__default["default"].func.isRequired,
-    submitting: PropTypes__default["default"].bool.isRequired,
-    children: PropTypes__default["default"].func.isRequired
+    values: PropTypes.object,
+    reset: PropTypes.func.isRequired,
+    set: PropTypes.func.isRequired,
+    clear: PropTypes.func.isRequired,
+    scroll: PropTypes.func.isRequired,
+    focus: PropTypes.func.isRequired,
+    watch: PropTypes.func.isRequired,
+    submitting: PropTypes.bool.isRequired,
+    children: PropTypes.func.isRequired
   };
-  var contextPropType = PropTypes__default["default"].shape({
-    state: PropTypes__default["default"].shape({
+  var contextPropType = PropTypes.shape({
+    state: PropTypes.shape({
       // An object containing field "counters" (integers).
       // When a field is no longer rendered in a form, its counter becomes `0`.
       // Until a field is mounted for the first time, its counter value is `undefined`.
-      fields: PropTypes__default["default"].object.isRequired,
+      fields: PropTypes.object.isRequired,
       // An object containing field values.
-      values: PropTypes__default["default"].object.isRequired,
+      values: PropTypes.object.isRequired,
       // An object containing field initial values.
-      initialValues: PropTypes__default["default"].object.isRequired,
+      initialValues: PropTypes.object.isRequired,
       // An object containing field error messages.
-      errors: PropTypes__default["default"].object.isRequired,
+      errors: PropTypes.object.isRequired,
       // The `name` of the latest focused field.
-      latestFocusedField: PropTypes__default["default"].string,
-      submitting: PropTypes__default["default"].bool.isRequired,
-      submitAttempted: PropTypes__default["default"].bool.isRequired
+      latestFocusedField: PropTypes.string,
+      submitting: PropTypes.bool.isRequired,
+      submitAttempted: PropTypes.bool.isRequired
     }).isRequired,
-    updateState: PropTypes__default["default"].func.isRequired,
-    isUnmounting: PropTypes__default["default"].func.isRequired,
-    onRegisterField: PropTypes__default["default"].func.isRequired,
-    onUnregisterField: PropTypes__default["default"].func.isRequired,
-    transformValueForSubmit: PropTypes__default["default"].func.isRequired,
-    focus: PropTypes__default["default"].func.isRequired,
-    watch: PropTypes__default["default"].func.isRequired,
-    dispatch: PropTypes__default["default"].func.isRequired,
-    getRequiredMessage: PropTypes__default["default"].func.isRequired,
-    getValues: PropTypes__default["default"].func.isRequired,
+    updateState: PropTypes.func.isRequired,
+    isUnmounting: PropTypes.func.isRequired,
+    onRegisterField: PropTypes.func.isRequired,
+    onUnregisterField: PropTypes.func.isRequired,
+    transformValueForSubmit: PropTypes.func.isRequired,
+    focus: PropTypes.func.isRequired,
+    watch: PropTypes.func.isRequired,
+    dispatch: PropTypes.func.isRequired,
+    getRequiredMessage: PropTypes.func.isRequired,
+    getValues: PropTypes.func.isRequired,
     // These get added by `ListPlugin`.
-    onRegisterList: PropTypes__default["default"].func.isRequired,
-    onListStateChange: PropTypes__default["default"].func.isRequired
+    onRegisterList: PropTypes.func.isRequired,
+    onListStateChange: PropTypes.func.isRequired
   });
 
   function _typeof$2(obj) { "@babel/helpers - typeof"; return _typeof$2 = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof$2(obj); }
@@ -1709,8 +1470,8 @@
   function _toPrimitive$2(input, hint) { if (_typeof$2(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof$2(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
   function _extends$1() { _extends$1 = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends$1.apply(this, arguments); }
   function List_(props) {
-    return /*#__PURE__*/React__default["default"].createElement(Context.Consumer, null, function (context) {
-      return /*#__PURE__*/React__default["default"].createElement(List, _extends$1({}, props, {
+    return /*#__PURE__*/React.createElement(Context.Consumer, null, function (context) {
+      return /*#__PURE__*/React.createElement(List, _extends$1({}, props, {
         context: context
       }));
     });
@@ -1857,8 +1618,8 @@
       value: function render() {
         var _this2 = this;
         var children = this.props.children;
-        return /*#__PURE__*/React__default["default"].createElement(Context.Consumer, null, function (context) {
-          return /*#__PURE__*/React__default["default"].createElement(ListContext.Provider, {
+        return /*#__PURE__*/React.createElement(Context.Consumer, null, function (context) {
+          return /*#__PURE__*/React.createElement(ListContext.Provider, {
             value: _this2.getListContext()
           }, children({
             map: _this2.map,
@@ -1869,17 +1630,17 @@
       }
     }]);
     return List;
-  }(React__default["default"].Component);
+  }(React.Component);
   List.propTypes = {
-    name: PropTypes__default["default"].string.isRequired,
-    count: PropTypes__default["default"].number.isRequired,
-    context: PropTypes__default["default"].object.isRequired,
-    children: PropTypes__default["default"].func.isRequired
+    name: PropTypes.string.isRequired,
+    count: PropTypes.number.isRequired,
+    context: PropTypes.object.isRequired,
+    children: PropTypes.func.isRequired
   };
   List.defaultProps = {
     count: 1
   };
-  var ListContext = /*#__PURE__*/React__default["default"].createContext();
+  var ListContext = /*#__PURE__*/React.createContext();
   function createItemIdsArray(size) {
     var array = new Array(size);
     var i = 0;
@@ -1889,9 +1650,9 @@
     }
     return array;
   }
-  var listContextPropType = PropTypes__default["default"].shape({
-    getFieldNameInsideList: PropTypes__default["default"].func.isRequired,
-    onRegisterFieldInsideList: PropTypes__default["default"].func.isRequired
+  var listContextPropType = PropTypes.shape({
+    getFieldNameInsideList: PropTypes.func.isRequired,
+    onRegisterFieldInsideList: PropTypes.func.isRequired
   });
 
   function _typeof$1(obj) { "@babel/helpers - typeof"; return _typeof$1 = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof$1(obj); }
@@ -1912,9 +1673,9 @@
   function _toPrimitive$1(input, hint) { if (_typeof$1(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof$1(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
   function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
   function Field(props) {
-    return /*#__PURE__*/React__default["default"].createElement(Context.Consumer, null, function (context) {
-      return /*#__PURE__*/React__default["default"].createElement(ListContext.Consumer, null, function (listContext) {
-        return /*#__PURE__*/React__default["default"].createElement(FormField, _extends({}, props, {
+    return /*#__PURE__*/React.createElement(Context.Consumer, null, function (context) {
+      return /*#__PURE__*/React.createElement(ListContext.Consumer, null, function (listContext) {
+        return /*#__PURE__*/React.createElement(FormField, _extends({}, props, {
           context: context,
           listContext: listContext
         }));
@@ -1931,7 +1692,7 @@
 
       // The field could register itself inside `componentDidMount`
       // but in that case initial `value` wouldn't yet be applied at mount time.
-      _defineProperty$1(_assertThisInitialized(_this), "field", /*#__PURE__*/React__default["default"].createRef());
+      _defineProperty$1(_assertThisInitialized(_this), "field", /*#__PURE__*/React.createRef());
       _defineProperty$1(_assertThisInitialized(_this), "onChange", function () {
         for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
           args[_key] = arguments[_key];
@@ -1987,6 +1748,7 @@
           onBlur(event);
         }
       });
+      // Focuses on a field (can be called externally through a ref).
       _defineProperty$1(_assertThisInitialized(_this), "focus", function () {
         // `.focus()` could theoretically maybe potentially be called in a timeout,
         // so check if the component is still mounted.
@@ -2163,8 +1925,6 @@
       value: function getNode() {
         return this.field.current;
       }
-
-      // Focuses on a field (can be called externally through a ref).
     }, {
       key: "shouldValidateRequired",
       value: function shouldValidateRequired() {
@@ -2188,7 +1948,7 @@
           component = _this$props8.component,
           errorProperty = _this$props8.error,
           waitProperty = _this$props8.wait;
-        return /*#__PURE__*/React__default["default"].createElement(component, _objectSpread$1(_objectSpread$1({}, getPassThroughProps(this.props, FormField.propTypes)), {}, {
+        return /*#__PURE__*/React.createElement(component, _objectSpread$1(_objectSpread$1({}, getPassThroughProps(this.props, FormField.propTypes)), {}, {
           ref: this.field,
           onChange: this.onChange,
           onFocus: this.onFocus,
@@ -2205,19 +1965,19 @@
     return FormField;
   }(React.Component);
   _defineProperty$1(FormField, "propTypes", {
-    component: PropTypes__default["default"].elementType.isRequired,
-    name: PropTypes__default["default"].string.isRequired,
-    required: PropTypes__default["default"].bool,
-    requiredMessage: PropTypes__default["default"].string,
-    wait: PropTypes__default["default"].bool,
-    error: PropTypes__default["default"].string,
-    value: PropTypes__default["default"].any,
-    validate: PropTypes__default["default"].func,
+    component: PropTypes.elementType.isRequired,
+    name: PropTypes.string.isRequired,
+    required: PropTypes.bool,
+    requiredMessage: PropTypes.string,
+    wait: PropTypes.bool,
+    error: PropTypes.string,
+    value: PropTypes.any,
+    validate: PropTypes.func,
     // This property is currently not used.
     // Validation is currently only performed on `blur` event
     // and any validation errors are cleared while the user is typing.
     // Perhaps that results in a slightly less unneeded CPU load or something like that.
-    validateOnChange: PropTypes__default["default"].bool,
+    validateOnChange: PropTypes.bool,
     // This property is currently not used.
     // "Required" validation is currently only performed after a user has attempted
     // to submit the form. The reason is that otherwise there'd be unnecessarily-shown
@@ -2226,8 +1986,8 @@
     // Or, for example, showing the "Required" error message on blur could result in
     // a shift of content when the user attempts to click the "Submit" button
     // resulting in the user clicking another button or empty space.
-    validateRequiredBeforeSubmit: PropTypes__default["default"].bool,
-    onChange: PropTypes__default["default"].func,
+    validateRequiredBeforeSubmit: PropTypes.bool,
+    onChange: PropTypes.func,
     // `onErrorChange()` property wasn't added because it would be called
     // at the time when the error has changed in form state but that form state
     // hasn't already been rendered.
@@ -2235,7 +1995,7 @@
 
     context: contextPropType.isRequired,
     listContext: listContextPropType,
-    item: PropTypes__default["default"].number
+    item: PropTypes.number
   });
   function isValueEmpty(_) {
     return _ === undefined || _ === null || Array.isArray(_) && _.length === 0;
@@ -2249,15 +2009,15 @@
   function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
   function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
   function Submit(props) {
-    return /*#__PURE__*/React__default["default"].createElement(Context.Consumer, null, function (context) {
-      return /*#__PURE__*/React__default["default"].createElement(props.component, _objectSpread(_objectSpread({}, getPassThroughProps(props, Submit.propTypes)), {}, {
+    return /*#__PURE__*/React.createElement(Context.Consumer, null, function (context) {
+      return /*#__PURE__*/React.createElement(props.component, _objectSpread(_objectSpread({}, getPassThroughProps(props, Submit.propTypes)), {}, {
         wait: props.wait || context.state.submitting
       }));
     });
   }
   Submit.propTypes = {
-    component: PropTypes__default["default"].elementType.isRequired,
-    wait: PropTypes__default["default"].bool
+    component: PropTypes.elementType.isRequired,
+    wait: PropTypes.bool
   };
 
   function useFormState() {
@@ -2276,8 +2036,6 @@
   exports.Submit = Submit;
   exports.useFormState = useFormState;
   exports.useWatch = useWatch;
-
-  Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
 //# sourceMappingURL=easy-react-form.js.map

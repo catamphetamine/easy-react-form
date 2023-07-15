@@ -1,4 +1,4 @@
-import { NOT_FOUND } from '../utility'
+import { NOT_FOUND } from '../utility.js'
 
 const LIST_ITEM_KEY_REGEXP = /^([^:]+):(\d+):([^:]+)$/
 
