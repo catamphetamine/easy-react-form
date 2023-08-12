@@ -36,7 +36,12 @@ class FormField extends Component {
 		requiredMessage: PropTypes.string,
 		wait: PropTypes.bool,
 		error: PropTypes.string,
+		// `value` and `defaultValue` are basically the same thing.
+		// The only subtle difference between them is that:
+		// * `<Field value/>` overrides `<Form values/>`
+		// * `<Field defaultValue/>` gets overridden by `<Form values/>`
 		value: PropTypes.any,
+		defaultValue: PropTypes.any,
 		validate: PropTypes.func,
 
 		// This property is currently not used.
@@ -90,7 +95,12 @@ class FormField extends Component {
 			context,
 			listContext,
 			name,
+			// `value` and `defaultValue` are basically the same thing.
+			// The only subtle difference between them is that:
+			// * `<Field value/>` overrides `<Form values/>`
+			// * `<Field defaultValue/>` gets overridden by `<Form values/>`
 			value,
+			defaultValue,
 			onChange
 		} = this.props
 
@@ -101,7 +111,12 @@ class FormField extends Component {
 		// "registered"/"unregistered" several times in those cases.
 		//
 		context.onRegisterField(this.getName(), {
+			// `value` and `defaultValue` are basically the same thing.
+			// The only subtle difference between them is that:
+			// * `<Field value/>` overrides `<Form values/>`
+			// * `<Field defaultValue/>` gets overridden by `<Form values/>`
 			value,
+			defaultValue,
 			onChange,
 			onError: this.onError,
 			validate: this.validate,
@@ -134,7 +149,15 @@ class FormField extends Component {
 	}
 
 	componentDidUpdate(prevProps) {
-		const { context, value } = this.props
+		const {
+			context,
+			// `value` and `defaultValue` are basically the same thing.
+			// The only subtle difference between them is that:
+			// * `<Field value/>` overrides `<Form values/>`
+			// * `<Field defaultValue/>` gets overridden by `<Form values/>`
+			value,
+			defaultValue
+		} = this.props
 
 		// If React reused one `<Field/>` element for another form field
 		// then handle this type of situation correctly.
@@ -149,11 +172,23 @@ class FormField extends Component {
 			// If the default value changed for this `<Field/>`
 			// and the field hasn't been edited yet
 			// then apply this new default value.
-			if (value !== prevProps.value && !this.hasBeenEdited) {
-				const error = this.validate(value)
-				this.onError(error)
-				context.dispatch(setFieldValue(this.getName(), value))
-				context.dispatch(setFieldError(this.getName(), error))
+			if (!this.hasBeenEdited) {
+				let newValue
+				let defaultValueHasChanged
+				if (value !== prevProps.value) {
+					newValue = value
+					defaultValueHasChanged = true
+				} else if (defaultValue !== prevProps.defaultValue) {
+					newValue = defaultValue
+					defaultValueHasChanged = true
+				}
+				if (defaultValueHasChanged) {
+					// Set the new value.
+					const error = this.validate(newValue)
+					this.onError(error)
+					context.dispatch(setFieldValue(this.getName(), newValue))
+					context.dispatch(setFieldError(this.getName(), error))
+				}
 			}
 		}
 	}

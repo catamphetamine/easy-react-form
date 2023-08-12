@@ -253,7 +253,12 @@ export default class Form extends Component {
 	// `value` parameter is an initial field value.
 	// It is used later in case of a form or field reset.
 	onRegisterField = (field, {
+		// `value` and `defaultValue` are basically the same thing.
+		// The only subtle difference between them is that:
+		// * `<Field value/>` overrides `<Form values/>`
+		// * `<Field defaultValue/>` gets overridden by `<Form values/>`
 		value,
+		defaultValue,
 		onChange,
 		validate,
 		scroll,
@@ -261,6 +266,9 @@ export default class Form extends Component {
 	}) => {
 		if (value === undefined) {
 			value = this.getInitialValue(field)
+			if (value === undefined) {
+				value = defaultValue
+			}
 		}
 
 		// React doesn't know how to properly handle `value === undefined`.

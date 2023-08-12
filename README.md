@@ -169,7 +169,7 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 
 * `reset()` — Resets all form field values.
 
-* `watch(fieldName : String) : any` — Watches a form field's value. Returns the current form field's value and re-renders the whole form whenever that value changes. Returns `undefined` until the form is initialized (mounted) (`<Field/>` `defaultValue`s are not set until those `<Feild/>`s have mounted).
+* `watch(fieldName : String) : any` — "Watches" a form field's value: always returns the current value of the form field and also causes a re-render of the whole form whenever that value changes. Returns `undefined` until the form is initialized (mounted), because `<Field/>`s' default values are not set until those `<Feild/>`s have mounted.
 
 * `focus(fieldName : String)` — Focuses on a field.
 
@@ -225,6 +225,8 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 `<Field/>` accepts the following optional properties:
 
   * `value` - the initial value of the field.
+
+  * `defaultValue` - same as the `value` property but with one subtle difference: `<Field value/>` overrides `<Form values/>` while `<Field defaultValue/>` gets overridden by `<Form values/>`.
 
   * `validate(value) : String?` — Form field value validation function. Is only called when `value` is not "empty": `null` / `undefined` / `""` / `[]`. Should return an error message if the field value is invalid.
 

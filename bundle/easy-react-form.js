@@ -554,12 +554,16 @@
       // It is used later in case of a form or field reset.
       _defineProperty$3(_assertThisInitialized$2(_this), "onRegisterField", function (field, _ref) {
         var value = _ref.value,
+          defaultValue = _ref.defaultValue,
           onChange = _ref.onChange,
           validate = _ref.validate,
           scroll = _ref.scroll,
           focus = _ref.focus;
         if (value === undefined) {
           value = _this.getInitialValue(field);
+          if (value === undefined) {
+            value = defaultValue;
+          }
         }
 
         // React doesn't know how to properly handle `value === undefined`.
@@ -1836,6 +1840,7 @@
           listContext = _this$props5.listContext,
           name = _this$props5.name,
           value = _this$props5.value,
+          defaultValue = _this$props5.defaultValue,
           onChange = _this$props5.onChange;
 
         // "Register" the field and initialize it with the default value.
@@ -1845,7 +1850,12 @@
         // "registered"/"unregistered" several times in those cases.
         //
         context.onRegisterField(this.getName(), {
+          // `value` and `defaultValue` are basically the same thing.
+          // The only subtle difference between them is that:
+          // * `<Field value/>` overrides `<Form values/>`
+          // * `<Field defaultValue/>` gets overridden by `<Form values/>`
           value: value,
+          defaultValue: defaultValue,
           onChange: onChange,
           onError: this.onError,
           validate: this.validate,
@@ -1882,7 +1892,8 @@
       value: function componentDidUpdate(prevProps) {
         var _this$props6 = this.props,
           context = _this$props6.context,
-          value = _this$props6.value;
+          value = _this$props6.value,
+          defaultValue = _this$props6.defaultValue;
 
         // If React reused one `<Field/>` element for another form field
         // then handle this type of situation correctly.
@@ -1897,11 +1908,23 @@
           // If the default value changed for this `<Field/>`
           // and the field hasn't been edited yet
           // then apply this new default value.
-          if (value !== prevProps.value && !this.hasBeenEdited) {
-            var error = this.validate(value);
-            this.onError(error);
-            context.dispatch(setFieldValue(this.getName(), value));
-            context.dispatch(setFieldError(this.getName(), error));
+          if (!this.hasBeenEdited) {
+            var newValue;
+            var defaultValueHasChanged;
+            if (value !== prevProps.value) {
+              newValue = value;
+              defaultValueHasChanged = true;
+            } else if (defaultValue !== prevProps.defaultValue) {
+              newValue = defaultValue;
+              defaultValueHasChanged = true;
+            }
+            if (defaultValueHasChanged) {
+              // Set the new value.
+              var error = this.validate(newValue);
+              this.onError(error);
+              context.dispatch(setFieldValue(this.getName(), newValue));
+              context.dispatch(setFieldError(this.getName(), error));
+            }
           }
         }
       }
@@ -1971,7 +1994,12 @@
     requiredMessage: PropTypes.string,
     wait: PropTypes.bool,
     error: PropTypes.string,
+    // `value` and `defaultValue` are basically the same thing.
+    // The only subtle difference between them is that:
+    // * `<Field value/>` overrides `<Form values/>`
+    // * `<Field defaultValue/>` gets overridden by `<Form values/>`
     value: PropTypes.any,
+    defaultValue: PropTypes.any,
     validate: PropTypes.func,
     // This property is currently not used.
     // Validation is currently only performed on `blur` event
