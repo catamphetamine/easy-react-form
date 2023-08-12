@@ -225,8 +225,10 @@ The `<Form/>` can also accept `children` being a `function(parameters)` returnin
 `<Field/>` accepts the following optional properties:
 
   * `value` - the initial value of the field.
+    * When both `<Field name="fieldName" value={...}/>` and `<Form values={{ fieldName: ... }}/>` are provided, the `value` property of the `<Field/>` overrides the field's value in the `values` object. This makes it more of a "specific initial value" rather than "default initial value". So it can't be used, for example, to set a checkbox'es "default" value to `false` (rather than `null`) because it would always be `false` even when different `<Form values={...}/>` are provided.
 
-  * `defaultValue` - same as the `value` property but with one subtle difference: `<Field value/>` overrides `<Form values/>` while `<Field defaultValue/>` gets overridden by `<Form values/>`.
+  * `defaultValue` - the default initial value of the field.
+    * Basically, same as the `value` property but with one difference: it doesn't override `<Form values={...}/>`, which makes it suitable for cases like setting a checkbox'es "default" initial value to `false` (rather than `null`).
 
   * `validate(value) : String?` — Form field value validation function. Is only called when `value` is not "empty": `null` / `undefined` / `""` / `[]`. Should return an error message if the field value is invalid.
 

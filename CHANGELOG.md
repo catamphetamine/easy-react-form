@@ -1,5 +1,11 @@
 <!-- pass through `required` property even when the field is not empty: maybe add some `passThroughRequiredWhenNotEmpty` configuration option. -->
 
+
+2.2.1 / 12.08.2023
+==================
+
+* Added `defaultValue` on the `<Field/>` component.
+
 2.0.0 — 2.0.9 / 31.01.2023 — 17.06.2023
 =======================================
 
