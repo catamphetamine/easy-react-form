@@ -262,7 +262,8 @@ export default class Form extends Component {
 		onChange,
 		validate,
 		scroll,
-		focus
+		focus,
+		getElement
 	}) => {
 		if (value === undefined) {
 			value = this.getInitialValue(field)
@@ -290,7 +291,8 @@ export default class Form extends Component {
 			validate,
 			scroll,
 			focus,
-			onChange
+			onChange,
+			getElement
 		}
 		// This is used for the `autofocus` feature.
 		if (!this.firstField) {

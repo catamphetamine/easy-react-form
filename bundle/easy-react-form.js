@@ -558,7 +558,8 @@
           onChange = _ref.onChange,
           validate = _ref.validate,
           scroll = _ref.scroll,
-          focus = _ref.focus;
+          focus = _ref.focus,
+          getElement = _ref.getElement;
         if (value === undefined) {
           value = _this.getInitialValue(field);
           if (value === undefined) {
@@ -585,7 +586,8 @@
           validate: validate,
           scroll: scroll,
           focus: focus,
-          onChange: onChange
+          onChange: onChange,
+          getElement: getElement
         };
         // This is used for the `autofocus` feature.
         if (!_this.firstField) {
