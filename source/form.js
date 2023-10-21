@@ -738,11 +738,17 @@ export default class Form extends Component {
 	}
 
 	// Focuses on a given form field (is used internally + public API).
-	focus = (field) => {
+	// The `options` object could be `{ preventScroll: true }`, for example.
+	focus = (field, options) => {
 		if (field) {
-			return this.fields[field].focus()
+			if (this.fields[field]) {
+				this.fields[field].focus(options)
+			} else {
+				console.error(`[easy-react-form] Field "${field}" not found`)
+			}
+		} else {
+			this.getFocusable().focus(options)
 		}
-		this.getFocusable().focus()
 	}
 
 	/**
@@ -804,6 +810,21 @@ export default class Form extends Component {
 
 	getState = () => {
 		return this.state.state
+	}
+
+	// Public API.
+	getElement = (field) => {
+		if (field) {
+			if (this.fields[field]) {
+				return this.fields[field].getElement()
+			} else {
+				console.error(`[easy-react-form] Field "${field}" not found`)
+			}
+		} else {
+			// if (this.mounted) {
+			return this.form
+			// }
+		}
 	}
 
 	setFormNode = (node) => this.form = node

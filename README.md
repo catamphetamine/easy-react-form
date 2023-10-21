@@ -153,6 +153,8 @@ The `<Form/>` component instance (`ref`) provides the following methods:
 
   <!-- * `values()` — Returns form field values (an alternative to `get(fieldName : String)`). -->
 
+  * `getElement(fieldName? : String) : Element` — Returns the DOM Element for a field. If no field is specified, returns the DOM Element for the `<form/>` itself.
+
   * `reset()` — Resets all form field values.
 
 Upon form submission, if any one of its fields is invalid, then that field will be automatically scrolled to and focused, and the actual form submission won't happen.

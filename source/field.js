@@ -121,7 +121,8 @@ class FormField extends Component {
 			onError: this.onError,
 			validate: this.validate,
 			scroll: this.scroll,
-			focus: this.focus
+			focus: this.focus,
+			getElement: this.getElement
 		})
 
 		if (listContext) {
@@ -259,12 +260,15 @@ class FormField extends Component {
 	// 	}
 	// }
 
-	getNode() {
+	getElement = () => {
+		if (!this.mounted) {
+			return
+		}
 		return this.field.current
 	}
 
 	// Focuses on a field (can be called externally through a ref).
-	focus = () => {
+	focus = (options) => {
 		// `.focus()` could theoretically maybe potentially be called in a timeout,
 		// so check if the component is still mounted.
 		if (!this.mounted) {
@@ -277,9 +281,9 @@ class FormField extends Component {
 			return this.field.current.focus()
 		}
 		// Generic DOM focusing.
-		const node = this.getNode()
+		const node = this.getElement()
 		if (node) {
-			node.focus()
+			node.focus(options)
 		} else {
 			console.error(`Couldn't focus on field "${this.getName()}": DOM Node not found. ${STATELESS_COMPONENT_HINT}`)
 		}
@@ -291,7 +295,7 @@ class FormField extends Component {
 		if (!this.mounted) {
 			return
 		}
-		const node = this.getNode()
+		const node = this.getElement()
 		if (node) {
 			scrollTo(node, options)
 		} else {

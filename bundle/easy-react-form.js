@@ -842,11 +842,17 @@
         }
       });
       // Focuses on a given form field (is used internally + public API).
-      _defineProperty$3(_assertThisInitialized$2(_this), "focus", function (field) {
+      // The `options` object could be `{ preventScroll: true }`, for example.
+      _defineProperty$3(_assertThisInitialized$2(_this), "focus", function (field, options) {
         if (field) {
-          return _this.fields[field].focus();
+          if (_this.fields[field]) {
+            _this.fields[field].focus(options);
+          } else {
+            console.error("[easy-react-form] Field \"".concat(field, "\" not found"));
+          }
+        } else {
+          _this.getFocusable().focus(options);
         }
-        _this.getFocusable().focus();
       });
       // Scrolls to a form field (is used internally + public API).
       _defineProperty$3(_assertThisInitialized$2(_this), "scroll", function (field, options) {
@@ -897,6 +903,20 @@
       });
       _defineProperty$3(_assertThisInitialized$2(_this), "getState", function () {
         return _this.state.state;
+      });
+      // Public API.
+      _defineProperty$3(_assertThisInitialized$2(_this), "getElement", function (field) {
+        if (field) {
+          if (_this.fields[field]) {
+            return _this.fields[field].getElement();
+          } else {
+            console.error("[easy-react-form] Field \"".concat(field, "\" not found"));
+          }
+        } else {
+          // if (this.mounted) {
+          return _this.form;
+          // }
+        }
       });
       _defineProperty$3(_assertThisInitialized$2(_this), "setFormNode", function (node) {
         return _this.form = node;
@@ -1752,8 +1772,25 @@
           onBlur(event);
         }
       });
+      // onError(newError) {
+      // 	const { context, onErrorChange } = this.props
+      // 	if (onErrorChange) {
+      // 		const error = context.state.errors[this.getName()]
+      // 		// If validation error is being reset then show no error.
+      // 		// Otherwise, show the new validation error, if it has changed.
+      // 		if (newError !== error) {
+      // 			onErrorChange(newError)
+      // 		}
+      // 	}
+      // }
+      _defineProperty$1(_assertThisInitialized(_this), "getElement", function () {
+        if (!_this.mounted) {
+          return;
+        }
+        return _this.field.current;
+      });
       // Focuses on a field (can be called externally through a ref).
-      _defineProperty$1(_assertThisInitialized(_this), "focus", function () {
+      _defineProperty$1(_assertThisInitialized(_this), "focus", function (options) {
         // `.focus()` could theoretically maybe potentially be called in a timeout,
         // so check if the component is still mounted.
         if (!_this.mounted) {
@@ -1766,9 +1803,9 @@
           return _this.field.current.focus();
         }
         // Generic DOM focusing.
-        var node = _this.getNode();
+        var node = _this.getElement();
         if (node) {
-          node.focus();
+          node.focus(options);
         } else {
           console.error("Couldn't focus on field \"".concat(_this.getName(), "\": DOM Node not found. ").concat(STATELESS_COMPONENT_HINT));
         }
@@ -1779,7 +1816,7 @@
         if (!_this.mounted) {
           return;
         }
-        var node = _this.getNode();
+        var node = _this.getElement();
         if (node) {
           scrollTo(node, options);
         } else {
@@ -1860,7 +1897,8 @@
           onError: this.onError,
           validate: this.validate,
           scroll: this.scroll,
-          focus: this.focus
+          focus: this.focus,
+          getElement: this.getElement
         });
         if (listContext) {
           listContext.onRegisterFieldInsideList(name);
@@ -1931,23 +1969,6 @@
     }, {
       key: "onError",
       value: function onError(error) {}
-
-      // onError(newError) {
-      // 	const { context, onErrorChange } = this.props
-      // 	if (onErrorChange) {
-      // 		const error = context.state.errors[this.getName()]
-      // 		// If validation error is being reset then show no error.
-      // 		// Otherwise, show the new validation error, if it has changed.
-      // 		if (newError !== error) {
-      // 			onErrorChange(newError)
-      // 		}
-      // 	}
-      // }
-    }, {
-      key: "getNode",
-      value: function getNode() {
-        return this.field.current;
-      }
     }, {
       key: "shouldValidateRequired",
       value: function shouldValidateRequired() {
