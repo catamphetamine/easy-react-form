@@ -943,6 +943,12 @@
         var autoFocus = this.props.autoFocus;
         this.mounted = true;
 
+        // React calls `didMount()`/`willUnmount()`/`didMount()`
+        // when a component gets mounted in "strict" mode in development.
+        // That caused `this.unmounting` flag to be stuck at `true`.
+        // This workaround fixes that by resetting the flag on re-mount.
+        this.unmounting = false;
+
         // First `form.constructor` is called,
         // then `form.componentWillMount` is called,
         // then `field.constructor` is called,
