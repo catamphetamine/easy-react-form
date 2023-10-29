@@ -100,8 +100,7 @@ class FormField extends Component {
 			// * `<Field value/>` overrides `<Form values/>`
 			// * `<Field defaultValue/>` gets overridden by `<Form values/>`
 			value,
-			defaultValue,
-			onChange
+			defaultValue
 		} = this.props
 
 		// "Register" the field and initialize it with the default value.
@@ -117,7 +116,11 @@ class FormField extends Component {
 			// * `<Field defaultValue/>` gets overridden by `<Form values/>`
 			value,
 			defaultValue,
-			onChange,
+			// `onChange()` property function reference might change between renders.
+			// Passing `this._onChange` instead of `this.props.onChange` supports those changes:
+			// this `onChange` property, when called as a function, will always call the latest
+			// `this.props.onChange`.
+			onChange: this._onChange,
 			onError: this.onError,
 			validate: this.validate,
 			scroll: this.scroll,
@@ -194,6 +197,13 @@ class FormField extends Component {
 		}
 	}
 
+	_onChange = (value) => {
+		const { onChange } = this.props
+		if (onChange) {
+			onChange(value)
+		}
+	}
+
 	onChange = (...args) => {
 		const [event] = args
 		let value = event
@@ -206,7 +216,7 @@ class FormField extends Component {
 		// This flag won't work with `form.reset()`.
 		this.hasBeenEdited = true
 
-		const { context, validateOnChange, onChange } = this.props
+		const { context, validateOnChange } = this.props
 
 		// The `validateOnChange` feature is currently not used.
 		// Validation is currently only performed on `blur` event
@@ -214,9 +224,11 @@ class FormField extends Component {
 		// Perhaps that results in a slightly less unneeded CPU load or something like that.
 		const error = validateOnChange ? this.validate(value) : undefined;
 
-		if (onChange) {
-			onChange(value)
-		}
+		// `onChange()` property function reference might change between renders.
+		// Using `this._onChange` instead of `this.props.onChange` supports those changes:
+		// when such function is passed as an argument, and then called, it will always call
+		// the latest `this.props.onChange`.
+		this._onChange(value)
 
 		this.onError(error)
 

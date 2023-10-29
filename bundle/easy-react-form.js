@@ -1725,6 +1725,12 @@
       // The field could register itself inside `componentDidMount`
       // but in that case initial `value` wouldn't yet be applied at mount time.
       _defineProperty$1(_assertThisInitialized(_this), "field", /*#__PURE__*/React.createRef());
+      _defineProperty$1(_assertThisInitialized(_this), "_onChange", function (value) {
+        var onChange = _this.props.onChange;
+        if (onChange) {
+          onChange(value);
+        }
+      });
       _defineProperty$1(_assertThisInitialized(_this), "onChange", function () {
         for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
           args[_key] = arguments[_key];
@@ -1741,17 +1747,19 @@
         _this.hasBeenEdited = true;
         var _this$props = _this.props,
           context = _this$props.context,
-          validateOnChange = _this$props.validateOnChange,
-          onChange = _this$props.onChange;
+          validateOnChange = _this$props.validateOnChange;
 
         // The `validateOnChange` feature is currently not used.
         // Validation is currently only performed on `blur` event
         // and any validation errors are cleared while the user is typing.
         // Perhaps that results in a slightly less unneeded CPU load or something like that.
         var error = validateOnChange ? _this.validate(value) : undefined;
-        if (onChange) {
-          onChange(value);
-        }
+
+        // `onChange()` property function reference might change between renders.
+        // Using `this._onChange` instead of `this.props.onChange` supports those changes:
+        // when such function is passed as an argument, and then called, it will always call
+        // the latest `this.props.onChange`.
+        _this._onChange(value);
         _this.onError(error);
         context.dispatch(setFieldValue(_this.getName(), value));
         context.dispatch(setFieldError(_this.getName(), error));
@@ -1885,8 +1893,7 @@
           listContext = _this$props5.listContext,
           name = _this$props5.name,
           value = _this$props5.value,
-          defaultValue = _this$props5.defaultValue,
-          onChange = _this$props5.onChange;
+          defaultValue = _this$props5.defaultValue;
 
         // "Register" the field and initialize it with the default value.
         //
@@ -1901,7 +1908,11 @@
           // * `<Field defaultValue/>` gets overridden by `<Form values/>`
           value: value,
           defaultValue: defaultValue,
-          onChange: onChange,
+          // `onChange()` property function reference might change between renders.
+          // Passing `this._onChange` instead of `this.props.onChange` supports those changes:
+          // this `onChange` property, when called as a function, will always call the latest
+          // `this.props.onChange`.
+          onChange: this._onChange,
           onError: this.onError,
           validate: this.validate,
           scroll: this.scroll,
