@@ -137,7 +137,7 @@ The `<Form/>` accepts the following optional properties:
 
 The `<Form/>` component instance (`ref`) provides the following methods:
 
-  * `focus(fieldName : String)` — Focuses on a field.
+  * `focus(fieldName? : String)` — Focuses on a field. If a field name is not provided, focuses on the first field of the form.
 
   * `scroll(fieldName : String)` — Scrolls to a field (if it's not visible on the screen).
 

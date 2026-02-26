@@ -1,3 +1,6 @@
+import { describe, it } from 'mocha'
+import { expect } from 'chai'
+
 import {
 	Form,
 	Field,
@@ -5,9 +8,9 @@ import {
 	Submit,
 	useFormState,
 	useWatch
-} from '../index.js'
+} from '../../index.js'
 
-import Library from '../index.cjs'
+import Library from '../../index.cjs'
 
 describe('exports', function() {
 	it('should export ES6', function() {
